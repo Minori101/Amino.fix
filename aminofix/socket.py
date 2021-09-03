@@ -91,7 +91,7 @@ class SocketHandler:
 
         self.headers = {
             "NDCDEVICEID": self.client.device_id,
-            "NDCAUTH": f"sid={self.client.sid}"
+            "NDCAUTH": f"{self.client.sid}"
         }
 
         self.socket = websocket.WebSocketApp(

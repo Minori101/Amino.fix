@@ -47,7 +47,7 @@ class Client(Callbacks, SocketHandler):
         self.profile = profile
         self.auid = None
         self.headers = {
-            "NDCLANG": "en",
+            "NDCLANG": "ru",
             "NDC-MSG-SIG": gen_msg_sig(),
             "NDCDEVICEID": f"{self.device_id}",
             "SMDEVICEID": "b89d9a00-f78e-46a3-bd54-6507d68b343c",
@@ -77,7 +77,6 @@ class Client(Callbacks, SocketHandler):
             "secret": password
         }
         response = requests.post("https://aminoapps.com/api/auth", json=data)
-        self.run_socket()
         if response.status_code != 200:
             print(json.loads(response.text))
         else:
@@ -91,46 +90,20 @@ class Client(Callbacks, SocketHandler):
             except: 
                 self.sid = self.sid
             self.uid = response.json()["result"]["uid"]
-            
             self.headers["NDCAUTH"] = self.sid
             self.s_headers["NDCAUTH"] = self.sid
-
-            self.account: objects.UserProfile = self.get_user_info(self.uid)
-            self.profile: objects.UserProfile = self.get_user_info(self.uid)
-            
-            try:
-                with open("sid.json", "r") as stream:
-                    data = json.load(stream)
-                    self.user_agent = data["sid"]
-            except (FileNotFoundError, json.decoder.JSONDecodeError):
-                device = {"sid": self.sid}
-                with open("sid.json", "w") as stream:
-                    json.dump(device, stream, indent=4)
-
-            self.start()
+            subclient.SubClient().headers["NDCAUTH"] = self.sid
+            if self.profile != None:
+                try:
+                    self.userId = self.get_chat_id(code=self.profile)['chatId']
+                    self.comId = self.get_chat_id(code=self.profile)['comId']
+                except:
+                    self.profile = None
             return response.status_code
     def get_chat_id(self, code: str):
         url = f"{self.api}/g/s/link-resolution?q={code}"
         response = requests.get(url=url, headers=self.headers).json()['linkInfoV2']['extensions']['linkInfo']
         return {"comId": response['ndcId'], "chatId": response['objectId']}
-
-    def get_from_code(self, code: str):
-        """
-        Get the Object Information from the Amino URL Code.
-
-        **Parameters**
-            - **code** : Code from the Amino URL.
-                - ``http://aminoapps.com/p/EXAMPLE``, the ``code`` is 'EXAMPLE'.
-
-        **Returns**
-            - **Success** : :meth:`From Code Object <amino.lib.util.objects.FromCode>`
-
-            - **Fail** : :meth:`Exceptions <amino.lib.util.exceptions>`
-        """
-        self.headers["NDC-MSG-SIG"] = gen_msg_sig()
-        response = requests.get(f"{self.api}/g/s/link-resolution?q={code}", headers=self.headers, verify=self.certificatePath)
-        if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
-        else: return objects.FromCode(json.loads(response.text)["linkInfoV2"]).FromCode
 
     def join_community(self, comId: str, invitationId: str = None):
         url = f"{self.api}/x{comId}/s/community/join"
