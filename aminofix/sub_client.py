@@ -16,7 +16,7 @@ from time import time as timestamp
 from json_minify import json_minify
 
 from . import client
-from .lib.util import exceptions, device, objects
+from .lib.util import exceptions, device, objects, headers
 
 def gen_msg_sig():
     return base64.b64encode(bytes.fromhex("22") + hmac.new(bytes.fromhex(str(int(time.time()))), "22".encode("utf-8"),
@@ -28,32 +28,6 @@ class SubClient(client.Client):
     def __init__(self, comId: str = None, sid: str = None, aminoId: str = None, *, profile: objects.UserProfile = None):
         client.Client.__init__(self)
         self.vc_connect = False
-
-        with open("sid.json", "r") as stream:
-            data = json.load(stream)
-            self.sid = data["sid"]
-            stream.close()
-            os.remove('sid.json')
-
-        self.headers = {
-            "NDCLANG": "en",
-            "NDC-MSG-SIG": gen_msg_sig(),
-            "NDCDEVICEID": f"{self.device_id}",
-            "SMDEVICEID": "b89d9a00-f78e-46a3-bd54-6507d68b343c",
-            "NDCAUTH": f"{self.sid}",
-            "Accept-Language": "ru-RU",
-            "Content-Type": "application/json; charset=utf-8",
-            "User-Agent": f"{self.device_id}",
-            "Host": "service.narvii.com",
-            "Connection": "Keep-Alive",
-            "Accept-Encoding": "gzip",
-        }
-
-        self.s_headers = {"NDCDEVICEID": self.device_id}
-        self.web_headers = {
-            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36",
-            "x-requested-with": "xmlhttprequest"
-        }
 
         if comId is not None:
             self.comId = comId
@@ -69,39 +43,39 @@ class SubClient(client.Client):
         except AttributeError: raise exceptions.FailedLogin()
         except exceptions.UserUnavailable: pass
     def get_online_users(self, start: int = 0, size: int = 25):
-        self.headers["NDC-MSG-SIG"] = gen_msg_sig()
-        response = requests.get(f"{self.api}/x{self.comId}/s/live-layer?topic=ndtopic:x{self.comId}:online-members&start={start}&size={size}", headers=self.headers, verify=self.certificatePath)
+        headers.sig = gen_msg_sig()
+        response = requests.get(f"{self.api}/x{self.comId}/s/live-layer?topic=ndtopic:x{self.comId}:online-members&start={start}&size={size}", headers=headers.Headers().headers, verify=self.certificatePath)
         if response.status_code != 200: 
             return exceptions.CheckException(json.loads(response.text))
         else: 
             return objects.UserProfileCountList(json.loads(response.text)).UserProfileCountList
 
     def get_chat_users(self, chatId: str, start: int = 0, size: int = 25):
-        response = requests.get(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/member?start={start}&size={size}&type=default&cv=1.2", headers=self.s_headers, verify=self.certificatePath)
+        response = requests.get(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/member?start={start}&size={size}&type=default&cv=1.2", headers=headers.Headers().s_headers, verify=self.certificatePath)
         if response.status_code != 200: 
             return exceptions.CheckException(json.loads(response.text))
         else: 
             return objects.UserProfileList(json.loads(response.text)["memberList"]).UserProfileList
 
     def get_public_chat_threads(self, type: str = "recommended", start: int = 0, size: int = 25):
-        self.headers["NDC-MSG-SIG"] = gen_msg_sig()
-        response = requests.get(f"{self.api}/x{self.comId}/s/chat/thread?type=public-all&filterType={type}&start={start}&size={size}", headers=self.headers, verify=self.certificatePath)
+        headers.sig = gen_msg_sig()
+        response = requests.get(f"{self.api}/x{self.comId}/s/chat/thread?type=public-all&filterType={type}&start={start}&size={size}", headers=headers.Headers().headers, verify=self.certificatePath)
         if response.status_code != 200: 
             return exceptions.CheckException(json.loads(response.text))
         else: 
             return objects.ThreadList(json.loads(response.text)["threadList"]).ThreadList
 
     def get_notifications(self, start: int = 0, size: int = 25):
-        self.headers["NDC-MSG-SIG"] = gen_msg_sig()
-        response = requests.get(f"{self.api}/x{self.comId}/s/notification?pagingType=t&start={start}&size={size}", headers=self.headers, verify=self.certificatePath)
+        headers.sig = gen_msg_sig()
+        response = requests.get(f"{self.api}/x{self.comId}/s/notification?pagingType=t&start={start}&size={size}", headers=headers.Headers().headers, verify=self.certificatePath)
         if response.status_code != 200: 
             return exceptions.CheckException(json.loads(response.text))
         else: 
             return objects.NotificationList(json.loads(response.text)["notificationList"]).NotificationList
 
     def get_invite_codes(self, status: str = "normal", start: int = 0, size: int = 25):
-        self.headers["NDC-MSG-SIG"] = gen_msg_sig()
-        response = requests.get(f"{self.api}/g/s-x{self.comId}/community/invitation?status={status}&start={start}&size={size}", headers=self.headers, verify=self.certificatePath)
+        headers.sig = gen_msg_sig()
+        response = requests.get(f"{self.api}/g/s-x{self.comId}/community/invitation?status={status}&start={start}&size={size}", headers=headers.Headers().headers, verify=self.certificatePath)
         if response.status_code != 200: 
             return exceptions.CheckException(json.loads(response.text))
         else: 
@@ -113,16 +87,16 @@ class SubClient(client.Client):
             "force": force,
             "timestamp": int(timestamp() * 1000)
         })
-        self.headers["NDC-MSG-SIG"] = gen_msg_sig()
-        response = requests.post(f"{self.api}/g/s-x{self.comId}/community/invitation", headers=self.headers, data=data, verify=self.certificatePath)
+        headers.sig = gen_msg_sig()
+        response = requests.post(f"{self.api}/g/s-x{self.comId}/community/invitation", headers=headers.Headers().headers, data=data, verify=self.certificatePath)
         if response.status_code != 200: 
             return exceptions.CheckException(json.loads(response.text))
         else: 
             return objects.InviteCode(json.loads(response.text)["communityInvitation"]).InviteCode
 
     def search_users(self, nickname: str, start: int = 0, size: int = 25):
-        self.headers["NDC-MSG-SIG"] = gen_msg_sig()
-        response = requests.get(f"{self.api}/x{self.comId}/s/user-profile?type=name&q={nickname}&start={start}&size={size}", headers=self.headers, verify=self.certificatePath)
+        headers.sig = gen_msg_sig()
+        response = requests.get(f"{self.api}/x{self.comId}/s/user-profile?type=name&q={nickname}&start={start}&size={size}", headers=headers.Headers().headers, verify=self.certificatePath)
         if response.status_code != 200: 
             return exceptions.CheckException(json.loads(response.text))
         else: 
@@ -131,7 +105,7 @@ class SubClient(client.Client):
     def kick(self, userId: str, chatId: str, allowRejoin: bool = True):
         if allowRejoin: allowRejoin = 1
         if not allowRejoin: allowRejoin = 0
-        response = requests.delete(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/member/{userId}?allowRejoin={allowRejoin}", headers=self.s_headers, verify=self.certificatePath)
+        response = requests.delete(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/member/{userId}?allowRejoin={allowRejoin}", headers=headers.Headers().s_headers, verify=self.certificatePath)
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
 
@@ -147,7 +121,7 @@ class SubClient(client.Client):
 
             - **Fail** : :meth:`Exceptions <amino.lib.util.exceptions>`
         """
-        response = requests.get(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}", headers=self.s_headers, verify=self.certificatePath)
+        response = requests.get(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}", headers=headers.Headers().s_headers, verify=self.certificatePath)
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return objects.Thread(json.loads(response.text)["thread"]).Thread
 
@@ -164,16 +138,16 @@ class SubClient(client.Client):
 
             - **Fail** : :meth:`Exceptions <amino.lib.util.exceptions>`
         """
-        response = requests.get(f"{self.api}/x{self.comId}/s/chat/thread?type=public-all&filterType={type}&start={start}&size={size}", headers=self.s_headers, verify=self.certificatePath)
+        response = requests.get(f"{self.api}/x{self.comId}/s/chat/thread?type=public-all&filterType={type}&start={start}&size={size}", headers=headers.Headers().s_headers, verify=self.certificatePath)
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return objects.ThreadList(json.loads(response.text)["threadList"]).ThreadList
 
     def get_all_users(self, type: str = "recent", start: int = 0, size: int = 25):
-        if type == "recent": response = requests.get(f"{self.api}/x{self.comId}/s/user-profile?type=recent&start={start}&size={size}", headers=self.s_headers, verify=self.certificatePath)
-        elif type == "banned": response = requests.get(f"{self.api}/x{self.comId}/s/user-profile?type=banned&start={start}&size={size}", headers=self.s_headers, verify=self.certificatePath)
-        elif type == "featured": response = requests.get(f"{self.api}/x{self.comId}/s/user-profile?type=featured&start={start}&size={size}", headers=self.s_headers, verify=self.certificatePath)
-        elif type == "leaders": response = requests.get(f"{self.api}/x{self.comId}/s/user-profile?type=leaders&start={start}&size={size}", headers=self.s_headers, verify=self.certificatePath)
-        elif type == "curators": response = requests.get(f"{self.api}/x{self.comId}/s/user-profile?type=curators&start={start}&size={size}", headers=self.s_headers, verify=self.certificatePath)
+        if type == "recent": response = requests.get(f"{self.api}/x{self.comId}/s/user-profile?type=recent&start={start}&size={size}", headers=headers.Headers().s_headers, verify=self.certificatePath)
+        elif type == "banned": response = requests.get(f"{self.api}/x{self.comId}/s/user-profile?type=banned&start={start}&size={size}", headers=headers.Headers().s_headers, verify=self.certificatePath)
+        elif type == "featured": response = requests.get(f"{self.api}/x{self.comId}/s/user-profile?type=featured&start={start}&size={size}", headers=headers.Headers().s_headers, verify=self.certificatePath)
+        elif type == "leaders": response = requests.get(f"{self.api}/x{self.comId}/s/user-profile?type=leaders&start={start}&size={size}", headers=headers.Headers().s_headers, verify=self.certificatePath)
+        elif type == "curators": response = requests.get(f"{self.api}/x{self.comId}/s/user-profile?type=curators&start={start}&size={size}", headers=headers.Headers().s_headers, verify=self.certificatePath)
         else: raise exceptions.WrongType(type)
 
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
@@ -181,8 +155,8 @@ class SubClient(client.Client):
 
     def join_chat(self, chatId: str):
         url = f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/member/{self.userId}"
-        self.headers["NDC-MSG-SIG"] = gen_msg_sig()
-        response = requests.post(url=url, headers=self.headers, verify=self.certificatePath)
+        headers.sig = gen_msg_sig()
+        response = requests.post(url=url, headers=headers.Headers().headers, verify=self.certificatePath)
         if response.status_code != 200:
             return exceptions.CheckException(json.loads(response.text))
         else: 
@@ -190,8 +164,8 @@ class SubClient(client.Client):
 
     def leave_chat(self, chatId: str):
         url = f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/member/{self.userId}"
-        self.headers["NDC-MSG-SIG"] = gen_msg_sig()
-        response = requests.delete(url=url, headers=self.headers, verify=self.certificatePath)
+        headers.sig = gen_msg_sig()
+        response = requests.delete(url=url, headers=headers.Headers().headers, verify=self.certificatePath)
         if response.status_code != 200:
             return exceptions.CheckException(json.loads(response.text))
         else: 
@@ -276,10 +250,50 @@ class SubClient(client.Client):
             data["mediaUploadValue"] = base64.b64encode(file.read()).decode()
 
         data = json.dumps(data)
-        self.headers["NDC-MSG-SIG"] = gen_msg_sig()
-        response = requests.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/message", headers=self.headers, data=data, verify=self.certificatePath)
+        headers.sig = gen_msg_sig()
+        response = requests.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/message", headers=headers.Headers().headers, data=data, verify=self.certificatePath)
         if response.status_code != 200: 
             return exceptions.CheckException(json.loads(response.text))
         else: 
             return response.status_code
+    def send_coins(self, coins: int, blogId: str = None, chatId: str = None, objectId: str = None, transactionId: str = None):
+        url = None
+        if transactionId is None: transactionId = str(UUID(hexlify(urandom(16)).decode('ascii')))
+
+        data = {
+            "coins": coins,
+            "tippingContext": {"transactionId": transactionId},
+            "timestamp": int(timestamp() * 1000)
+        }
+
+        if blogId is not None: url = f"{self.api}/x{self.comId}/s/blog/{blogId}/tipping"
+        if chatId is not None: url = f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/tipping"
+        if objectId is not None:
+            data["objectId"] = objectId
+            data["objectType"] = 2
+            url = f"{self.api}/x{self.comId}/s/tipping"
+
+        if url is None: raise exceptions.SpecifyType()
+
+        data = json.dumps(data)
+        headers.sig = gen_msg_sig()
+        response = requests.post(url, headers=headers.Headers().headers, data=data, proxies=self.proxies, verify=self.certificatePath)
+        if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
+        else: return response.status_code
+    def get_chat_threads(self, start: int = 0, size: int = 25):
+        """
+        List of Chats the account is in.
+
+        **Parameters**
+            - *start* : Where to start the list.
+            - *size* : Size of the list.
+
+        **Returns**
+            - **Success** : :meth:`Chat List <amino.lib.util.objects.ThreadList>`
+
+            - **Fail** : :meth:`Exceptions <amino.lib.util.exceptions>`
+        """
+        response = requests.get(f"{self.api}/x{self.comId}/s/chat/thread?type=joined-me&start={start}&size={size}", headers=headers.Headers().s_headers, verify=self.certificatePath)
+        if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
+        else: return objects.ThreadList(json.loads(response.text)["threadList"]).ThreadList
 
