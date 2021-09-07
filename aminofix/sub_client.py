@@ -296,4 +296,45 @@ class SubClient(client.Client):
         response = requests.get(f"{self.api}/x{self.comId}/s/chat/thread?type=joined-me&start={start}&size={size}", headers=headers.Headers().s_headers, verify=self.certificatePath)
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return objects.ThreadList(json.loads(response.text)["threadList"]).ThreadList
+    def follow(self, userId: [str, list]):
+        """
+        Follow an User or Multiple Users.
+
+        **Parameters**
+            - **userId** : ID of the User or List of IDs of the Users.
+
+        **Returns**
+            - **Success** : 200 (int)
+
+            - **Fail** : :meth:`Exceptions <amino.lib.util.exceptions>`
+        """
+        if isinstance(userId, str):
+            headers.sig = gen_msg_sig()
+            response = requests.post(f"{self.api}/x{self.comId}/s/user-profile/{userId}/member", headers=headers.Headers().headers, verify=self.certificatePath)
+
+        elif isinstance(userId, list):
+            data = json.dumps({})
+            headers.sig = gen_msg_sig()
+            response = requests.post(f"{self.api}/x{self.comId}/s/user-profile/{self.profile.userId}/joined", headers=headers.Headers().headers, data=data, verify=self.certificatePath)
+
+        else: raise exceptions.WrongType(type(userId))
+
+        if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
+        else: return response.status_code
+    def unfollow(self, userId: str):
+        """
+        Unfollow an User.
+
+        **Parameters**
+            - **userId** : ID of the User.
+
+        **Returns**
+            - **Success** : 200 (int)
+
+            - **Fail** : :meth:`Exceptions <amino.lib.util.exceptions>`
+        """
+        headers.sig = gen_msg_sig()
+        response = requests.delete(f"{self.api}/x{self.comId}/s/user-profile/{self.profile.userId}/joined/{userId}", headers=headers.Headers().headers, verify=self.certificatePath)
+        if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
+        else: return response.status_code
 
