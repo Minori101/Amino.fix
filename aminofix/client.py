@@ -88,6 +88,14 @@ class Client(Callbacks, SocketHandler):
         response = requests.get(url=url, headers=headers.Headers().headers).json()['linkInfoV2']['extensions']['linkInfo']
         return {"comId": response['ndcId'], "chatId": response['objectId']}
 
+    def handle_socket_message(self, data):
+        return self.resolve(data)
+
+    def get_eventlog(self):
+        response = requests.get(f"{self.api}/g/s/eventlog/profile?language=en", headers=headers.Headers().headers, verify=self.certificatePath)
+        if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
+        else: return json.loads(response.text)
+
     def get_from_code(self, code: str):
         """
         Get the Object Information from the Amino URL Code.
