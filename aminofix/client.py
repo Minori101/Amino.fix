@@ -268,14 +268,14 @@ class Client(Callbacks, SocketHandler):
         if response.status_code != 200: 
             return exceptions.CheckException(json.loads(response.text))
         else: 
-            return GetMessages(json.loads(response.text)).GetMessages
+            return objects.GetMessages(json.loads(response.text)).GetMessages
     def get_message_info(self, chatId: str, messageId: str):
         headers.sig = gen_msg_sig()
         response = requests.get(f"{self.api}/g/s/chat/thread/{chatId}/message/{messageId}", headers=headers.Headers().headers, verify=self.certificatePath)
         if response.status_code != 200: 
             return exceptions.CheckException(json.loads(response.text))
         else: 
-            return Message(json.loads(response.text)["message"]).Message
+            return objects.Message(json.loads(response.text)["message"]).Message
     def login(self, email: str, password: str):
         data1 = json.dumps({
             "email": email,
@@ -399,6 +399,78 @@ class Client(Callbacks, SocketHandler):
 
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return objects.UserProfileCountList(json.loads(response.text)).UserProfileCountList
+    def request_verify_code(self, email: str, resetPassword: bool = False):
+        data = json.dumps({
+            "identity": email,
+            "type": 1,
+            "deviceID": self.device_id
+        })
+
+        if resetPassword is True:
+            data["level"] = 2
+            data["purpose"] = "reset-password"
+        response = requests.post(f"{self.api}/g/s/auth/request-security-validation", headers=headers.Headers().headers, data=data)
+        if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
+        else: return response.status_code
+    def get_wall_comments(self, userId: str, sorting: str, start: int = 0, size: int = 25):
+        """
+        List of Wall Comments of an User.
+
+        **Parameters**
+            - **userId** : ID of the User.
+            - **sorting** : Order of the Comments.
+                - ``newest``, ``oldest``, ``top``
+            - *start* : Where to start the list.
+            - *size* : Size of the list.
+
+        **Returns**
+            - **Success** : :meth:`Comments List <amino.lib.util.objects.CommentList>`
+
+            - **Fail** : :meth:`Exceptions <amino.lib.util.exceptions>`
+        """
+        if sorting.lower() == "newest": sorting = "newest"
+        elif sorting.lower() == "oldest": sorting = "oldest"
+        elif sorting.lower() == "top": sorting = "vote"
+        else: raise exceptions.WrongType(sorting)
+
+        response = requests.get(f"{self.api}/g/s/user-profile/{userId}/g-comment?sort={sorting}&start={start}&size={size}", headers=headers.Headers().headers, verify=self.certificatePath)
+        if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
+        else: return objects.CommentList(json.loads(response.text)["commentList"]).CommentList
+
+    def get_blog_comments(self, blogId: str = None, wikiId: str = None, quizId: str = None, fileId: str = None, sorting: str = "newest", start: int = 0, size: int = 25):
+        if sorting == "newest": sorting = "newest"
+        elif sorting == "oldest": sorting = "oldest"
+        elif sorting == "top": sorting = "vote"
+        else: raise exceptions.WrongType(sorting)
+
+        if blogId or quizId:
+            if quizId is not None: blogId = quizId
+            response = requests.get(f"{self.api}/g/s/blog/{blogId}/comment?sort={sorting}&start={start}&size={size}", headers=headers.Headers().headers, verify=self.certificatePath)
+        elif wikiId: response = requests.get(f"{self.api}/g/s/item/{wikiId}/comment?sort={sorting}&start={start}&size={size}", headers=headers.Headers().headers, verify=self.certificatePath)
+        elif fileId: response = requests.get(f"{self.api}/g/s/shared-folder/files/{fileId}/comment?sort={sorting}&start={start}&size={size}", headers=headers.Headers().headers, verify=self.certificatePath)
+        else: raise exceptions.SpecifyType()
+
+        if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
+        else: return objects.CommentList(json.loads(response.text)["commentList"]).CommentList
+
+    def get_blog_info(self, blogId: str = None, wikiId: str = None, quizId: str = None, fileId: str = None):
+        if blogId or quizId:
+            if quizId is not None: blogId = quizId
+            response = requests.get(f"{self.api}/g/s/blog/{blogId}", headers=headers.Headers().headers, verify=self.certificatePath)
+            if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
+            else: return objects.GetBlogInfo(json.loads(response.text)).GetBlogInfo
+
+        elif wikiId:
+            response = requests.get(f"{self.api}/g/s/item/{wikiId}", headers=headers.Headers().headers, verify=self.certificatePath)
+            if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
+            else: return objects.GetWikiInfo(json.loads(response.text)).GetWikiInfo
+
+        elif fileId:
+            response = requests.get(f"{self.api}/g/s/shared-folder/files/{fileId}", headers=headers.Headers().headers, verify=self.certificatePath)
+            if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
+            else: return objects.SharedFolderFile(json.loads(response.text)["file"]).SharedFolderFile
+
+        else: raise exceptions.SpecifyType()
 #fix Amino.py 1.2.17 by Minori
 #https://service.narvii.com/api/v1/g/s/chat/thread-check/human-readable?ndcIds=0%2C{comId} - ?
 #SAmino - https://github.com/SirLez/SAmino

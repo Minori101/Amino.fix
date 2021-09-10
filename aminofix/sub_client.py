@@ -277,7 +277,7 @@ class SubClient(client.Client):
 
         data = json.dumps(data)
         headers.sig = gen_msg_sig()
-        response = requests.post(url, headers=headers.Headers().headers, data=data, proxies=self.proxies, verify=self.certificatePath)
+        response = requests.post(url, headers=headers.Headers().s_headers, data=data, verify=self.certificatePath)
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
     def get_chat_threads(self, start: int = 0, size: int = 25):
@@ -335,6 +335,96 @@ class SubClient(client.Client):
         """
         headers.sig = gen_msg_sig()
         response = requests.delete(f"{self.api}/x{self.comId}/s/user-profile/{self.profile.userId}/joined/{userId}", headers=headers.Headers().headers, verify=self.certificatePath)
+        if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
+        else: return response.status_code
+    def get_chat_messages(self, chatId: str, size: int = 25, pageToken: str = None):
+        """
+        List of Messages from an Chat.
+
+        **Parameters**
+            - **chatId** : ID of the Chat.
+            - *size* : Size of the list.
+            - *pageToken* : Next Page Token.
+
+        **Returns**
+            - **Success** : :meth:`Message List <amino.lib.util.objects.MessageList>`
+
+            - **Fail** : :meth:`Exceptions <amino.lib.util.exceptions>`
+        """
+
+        if pageToken is not None: url = f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/message?v=2&pagingType=t&pageToken={pageToken}&size={size}"
+        else: url = f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/message?v=2&pagingType=t&size={size}"
+        headers.sig = gen_msg_sig()
+        response = requests.get(url, headers=headers.Headers().headers, verify=self.certificatePath)
+        if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
+        else: return objects.GetMessages(json.loads(response.text)).GetMessages
+
+    def get_blog_info(self, blogId: str = None, wikiId: str = None, quizId: str = None, fileId: str = None):
+        if blogId or quizId:
+            if quizId is not None: blogId = quizId
+            response = requests.get(f"{self.api}/x{self.comId}/s/blog/{blogId}", headers=headers.Headers().headers, verify=self.certificatePath)
+            if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
+            else: return objects.GetBlogInfo(json.loads(response.text)).GetBlogInfo
+
+        elif wikiId:
+            response = requests.get(f"{self.api}/x{self.comId}/s/item/{wikiId}", headers=headers.Headers().headers,  verify=self.certificatePath)
+            if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
+            else: return objects.GetWikiInfo(json.loads(response.text)).GetWikiInfo
+
+        elif fileId:
+            response = requests.get(f"{self.api}/x{self.comId}/s/shared-folder/files/{fileId}", headers=headers.Headers().headers, verify=self.certificatePath)
+            if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
+            else: return objects.SharedFolderFile(json.loads(response.text)["file"]).SharedFolderFile
+
+        else: raise exceptions.SpecifyType()
+
+    def get_blog_comments(self, blogId: str = None, wikiId: str = None, quizId: str = None, fileId: str = None, sorting: str = "newest", start: int = 0, size: int = 25):
+        if sorting == "newest": sorting = "newest"
+        elif sorting == "oldest": sorting = "oldest"
+        elif sorting == "top": sorting = "vote"
+
+        if blogId or quizId:
+            if quizId is not None: blogId = quizId
+            response = requests.get(f"{self.api}/x{self.comId}/s/blog/{blogId}/comment?sort={sorting}&start={start}&size={size}", headers=headers.Headers().headers, verify=self.certificatePath)
+        elif wikiId: response = requests.get(f"{self.api}/x{self.comId}/s/item/{wikiId}/comment?sort={sorting}&start={start}&size={size}", headers=headers.Headers().headers, verify=self.certificatePath)
+        elif fileId: response = requests.get(f"{self.api}/x{self.comId}/s/shared-folder/files/{fileId}/comment?sort={sorting}&start={start}&size={size}", headers=headers.Headers().headers, verify=self.certificatePath)
+        else: raise exceptions.SpecifyType()
+
+        if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
+        else: return objects.CommentList(json.loads(response.text)["commentList"]).CommentList
+
+    def get_wall_comments(self, userId: str, sorting: str, start: int = 0, size: int = 25):
+        """
+        List of Wall Comments of an User.
+
+        **Parameters**
+            - **userId** : ID of the User.
+            - **sorting** : Order of the Comments.
+                - ``newest``, ``oldest``, ``top``
+            - *start* : Where to start the list.
+            - *size* : Size of the list.
+
+        **Returns**
+            - **Success** : :meth:`Comments List <amino.lib.util.objects.CommentList>`
+
+            - **Fail** : :meth:`Exceptions <amino.lib.util.exceptions>`
+        """
+        if sorting == "newest": sorting = "newest"
+        elif sorting == "oldest": sorting = "oldest"
+        elif sorting == "top": sorting = "vote"
+        else: raise exceptions.WrongType(sorting)
+
+        response = requests.get(f"{self.api}/x{self.comId}/s/user-profile/{userId}/comment?sort={sorting}&start={start}&size={size}", headers=headers.Headers().headers, verify=self.certificatePath)
+        if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
+        else: return objects.CommentList(json.loads(response.text)["commentList"]).CommentList
+
+    def delete_blog(self, blogId: str):
+        response = requests.delete(f"{self.api}/x{self.comId}/s/blog/{blogId}", headers=headers.Headers().headers, verify=self.certificatePath)
+        if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
+        else: return response.status_code
+
+    def delete_wiki(self, wikiId: str):
+        response = requests.delete(f"{self.api}/x{self.comId}/s/item/{wikiId}", headers=headers.Headers().headers, verify=self.certificatePath)
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
 
