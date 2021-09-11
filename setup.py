@@ -8,7 +8,7 @@ with open("README.md", "r") as stream:
 setup(
 	name="amino.fix",
 	license = 'MIT',
-	author="Minori",
+	author="Plevanto",
 	version="1.2.8",
 	author_email="",
 	description="Amino 1.2.17 fix lib. Discord - https://discord.gg/Bf3dpBRJHj",
