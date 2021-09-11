@@ -8,7 +8,6 @@
 ### Example
 `import asyncio
 import aminofix
-
 async def main():
     client = aminofix.Client()
     client.web_login(email='email',password='password')
