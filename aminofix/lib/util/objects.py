@@ -1599,6 +1599,7 @@ class FromCode:
         self.objectId = None
         self.shortUrl = None
         self.fullUrl = None
+        self.comId = None
 
     @property
     def FromCode(self):
@@ -1617,6 +1618,8 @@ class FromCode:
         try: self.shortUrl = self.json["extensions"]["linkInfo"]["shareURLShortCode"]
         except (KeyError, TypeError): pass
         try: self.fullUrl = self.json["extensions"]["linkInfo"]["shareURLFullPath"]
+        except (KeyError, TypeError): pass
+        try: self.comId = self.json['extensions']['linkInfo']['ndcId']
         except (KeyError, TypeError): pass
 
         return self

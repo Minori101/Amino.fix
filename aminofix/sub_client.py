@@ -428,3 +428,19 @@ class SubClient(client.Client):
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
 
+    def get_blocked_users(self, start: int = 0, size: int = 25):
+        """
+        List of Users that the User Blocked.
+
+        **Parameters**
+            - *start* : Where to start the list.
+            - *size* : Size of the list.
+
+        **Returns**
+            - **Success** : :meth:`Users List <amino.lib.util.objects.UserProfileList>`
+
+            - **Fail** : :meth:`Exceptions <amino.lib.util.exceptions>`
+        """
+        response = requests.get(f"{self.api}/x{self.comId}/s/block?start={start}&size={size}", headers=headers.Headers().headers, verify=self.certificatePath)
+        if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
+        else: return objects.UserProfileList(json.loads(response.text)["userProfileList"]).UserProfileList

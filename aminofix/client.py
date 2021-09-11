@@ -479,6 +479,56 @@ class Client(Callbacks, SocketHandler):
             else: return objects.SharedFolderFile(json.loads(response.text)["file"]).SharedFolderFile
 
         else: raise exceptions.SpecifyType()
+
+    def get_wallet_info(self):
+        """
+        Get Information about the account's Wallet.
+
+        **Parameters**
+            - No parameters required.
+
+        **Returns**
+            - **Success** : :meth:`Wallet Object <amino.lib.util.objects.WalletInfo>`
+
+            - **Fail** : :meth:`Exceptions <amino.lib.util.exceptions>`
+        """
+        response = requests.get(f"{self.api}/g/s/wallet", headers=headers.Headers().headers, verify=self.certificatePath)
+        if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
+        else: return objects.WalletInfo(json.loads(response.text)["wallet"]).WalletInfo
+
+    def get_wallet_history(self, start: int = 0, size: int = 25):
+        """
+        Get the Wallet's History Information.
+
+        **Parameters**
+            - *start* : Where to start the list.
+            - *size* : Size of the list.
+
+        **Returns**
+            - **Success** : :meth:`Wallet Object <amino.lib.util.objects.WalletInfo>`
+
+            - **Fail** : :meth:`Exceptions <amino.lib.util.exceptions>`
+        """
+        response = requests.get(f"{self.api}/g/s/wallet/coin/history?start={start}&size={size}", headers=headers.Headers().headers, verify=self.certificatePath)
+        if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
+        else: return objects.WalletHistory(json.loads(response.text)["coinHistoryList"]).WalletHistory
+
+    def get_blocked_users(self, start: int = 0, size: int = 25):
+        """
+        List of Users that the User Blocked.
+
+        **Parameters**
+            - *start* : Where to start the list.
+            - *size* : Size of the list.
+
+        **Returns**
+            - **Success** : :meth:`Users List <amino.lib.util.objects.UserProfileList>`
+
+            - **Fail** : :meth:`Exceptions <amino.lib.util.exceptions>`
+        """
+        response = requests.get(f"{self.api}/g/s/block?start={start}&size={size}", headers=headers.Headers().headers, verify=self.certificatePath)
+        if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
+        else: return objects.UserProfileList(json.loads(response.text)["userProfileList"]).UserProfileList
 #fix Amino.py 1.2.17 by Minori
 #https://service.narvii.com/api/v1/g/s/chat/thread-check/human-readable?ndcIds=0%2C{comId} - ?
 #SAmino - https://github.com/SirLez/SAmino
