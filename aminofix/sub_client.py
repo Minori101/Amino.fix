@@ -50,6 +50,12 @@ class SubClient(client.Client):
         else: 
             return objects.UserProfileCountList(json.loads(response.text)).UserProfileCountList
 
+    def user_active_time(self):
+        data = {"ndcId": self.comId}
+        response = requests.post("https://aminoapps.com/api/community/stats/web-user-active-time", json=data, headers=headers.Headers().web_headers)
+        if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
+        else: return response.status_code
+
     def get_chat_users(self, chatId: str, start: int = 0, size: int = 25):
         response = requests.get(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/member?start={start}&size={size}&type=default&cv=1.2", headers=headers.Headers().s_headers, verify=self.certificatePath)
         if response.status_code != 200: 

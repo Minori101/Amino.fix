@@ -4,6 +4,8 @@ sid = None
 
 gen_msg_sig = None
 
+web = None
+
 class Headers:
     def __init__(self, data = None, type = None, deviceId: str = None, sig: str = None):
         if deviceId:
@@ -33,8 +35,10 @@ class Headers:
         }
 
         if data: headers["Content-Length"] = str(len(data))
-        if sid: headers["NDCAUTH"] = f"{sid}"
-        if sid: s_headers["NDCAUTH"] = f"{sid}"
+        if sid: 
+            headers["NDCAUTH"] = f"{sid}"
+            s_headers["NDCAUTH"] = f"{sid}"
+            web_headers["cookie"]= f"{sid}"
         if type: headers["Content-Type"] = type
         if sig: headers["NDC-MSG-SIG"] = sig
         if web: web_headers = web

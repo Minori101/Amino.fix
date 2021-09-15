@@ -47,6 +47,8 @@ class Client(Callbacks, SocketHandler):
         self.profile = profile
         self.auid = None
 
+        self.web_headers = headers.Headers().web_headers
+
         self.userId = None
         self.comId = None
         self.json = None
@@ -68,7 +70,7 @@ class Client(Callbacks, SocketHandler):
                 print("Login failed")
                 print(json.loads(response.text))
                 return json.loads(response.text)
-            headers.web = response.headers
+            self.web_headers = response.headers
             self.sid = response.headers["set-cookie"]
             try: 
                 self.sid = self.sid[0: self.sid.index(";")]
@@ -83,6 +85,25 @@ class Client(Callbacks, SocketHandler):
 
             self.start()
             return response.status_code
+
+    def login_sid(self, SID: str):
+        """
+        Login into an account with an SID
+
+        **Parameters**
+            - **SID** : SID of the account
+        """
+        uId = helpers.sid_to_uid(SID)
+        SID1 = "sid="+SID
+        self.sid = SID1
+        self.userId = uId
+        self.account: objects.UserProfile = self.get_user_info(uId)
+        self.profile: objects.UserProfile = self.get_user_info(uId)
+        print(self.sid)
+        headers.sid = self.sid
+        self.start()
+        self.run_socket()
+
     def get_chat_id(self, code: str):
         url = f"{self.api}/g/s/link-resolution?q={code}"
         response = requests.get(url=url, headers=headers.Headers().headers).json()['linkInfoV2']['extensions']['linkInfo']
