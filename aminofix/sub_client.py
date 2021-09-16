@@ -63,6 +63,34 @@ class SubClient(client.Client):
         else: 
             return objects.UserProfileList(json.loads(response.text)["memberList"]).UserProfileList
 
+    def delete_message(self, chatId: str, messageId: str, asStaff: bool = False, reason: str = None):
+        """
+        Delete a Message from a Chat.
+
+        **Parameters**
+            - **messageId** : ID of the Message.
+            - **chatId** : ID of the Chat.
+            - **asStaff** : If execute as a Staff member (Leader or Curator).
+            - **reason** : Reason of the action to show on the Moderation History.
+
+        **Returns**
+            - **Success** : 200 (int)
+
+            - **Fail** : :meth:`Exceptions <amino.lib.util.exceptions>`
+        """
+        data = {
+            "adminOpName": 102,
+            "timestamp": int(timestamp() * 1000)
+        }
+        if asStaff and reason:
+            data["adminOpNote"] = {"content": reason}
+
+        data = json.dumps(data)
+        if not asStaff: response = requests.delete(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/message/{messageId}", headers=headers.Headers().headers, verify=self.certificatePath)
+        else: response = requests.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/message/{messageId}/admin", headers=headers.Headers().headers, data=data, verify=self.certificatePath)
+        if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
+        else: return response.status_code
+
     def get_public_chat_threads(self, type: str = "recommended", start: int = 0, size: int = 25):
         headers.sig = gen_msg_sig()
         response = requests.get(f"{self.api}/x{self.comId}/s/chat/thread?type=public-all&filterType={type}&start={start}&size={size}", headers=headers.Headers().headers, verify=self.certificatePath)
