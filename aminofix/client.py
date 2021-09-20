@@ -9,6 +9,7 @@ from time import time as timestamp
 from time import timezone, sleep
 from typing import BinaryIO
 from locale import getdefaultlocale as locale
+from uuid import UUID, uuid4
 import concurrent.futures
 import asyncio
 
@@ -48,6 +49,8 @@ class Client(Callbacks, SocketHandler):
         self.auid = None
 
         self.web_headers = headers.Headers().web_headers
+        self.ad_headers = headers.AdHeaders().headers
+        self.ad_data = headers.AdHeaders().data 
 
         self.userId = None
         self.comId = None
@@ -99,7 +102,6 @@ class Client(Callbacks, SocketHandler):
         self.userId = uId
         self.account: objects.UserProfile = self.get_user_info(uId)
         self.profile: objects.UserProfile = self.get_user_info(uId)
-        print(self.sid)
         headers.sid = self.sid
         self.start()
         self.run_socket()
@@ -183,20 +185,7 @@ class Client(Callbacks, SocketHandler):
             return exceptions.CheckException(json.loads(response.text))
         else: 
             return json.loads(response.text)
-    #from SAmino
-    def invite_to_chat(self, chatId: str = None, userId: str = None):
-        if isinstance(userId, str):
-            userIds = [userId]
-        elif isinstance(userId, list):
-            userIds = userId
-        else:
-            print(':( ')
 
-        data = json.dumps({"uids": userIds})
-        req = requests.post(f'{self.api}/g/s/chat/thread/{chatId}/member/invite', data=data, headers=headers.Headers().web_headers)
-        if req.status_code != 200: 
-            print(req.json())
-        return req.json()
     def send_message(self, chatId: str, message: str = None, messageType: int = 0, file: BinaryIO = None, fileType: str = None, replyTo: str = None, mentionUserIds: list = None, stickerId: str = None, embedId: str = None, embedType: int = None, embedLink: str = None, embedTitle: str = None, embedContent: str = None, embedImage: BinaryIO = None):
         """
         **Parameters**
@@ -289,6 +278,26 @@ class Client(Callbacks, SocketHandler):
             return exceptions.CheckException(json.loads(response.text))
         else: 
             return objects.ThreadList(json.loads(response.text)["threadList"]).ThreadList
+
+    def comment(self, comment: str, userId: str = None, replyTo: str = None):
+        data = json.dumps({
+            "content": comment,
+            "stickerId": None,
+            "type": 0,
+            'eventSource': 'UserProfileView'
+        })
+
+        if replyTo: data["respondTo"] = replyTo
+
+        response = requests.post(f'{self.api}/g/s/user-profile/{userId}/g-comment', headers=headers.Headers().headers, data=data)
+        if response.status_code != 200: return CheckExceptions(response.json())
+        else: return response.status_code
+
+    def delete_comment(self, userId: str = None, commentId: str = None):
+        response = requests.delete(f'{self.api}/g/s/user-profile/{userId}/g-comment/{commentId}', headers=headers.Headers().headers)
+        if response.status_code != 200: return CheckExceptions(response.json())
+        else: response.status_code
+
     def get_chat_messages(self, chatId: str, size: int = 25, pageToken: str = None):
         if pageToken is not None: url = f"{self.api}/g/s/chat/thread/{chatId}/message?v=2&pagingType=t&pageToken={pageToken}&size={size}"
         else: url = f"{self.api}/g/s/chat/thread/{chatId}/message?v=2&pagingType=t&size={size}"
@@ -550,6 +559,14 @@ class Client(Callbacks, SocketHandler):
         response = requests.get(f"{self.api}/g/s/block?start={start}&size={size}", headers=headers.Headers().headers, verify=self.certificatePath)
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return objects.UserProfileList(json.loads(response.text)["userProfileList"]).UserProfileList
+    # By Marshall (Smile, Texaz) (from SAmino)
+    def watch_ad(self, uid: str = None):
+        if uid: self.ad_data["reward"]["custom_json"]["hashed_user_id"] = uid
+        if not uid: self.ad_data["reward"]["custom_json"]["hashed_user_id"] = self.uid
+        self.ad_data["reward"]["event_id"] = str(uuid4())
+        req = requests.post("https://ads.tapdaq.com/v4/analytics/reward", headers=self.ad_headers, json=self.ad_data)
+        return req.status_code
+
 #fix Amino.py 1.2.17 by Minori
 #https://service.narvii.com/api/v1/g/s/chat/thread-check/human-readable?ndcIds=0%2C{comId} - ?
 #SAmino - https://github.com/SirLez/SAmino

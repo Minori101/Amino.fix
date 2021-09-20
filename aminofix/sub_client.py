@@ -98,6 +98,23 @@ class SubClient(client.Client):
             return exceptions.CheckException(json.loads(response.text))
         else: 
             return objects.ThreadList(json.loads(response.text)["threadList"]).ThreadList
+    #from SAmino
+    def start_chat(self, userId: [str, list], title: str = None, message: str = None, content: str = None, type: int = 0):
+        if isinstance(userId, str): userIds = [userId]
+        elif isinstance(userId, list): userIds = userId
+        else: raise TypeError("")
+        data = {
+            "ndcId": self.comId,
+            "inviteeUids": userIds,
+            "initialMessageContent": message,
+            "type": type
+        }
+        req = requests.post("https://aminoapps.com/api/create-chat-thread", json=data, headers=self.web_headers)
+        try:
+            if "OK" not in req.json()["result"]["api:message"]: return exceptions.CheckException(json.loads(req.text))
+            else: return req.status_code
+        except: exceptions.CheckException(json.loads(req.text))
+        return req.status_code
 
     def get_notifications(self, start: int = 0, size: int = 25):
         headers.sig = gen_msg_sig()
@@ -127,6 +144,20 @@ class SubClient(client.Client):
             return exceptions.CheckException(json.loads(response.text))
         else: 
             return objects.InviteCode(json.loads(response.text)["communityInvitation"]).InviteCode
+
+    def get_message_info(self, chatId: str, messageId: str):
+        """
+        Information of an Message from an Chat.
+        **Parameters**
+            - **chatId** : ID of the Chat.
+            - **message** : ID of the Message.
+        **Returns**
+            - **Success** : :meth:`Message Object <amino.lib.util.objects.Message>`
+            - **Fail** : :meth:`Exceptions <amino.lib.util.exceptions>`
+        """
+        response = requests.get(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/message/{messageId}", headers=headers.Headers().headers, verify=self.certificatePath)
+        if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
+        else: return objects.Message(json.loads(response.text)["message"]).Message
 
     def search_users(self, nickname: str, start: int = 0, size: int = 25):
         headers.sig = gen_msg_sig()
@@ -478,3 +509,23 @@ class SubClient(client.Client):
         response = requests.get(f"{self.api}/x{self.comId}/s/block?start={start}&size={size}", headers=headers.Headers().headers, verify=self.certificatePath)
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return objects.UserProfileList(json.loads(response.text)["userProfileList"]).UserProfileList
+
+    def comment(self, message: str, userId: str = None, blogId: str = None, wikiId: str = None, replyTo: str = None, isGuest: bool = False):
+        data = {
+            "ndcId": self.comId,
+            "content": message
+        }
+        if blogId: data["postType"] = "blog"; postId = blogId
+        if wikiId: data["postType"] = "wiki"; postId = wikiId
+        if userId: data["postType"] = "user"; postId = userId
+        data["postId"] = postId
+        response = requests.post("https://aminoapps.com/api/submit_comment", json=data, headers=self.web_headers)
+        if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
+        else: return response.status_code
+
+    def delete_comment(self, commentId: str, userId: str = None, blogId: str = None, wikiId: str = None):
+        if userId: response = requests.delete(f"{self.api}/x{self.comId}/s/user-profile/{userId}/comment/{commentId}", headers=headers.Headers().headers)
+        if blogId: response = requests.delete(f"{self.api}/x{self.comId}/s/blog/{blogId}/comment/{commentId}", headers=headers.Headers().headers)
+        if wikiId: response = requests.delete(f"{self.api}/x{self.comId}/s/item/{wikiId}/comment/{commentId}", headers=headers.Headers().headers)
+        if response.status_code != 200: return CheckExceptions(response.json())
+        else: return response.status_code
