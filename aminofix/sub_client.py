@@ -1047,7 +1047,7 @@ class SubClient(client.Client):
         data = json_minify(json.dumps(data))
         mac = hmac.new(bytes.fromhex("715ffccf8c0536f186bf127a16c14682827fc581"), data.encode("utf-8"), sha1)
         signature = base64.b64encode(bytes.fromhex("01") + mac.digest()).decode("utf-8")
-        response = requests.post(f"{self.apip}/x{self.comId}/s/community/stats/user-active-time", headers=headers.Headers(data=data, sig=signature, deviceId=self.device_id).headers, data=data, verify=self.certificatePath)
+        response = requests.post(f"{self.apip}/x{self.comId}/s/community/stats/user-active-time", headers=headers.Headers(data=data, sig=signature, deviceId=self.device_id).s_headers, data=data, verify=self.certificatePath)
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
 
