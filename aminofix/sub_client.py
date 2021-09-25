@@ -197,7 +197,7 @@ class SubClient(client.Client):
             - **Success** : 200 (int)
             - **Fail** : :meth:`Exceptions <aminofix.lib.util.exceptions>`
         """
-        response = requests.delete(f"{self.apip}/x{self.comId}/s/chat/thread/{chatId}/member/{self.profile.userId}", headers=headers.Headers().s_headers, proxies=self.proxies, verify=self.certificatePath)
+        response = requests.delete(f"{self.apip}/x{self.comId}/s/chat/thread/{chatId}/member/{self.profile.userId}", headers=headers.Headers().s_headers, verify=self.certificatePath)
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
         
@@ -1676,7 +1676,7 @@ class SubClient(client.Client):
             data["adminOpName"] = 110
             data["adminOpValue"] = 9
             data = json.dumps(data)
-            response = requests.post(f"{self.apip}/x{self.comId}/s/blog/{blogId}/admin", headers=headers.Headers().s_headers, data=data,, verify=self.certificatePath)
+            response = requests.post(f"{self.apip}/x{self.comId}/s/blog/{blogId}/admin", headers=headers.Headers().s_headers, data=data, verify=self.certificatePath)
 
         elif quizId:
             data["adminOpName"] = 110
@@ -1729,7 +1729,7 @@ class SubClient(client.Client):
             data["adminOpName"] = 110
             data["adminOpValue"] = 0
             data = json.dumps(data)
-            response = requests.post(f"{self.apip}/x{self.comId}/s/blog/{quizId}/admin", headers=self.parse_headers(data=data), data=data, proxies=self.proxies, verify=self.certificatePath)
+            response = requests.post(f"{self.apip}/x{self.comId}/s/blog/{quizId}/admin", headers=self.parse_headers(data=data), data=data, verify=self.certificatePath)
 
         elif wikiId:
             data["adminOpName"] = 110
