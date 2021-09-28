@@ -85,16 +85,14 @@ class SubClient(client.Client):
         else: return response.status_code
 
     def get_public_chat_threads(self, type: str = "recommended", start: int = 0, size: int = 25):
-        headers.sig = gen_msg_sig()
-        response = requests.get(f"{self.api}/x{self.comId}/s/chat/thread?type=public-all&filterType={type}&start={start}&size={size}", headers=headers.Headers().headers, verify=self.certificatePath)
+        response = requests.get(f"{self.apip}/x{self.comId}/s/chat/thread?type=public-all&filterType={type}&start={start}&size={size}", headers=headers.Headers().s_headers, verify=self.certificatePath)
         if response.status_code != 200: 
             return exceptions.CheckException(json.loads(response.text))
         else: 
             return objects.ThreadList(json.loads(response.text)["threadList"]).ThreadList
 
     def get_notifications(self, start: int = 0, size: int = 25):
-        headers.sig = gen_msg_sig()
-        response = requests.get(f"{self.api}/x{self.comId}/s/notification?pagingType=t&start={start}&size={size}", headers=headers.Headers().headers, verify=self.certificatePath)
+        response = requests.get(f"{self.apip}/x{self.comId}/s/notification?pagingType=t&start={start}&size={size}", headers=headers.Headers().s_headers, verify=self.certificatePath)
         if response.status_code != 200: 
             return exceptions.CheckException(json.loads(response.text))
         else: 
@@ -102,7 +100,7 @@ class SubClient(client.Client):
 
     def get_invite_codes(self, status: str = "normal", start: int = 0, size: int = 25):
         headers.sig = gen_msg_sig()
-        response = requests.get(f"{self.api}/g/s-x{self.comId}/community/invitation?status={status}&start={start}&size={size}", headers=headers.Headers().headers, verify=self.certificatePath)
+        response = requests.get(f"{self.apip}/g/s-x{self.comId}/community/invitation?status={status}&start={start}&size={size}", headers=headers.Headers().s_headers, verify=self.certificatePath)
         if response.status_code != 200: 
             return exceptions.CheckException(json.loads(response.text))
         else: 
@@ -115,7 +113,7 @@ class SubClient(client.Client):
             "timestamp": int(timestamp() * 1000)
         })
         headers.sig = gen_msg_sig()
-        response = requests.post(f"{self.api}/g/s-x{self.comId}/community/invitation", headers=headers.Headers().headers, data=data, verify=self.certificatePath)
+        response = requests.post(f"{self.apip}/g/s-x{self.comId}/community/invitation", headers=headers.Headers().s_headers, data=data, verify=self.certificatePath)
         if response.status_code != 200: 
             return exceptions.CheckException(json.loads(response.text))
         else: 
@@ -131,7 +129,7 @@ class SubClient(client.Client):
             - **Success** : :meth:`Message Object <amino.lib.util.objects.Message>`
             - **Fail** : :meth:`Exceptions <amino.lib.util.exceptions>`
         """
-        response = requests.get(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/message/{messageId}", headers=headers.Headers().headers, verify=self.certificatePath)
+        response = requests.get(f"{self.apip}/x{self.comId}/s/chat/thread/{chatId}/message/{messageId}", headers=headers.Headers().headers, verify=self.certificatePath)
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return objects.Message(json.loads(response.text)["message"]).Message
 
@@ -154,7 +152,7 @@ class SubClient(client.Client):
 
             - **Fail** : :meth:`Exceptions <amino.lib.util.exceptions>`
         """
-        response = requests.get(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}", headers=headers.Headers().s_headers, verify=self.certificatePath)
+        response = requests.get(f"{self.apip}/x{self.comId}/s/chat/thread/{chatId}", headers=headers.Headers().s_headers, verify=self.certificatePath)
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return objects.Thread(json.loads(response.text)["thread"]).Thread
 
@@ -171,7 +169,7 @@ class SubClient(client.Client):
 
             - **Fail** : :meth:`Exceptions <amino.lib.util.exceptions>`
         """
-        response = requests.get(f"{self.api}/x{self.comId}/s/chat/thread?type=public-all&filterType={type}&start={start}&size={size}", headers=headers.Headers().s_headers, verify=self.certificatePath)
+        response = requests.get(f"{self.apip}/x{self.comId}/s/chat/thread?type=public-all&filterType={type}&start={start}&size={size}", headers=headers.Headers().s_headers, verify=self.certificatePath)
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return objects.ThreadList(json.loads(response.text)["threadList"]).ThreadList
 
@@ -362,7 +360,7 @@ class SubClient(client.Client):
 
             - **Fail** : :meth:`Exceptions <amino.lib.util.exceptions>`
         """
-        response = requests.get(f"{self.api}/x{self.comId}/s/chat/thread?type=joined-me&start={start}&size={size}", headers=headers.Headers().s_headers, verify=self.certificatePath)
+        response = requests.get(f"{self.apip}/x{self.comId}/s/chat/thread?type=joined-me&start={start}&size={size}", headers=headers.Headers().s_headers, verify=self.certificatePath)
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return objects.ThreadList(json.loads(response.text)["threadList"]).ThreadList
     def follow(self, userId: [str, list]):
@@ -421,10 +419,10 @@ class SubClient(client.Client):
             - **Fail** : :meth:`Exceptions <aminofix.lib.util.exceptions>`
         """
 
-        if pageToken is not None: url = f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/message?v=2&pagingType=t&pageToken={pageToken}&size={size}"
-        else: url = f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/message?v=2&pagingType=t&size={size}"
+        if pageToken is not None: url = f"{self.apip}/x{self.comId}/s/chat/thread/{chatId}/message?v=2&pagingType=t&pageToken={pageToken}&size={size}"
+        else: url = f"{self.apip}/x{self.comId}/s/chat/thread/{chatId}/message?v=2&pagingType=t&size={size}"
         headers.sig = gen_msg_sig()
-        response = requests.get(url, headers=headers.Headers().headers, verify=self.certificatePath)
+        response = requests.get(url, headers=headers.Headers().s_headers, verify=self.certificatePath)
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return objects.GetMessages(json.loads(response.text)).GetMessages
 
@@ -538,30 +536,6 @@ class SubClient(client.Client):
             data["extensions"] = {"customTitles": tlt}
 
         response = requests.post(f"https://aminoapps.com/api-p/x{self.comId}/s/user-profile/{self.profile.userId}", json=data, headers=headers.Headers().s_headers)
-        if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
-        else: return response.status_code
-
-    def send_coins(self, coins: int, blogId: str = None, chatId: str = None, objectId: str = None, transactionId: str = None):
-        url = None
-        if transactionId is None: transactionId = str(UUID(hexlify(urandom(16)).decode('ascii')))
-
-        data = {
-            "coins": coins,
-            "tippingContext": {"transactionId": transactionId},
-            "timestamp": int(timestamp() * 1000)
-        }
-
-        if blogId is not None: url = f"https://aminoapps.com/api-p/x{self.comId}/s/blog/{blogId}/tipping"
-        if chatId is not None: url = f"https://aminoapps.com/api-p/x{self.comId}/s/chat/thread/{chatId}/tipping"
-        if objectId is not None:
-            data["objectId"] = objectId
-            data["objectType"] = 2
-            url = f"https://aminoapps.com/api-p/x{self.comId}/s/tipping"
-
-        if url is None: raise exceptions.SpecifyType()
-
-        data = json.dumps(data)
-        response = requests.post(url, headers=headers.Headers().s_headers, data=data, verify=self.certificatePath)
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
 
