@@ -649,7 +649,6 @@ class Client:
             self.account: None
             self.profile: None
             headers.sid = None
-            self.close()
             return response.status_code
 
     def activate_account(self, email: str, code: str):
