@@ -236,8 +236,8 @@ class Client:
             data["mediaUploadValue"] = base64.b64encode(file.read()).decode()
 
         data = json.dumps(data)
-        response = requests.post(f"{self.apip}/x{self.comId}/s/chat/thread/{chatId}/message", headers=headers.Headers().s_headers, data=data, proxies=self.proxies, verify=self.certificatePath)
-        if json.loads(response.text)["api:statuscode"] != 0: 
+        response = requests.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/message", headers=headers.Headers().headers, data=data, proxies=self.proxies, verify=self.certificatePath)
+        if response.status_code != 200: 
             return exceptions.CheckException(json.loads(response.text))
         else: 
             return response.status_code
