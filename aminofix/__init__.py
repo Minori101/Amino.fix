@@ -8,6 +8,7 @@ from .acm import ACM
 from .client import Client
 from .sub_client import SubClient
 from .lib.util import device, exceptions, helpers, objects, headers
+from .socket import Callbacks, SocketHandler
 from requests import get
 from json import loads
 

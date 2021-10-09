@@ -17,12 +17,13 @@ import random
 import string
 
 from .lib.util import exceptions, device, objects, helpers, headers
+from .socket import Callbacks, SocketHandler
 
 #not all functions work properly
 
 device = device.DeviceGenerator()
 
-class Client:
+class Client(Callbacks, SocketHandler):
     def __init__(self, deviceId: str = None, proxies: dict = None, certificatePath = None, socket_trace = False, socketDebugging = False):
         self.api = 'https://service.narvii.com/api/v1'
         self.apip = 'https://aminoapps.com/api-p'
@@ -32,6 +33,9 @@ class Client:
         else: self.device_id = device.device_id
         self.user_agent = device.user_agent
 
+        SocketHandler.__init__(self, self, socket_trace=socket_trace, debug=socketDebugging)
+        Callbacks.__init__(self, self)
+
         self.sid = None
         self.proxies = proxies
         self.certificatePath = certificatePath
@@ -40,6 +44,8 @@ class Client:
         self.web_headers = headers.Headers().web_headers
         self.ad_headers = headers.AdHeaders().headers
         self.ad_data = headers.AdHeaders().data 
+        self.s_headers = headers.Headers().s_headers
+        self.headers = headers.Headers().headers
 
         self.userId = None
         self.comId = None
@@ -60,7 +66,8 @@ class Client:
         self.account: objects.UserProfile = self.get_user_info(uId)
         self.profile: objects.UserProfile = self.get_user_info(uId)
         headers.sid = self.sid
-
+        self.start()
+        self.run_socket()
 
     def login(self, email: str, password: str):
         """
@@ -83,6 +90,7 @@ class Client:
         })
 
         response = requests.post(f"{self.apip}/g/s/auth/login", headers=headers.Headers().s_headers, data=data, proxies=self.proxies, verify=self.certificatePath)
+        self.run_socket()
         if json.loads(response.text)["api:statuscode"] != 0: return exceptions.CheckException(json.loads(response.text))
         else:
             self.authenticated = True
@@ -95,6 +103,7 @@ class Client:
             self.account: objects.UserProfile = objects.UserProfile(self.json["account"]).UserProfile
             self.profile: objects.UserProfile = objects.UserProfile(self.json["userProfile"]).UserProfile
             headers.sid = 'sid='+self.sid
+            self.start()
             return response.status_code
 
     def handle_socket_message(self, data):
@@ -612,7 +621,7 @@ class Client:
             - **password** : Password of the account.
         **Returns**
             - **Success** : 200 (int)
-            - **Fail** : :meth:`Exceptions <amino.lib.util.exceptions>`
+            - **Fail** : :meth:`Exceptions <aminofix.lib.util.exceptions>`
         """
         data = json.dumps({
             "secret": f"0 {password}",
@@ -631,7 +640,7 @@ class Client:
             - No parameters required.
         **Returns**
             - **Success** : 200 (int)
-            - **Fail** : :meth:`Exceptions <amino.lib.util.exceptions>`
+            - **Fail** : :meth:`Exceptions <aminofix.lib.util.exceptions>`
         """
         data = json.dumps({
             "deviceID": self.device_id,
@@ -649,6 +658,7 @@ class Client:
             self.account: None
             self.profile: None
             headers.sid = None
+            self.close()
             return response.status_code
 
     def activate_account(self, email: str, code: str):
@@ -659,7 +669,7 @@ class Client:
             - **code** : Verification code.
         **Returns**
             - **Success** : 200 (int)
-            - **Fail** : :meth:`Exceptions <amino.lib.util.exceptions>`
+            - **Fail** : :meth:`Exceptions <aminofix.lib.util.exceptions>`
         """
 
         data = json.dumps({
@@ -701,7 +711,7 @@ class Client:
             - **code** : Verification code.
         **Returns**
             - **Success** : 200 (int)
-            - **Fail** : :meth:`Exceptions <amino.lib.util.exceptions>`
+            - **Fail** : :meth:`Exceptions <aminofix.lib.util.exceptions>`
         """
 
         data = json.dumps({
@@ -730,7 +740,7 @@ class Client:
             - **deviceId** : ID of the Device.
         **Returns**
             - **Success** : 200 (int)
-            - **Fail** : :meth:`Exceptions <amino.lib.util.exceptions>`
+            - **Fail** : :meth:`Exceptions <aminofix.lib.util.exceptions>`
         """
         data = json.dumps({
             "deviceID": deviceId,
