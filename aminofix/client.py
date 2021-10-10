@@ -526,7 +526,7 @@ class Client(Callbacks, SocketHandler):
     # By Marshall (Smile, Texaz) (from SAmino)
     def watch_ad(self, uid: str = None):
         if uid: self.ad_data["reward"]["custom_json"]["hashed_user_id"] = uid
-        if not uid: self.ad_data["reward"]["custom_json"]["hashed_user_id"] = self.uid
+        if not uid: self.ad_data["reward"]["custom_json"]["hashed_user_id"] = self.userId
         self.ad_data["reward"]["event_id"] = str(uuid4())
         req = requests.post("https://ads.tapdaq.com/v4/analytics/reward", headers=self.ad_headers, json=self.ad_data, proxies=self.proxies)
         return req.status_code
