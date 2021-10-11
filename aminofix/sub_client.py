@@ -18,10 +18,6 @@ from json_minify import json_minify
 from . import client
 from .lib.util import exceptions, device, objects, headers
 
-def gen_msg_sig():
-    return base64.b64encode(bytes.fromhex("22") + hmac.new(bytes.fromhex(str(int(time.time()))), "22".encode("utf-8"),
-                                                           sha1).digest()).decode()
-
 device = device.DeviceGenerator()
 
 class SubClient(client.Client):
@@ -83,6 +79,31 @@ class SubClient(client.Client):
         else: response = requests.post(f"{self.apip}/x{self.comId}/s/chat/thread/{chatId}/message/{messageId}/admin", headers=headers.Headers().s_headers, data=data, proxies=self.proxies, verify=self.certificatePath)
         if json.loads(response.text)["api:statuscode"] != 0: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
+
+    def vc_permission(self, chatId: str, permission: int):
+        """Voice Chat Join Permissions
+        1 - Open to Everyone
+        2 - Approval Required
+        3 - Invite Only
+        """
+        data = json.dumps({
+            "vvChatJoinType": permission,
+            "timestamp": int(timestamp() * 1000)
+        })
+
+        response = requests.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/vvchat-permission", headers=headers.Headers().s_headers, data=data, proxies=self.proxies, verify=self.certificatePath)
+        if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
+        else: return response.status_code
+
+    def get_vc_reputation_info(self, chatId: str):
+        response = requests.get(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/avchat-reputation", headers=headers.Headers().s_headers, proxies=self.proxies, verify=self.certificatePath)
+        if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
+        else: return objects.VcReputation(json.loads(response.text)).VcReputation
+
+    def claim_vc_reputation(self, chatId: str):
+        response = requests.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/avchat-reputation", headers=headers.Headers().s_headers, proxies=self.proxies, verify=self.certificatePath)
+        if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
+        else: return objects.VcReputation(json.loads(response.text)).VcReputation
 
     def get_public_chat_threads(self, type: str = "recommended", start: int = 0, size: int = 25):
         response = requests.get(f"{self.apip}/x{self.comId}/s/chat/thread?type=public-all&filterType={type}&start={start}&size={size}", headers=headers.Headers().s_headers, proxies=self.proxies, verify=self.certificatePath)
@@ -2038,4 +2059,21 @@ class SubClient(client.Client):
         if json.loads(response.text)["api:statuscode"] != 0: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
 
+    def invite_to_vc(self, chatId: str, userId: str):
+        """
+        Invite a User to a Voice Chat
+        **Parameters**
+            - **chatId** - ID of the Chat
+            - **userId** - ID of the User
+        **Returns**
+            - **Success** : 200 (int)
+            - **Fail** : :meth:`Exceptions <aminofix.lib.util.exceptions>`
+        """
 
+        data = json.dumps({
+            "uid": userId
+        })
+
+        response = requests.post(f"{self.apip}/x{self.comId}/s/chat/thread/{chatId}/vvchat-presenter/invite/", headers=headers.Headers().s_headers, data=data, proxies=self.proxies, verify=self.certificatePath)
+        if json.loads(response.text)["api:statuscode"] != 0: return exceptions.CheckException(json.loads(response.text))
+        else: return response.status_code

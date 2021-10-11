@@ -52,6 +52,79 @@ class Client(Callbacks, SocketHandler):
         self.json = None
         self.uid = None
 
+    def join_voice_chat(self, comId: str, chatId: str, joinType: int = 1):
+        """
+        Joins a Voice Chat
+        **Parameters**
+            - **comId** : ID of the Community
+            - **chatId** : ID of the Chat
+        """
+
+        # Made by Light, Ley and Phoenix
+
+        data = {
+            "o": {
+                "ndcId": int(comId),
+                "threadId": chatId,
+                "joinRole": joinType,
+                "id": "2154531"  # Need to change?
+            },
+            "t": 112
+        }
+        data = json.dumps(data)
+        self.send(data)
+
+    def join_video_chat(self, comId: str, chatId: str, joinType: int = 1):
+        """
+        Joins a Video Chat
+        **Parameters**
+            - **comId** : ID of the Community
+            - **chatId** : ID of the Chat
+        """
+
+        # Made by Light, Ley and Phoenix
+
+        data = {
+            "o": {
+                "ndcId": int(comId),
+                "threadId": chatId,
+                "joinRole": joinType,
+                "channelType": 5,
+                "id": "2154531"  # Need to change?
+            },
+            "t": 108
+        }
+        data = json.dumps(data)
+        self.send(data)
+
+    def join_video_chat_as_viewer(self, comId: str, chatId: str):
+        data = {
+            "o":
+                {
+                    "ndcId": int(comId),
+                    "threadId": chatId,
+                    "joinRole": 2,
+                    "id": "72446"
+                },
+            "t": 112
+        }
+        data = json.dumps(data)
+        self.send(data)
+
+    def end_vc(self, comId: str, chatId: str, joinType: int = 2):
+        self.active = False
+        data = {
+            "o": {
+                "ndcId": comId,
+                "threadId": chatId,
+                "joinRole": joinType,
+                "id": "2154531"  # Need to change?
+            },
+            "t": 112
+        }
+        data = json.dumps(data)
+        self.send(data)
+
     def login_sid(self, SID: str):
         """
         Login into an account with an SID
@@ -573,6 +646,7 @@ class Client(Callbacks, SocketHandler):
         else: response = requests.post(f"{self.apip}/g/s/link-resolution", headers=headers.Headers().s_headers, data=data, proxies=self.proxies, verify=self.certificatePath)
         if json.loads(response.text)["api:statuscode"] != 0: return exceptions.CheckException(json.loads(response.text))
         else: return objects.FromCode(json.loads(response.text)["linkInfoV2"]).FromCode
+
     def register(self, nickname: str, email: str, password: str, verificationCode: str, deviceId: str = device.device_id):
         """
         Register an account.
@@ -584,7 +658,7 @@ class Client(Callbacks, SocketHandler):
             - **deviceId** : The device id being registered to.
         **Returns**
             - **Success** : 200 (int)
-            - **Fail** : :meth:`Exceptions <amino.lib.util.exceptions>`
+            - **Fail** : :meth:`Exceptions <aminofix.lib.util.exceptions>`
         """
 
         data = json.dumps({
@@ -604,6 +678,39 @@ class Client(Callbacks, SocketHandler):
                 "type": 1,
                 "identity": email
             },
+            "type": 1,
+            "identity": email,
+            "timestamp": int(timestamp() * 1000)
+        })
+
+        response = requests.post(f"{self.apip}/g/s/auth/register", data=data, headers=headers.Headers().s_headers, proxies=self.proxies, verify=self.certificatePath)
+        if json.loads(response.text)["api:statuscode"] != 0: return exceptions.CheckException(json.loads(response.text))
+        else: return response.status_code
+
+    def register_c(self, nickname: str, email: str, password: str, verificationCode: str, deviceId: str = device.device_id):
+        """
+        Register an account.
+        **Parameters**
+            - **nickname** : Nickname of the account.
+            - **email** : Email of the account.
+            - **password** : Password of the account.
+            - **verificationCode** : Verification code.
+            - **deviceId** : The device id being registered to.
+        **Returns**
+            - **Success** : 200 (int)
+            - **Fail** : :meth:`Exceptions <aminofix.lib.util.exceptions>`
+        """
+
+        data = json.dumps({
+            "secret": f"0 {password}",
+            "deviceID": deviceId,
+            "email": email,
+            "clientType": 100,
+            "nickname": nickname,
+            "latitude": 0,
+            "longitude": 0,
+            "address": None,
+            "clientCallbackURL": "narviiapp://relogin",
             "type": 1,
             "identity": email,
             "timestamp": int(timestamp() * 1000)
@@ -1638,6 +1745,28 @@ class Client(Callbacks, SocketHandler):
         response = requests.get(f"{self.apip}/g/s/avatar-frame?start={start}&size={size}", headers=headers.Headers().s_headers, proxies=self.proxies, verify=self.certificatePath)
         if json.loads(response.text)["api:statuscode"] != 0: return exceptions.CheckException(json.loads(response.text))
         else: return objects.AvatarFrameList(json.loads(response.text)["avatarFrameList"]).AvatarFrameList
+
+    def subscribe_amino_plus(self, transactionId="", sku="d940cf4a-6cf2-4737-9f3d-655234a92ea5", autoRenew: str = True):
+        """
+        Subscibes to amino+
+        **Parameters**
+            - **transactionId** - The transaction Id as a uuid4
+        **Returns**
+            - **Success** : 200 (int)
+            - **Fail** : :meth:`Exceptions <aminofix.lib.util.exceptions>`
+        """
+        data = json.dumps({
+            "sku": sku,
+            "packageName": "com.narvii.amino.master",
+            "paymentType": 1,
+            "paymentContext": {
+                "transactionId": (transactionId or str(uuid4())),
+                "isAutoRenew": autoRenew
+            }
+        })
+        response = requests.post(f"{self.apip}/g/s/membership/product/subscribe", headers=headers.Headers().s_headers, data=data)
+        if json.loads(response.text)["api:statuscode"] != 0: return exceptions.CheckException(json.loads(response.text))
+        else: return response.text
 
 #fix Amino.py 1.2.17 by Minori
 #SAmino - https://github.com/SirLez/SAmino
