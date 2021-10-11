@@ -71,6 +71,7 @@ class Client(Callbacks, SocketHandler):
             },
             "t": 112
         }
+        time.sleep(2)
         data = json.dumps(data)
         self.send(data)
 
@@ -94,6 +95,7 @@ class Client(Callbacks, SocketHandler):
             },
             "t": 108
         }
+        time.sleep(2)
         data = json.dumps(data)
         self.send(data)
 
@@ -108,6 +110,7 @@ class Client(Callbacks, SocketHandler):
                 },
             "t": 112
         }
+        time.sleep(2)
         data = json.dumps(data)
         self.send(data)
 
@@ -122,6 +125,7 @@ class Client(Callbacks, SocketHandler):
             },
             "t": 112
         }
+        time.sleep(2)
         data = json.dumps(data)
         self.send(data)
 

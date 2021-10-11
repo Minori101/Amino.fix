@@ -23,7 +23,7 @@ class SocketHandler:
         self.socket_stop = False
         self.socketDelay = 0
         self.socket_trace = socket_trace
-        self.socketDelayFetch = 120  # Reconnects every 120 seconds.
+        self.socketDelayFetch = 60  # Reconnects every 120 seconds.
 
     def run_socket(self):
         threading.Thread(target=self.reconnect_handler).start()
