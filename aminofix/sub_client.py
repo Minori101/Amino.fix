@@ -335,7 +335,6 @@ class SubClient(client.Client):
         if url is None: raise exceptions.SpecifyType()
 
         data = json.dumps(data)
-        headers.sig = gen_msg_sig()
         response = requests.post(url, headers=headers.Headers().s_headers, data=data, proxies=self.proxies, verify=self.certificatePath)
         if json.loads(response.text)["api:statuscode"] != 0: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
@@ -360,7 +359,6 @@ class SubClient(client.Client):
         if url is None: raise exceptions.SpecifyType()
 
         data = json.dumps(data)
-        headers.sig = gen_msg_sig()
         response = requests.post(url, headers=headers.Headers().s_headers, data=data, proxies=self.proxies, verify=self.certificatePath)
         if json.loads(response.text)["api:statuscode"] != 0: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
