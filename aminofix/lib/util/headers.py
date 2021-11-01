@@ -1,11 +1,8 @@
 from aminofix.lib.util import device
 
 sid = None
-
 gen_msg_sig = None
-
 web = None
-
 uid = None
 
 class Headers:
@@ -40,7 +37,7 @@ class Headers:
         if sid: 
             headers["NDCAUTH"] = f"{sid}"
             s_headers["NDCAUTH"] = f"{sid}"
-            web_headers["cookie"]= f"{sid}"
+            web_headers["cookie"] = f"{sid}"
         if type: headers["Content-Type"] = type
         if sig: headers["NDC-MSG-SIG"] = sig
         if web: web_headers = web

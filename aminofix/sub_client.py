@@ -2,9 +2,6 @@ import hmac
 import json
 import base64
 import requests
-import time
-from hashlib import sha1
-import os
 
 from uuid import UUID
 from os import urandom
@@ -21,7 +18,7 @@ from .lib.util import exceptions, device, objects, headers
 device = device.DeviceGenerator()
 
 class SubClient(client.Client):
-    def __init__(self, comId: str = None, sid: str = None, aminoId: str = None, *, profile: objects.UserProfile = None):
+    def __init__(self, comId: str = None, aminoId: str = None, *, profile: objects.UserProfile = None):
         client.Client.__init__(self)
         self.vc_connect = False
 
@@ -80,37 +77,10 @@ class SubClient(client.Client):
         if json.loads(response.text)["api:statuscode"] != 0: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
 
-    def vc_permission(self, chatId: str, permission: int):
-        """Voice Chat Join Permissions
-        1 - Open to Everyone
-        2 - Approval Required
-        3 - Invite Only
-        """
-        data = json.dumps({
-            "vvChatJoinType": permission,
-            "timestamp": int(timestamp() * 1000)
-        })
-
-        response = requests.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/vvchat-permission", headers=headers.Headers().s_headers, data=data, proxies=self.proxies, verify=self.certificatePath)
-        if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
-        else: return response.status_code
-
     def get_vc_reputation_info(self, chatId: str):
         response = requests.get(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/avchat-reputation", headers=headers.Headers().s_headers, proxies=self.proxies, verify=self.certificatePath)
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return objects.VcReputation(json.loads(response.text)).VcReputation
-
-    def claim_vc_reputation(self, chatId: str):
-        response = requests.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/avchat-reputation", headers=headers.Headers().s_headers, proxies=self.proxies, verify=self.certificatePath)
-        if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
-        else: return objects.VcReputation(json.loads(response.text)).VcReputation
-
-    def get_public_chat_threads(self, type: str = "recommended", start: int = 0, size: int = 25):
-        response = requests.get(f"{self.apip}/x{self.comId}/s/chat/thread?type=public-all&filterType={type}&start={start}&size={size}", headers=headers.Headers().s_headers, proxies=self.proxies, verify=self.certificatePath)
-        if json.loads(response.text)["api:statuscode"] != 0: 
-            return exceptions.CheckException(json.loads(response.text))
-        else: 
-            return objects.ThreadList(json.loads(response.text)["threadList"]).ThreadList
 
     def get_notifications(self, start: int = 0, size: int = 25):
         response = requests.get(f"{self.apip}/x{self.comId}/s/notification?pagingType=t&start={start}&size={size}", headers=headers.Headers().s_headers, proxies=self.proxies, verify=self.certificatePath)
@@ -315,6 +285,7 @@ class SubClient(client.Client):
             return exceptions.CheckException(json.loads(response.text))
         else: 
             return response.status_code
+
     def send_coins(self, coins: int, blogId: str = None, chatId: str = None, objectId: str = None, transactionId: str = None):
         url = None
         if transactionId is None: transactionId = str(UUID(hexlify(urandom(16)).decode('ascii')))
@@ -379,6 +350,7 @@ class SubClient(client.Client):
         response = requests.get(f"{self.apip}/x{self.comId}/s/chat/thread?type=joined-me&start={start}&size={size}", headers=headers.Headers().s_headers, proxies=self.proxies, verify=self.certificatePath)
         if json.loads(response.text)["api:statuscode"] != 0: return exceptions.CheckException(json.loads(response.text))
         else: return objects.ThreadList(json.loads(response.text)["threadList"]).ThreadList
+
     def follow(self, userId: [str, list]):
         """
         Follow an User or Multiple Users.
@@ -402,6 +374,7 @@ class SubClient(client.Client):
 
         if json.loads(response.text)["api:statuscode"] != 0: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
+
     def unfollow(self, userId: str):
         """
         Unfollow an User.
@@ -417,6 +390,7 @@ class SubClient(client.Client):
         response = requests.delete(f"{self.apip}/x{self.comId}/s/user-profile/{self.profile.userId}/joined/{userId}", headers=headers.Headers().s_headers, proxies=self.proxies, verify=self.certificatePath)
         if json.loads(response.text)["api:statuscode"] != 0: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
+
     def get_chat_messages(self, chatId: str, size: int = 25, pageToken: str = None):
         """
         List of Messages from an Chat.
@@ -656,7 +630,7 @@ class SubClient(client.Client):
 
             if not canTip:
                 response = requests.post(f"{self.apip}/x{self.comId}/s/chat/thread/{chatId}/tipping-perm-status/disable", data=data, headers=headers.Headers().s_headers, proxies=self.proxies, verify=self.certificatePath)
-                if rjson.loads(response.text)["api:statuscode"] != 0: res.append(exceptions.CheckException(json.loads(response.text)))
+                if json.loads(response.text)["api:statuscode"] != 0: res.append(exceptions.CheckException(json.loads(response.text)))
                 else: res.append(response.status_code)
 
         data = json.dumps(data)
@@ -665,31 +639,6 @@ class SubClient(client.Client):
         else: res.append(response.status_code)
 
         return res
-
-    def start_chat(self, userId: [str, list], message: str, title: str = None, content: str = None, isGlobal: bool = False, publishToGlobal: bool = False):
-        if isinstance(userId, str): userIds = [userId]
-        elif isinstance(userId, list): userIds = userId
-        else: raise exceptions.WrongType(type(userId))
-
-        data = {
-            "title": title,
-            "inviteeUids": userIds,
-            "initialMessageContent": message,
-            "content": content,
-            "timestamp": int(timestamp() * 1000)
-        }
-
-        if isGlobal is True: data["type"] = 2; data["eventSource"] = "GlobalComposeMenu"
-        else: data["type"] = 0
-
-        if publishToGlobal is True: data["publishToGlobal"] = 1
-        else: data["publishToGlobal"] = 0
-
-        data = json.dumps(data)
-
-        response = requests.post(f"{self.apip}/x{self.comId}/s/chat/thread", data=data, headers=headers.Headers().s_headers, proxies=self.proxies, verify=self.certificatePath)
-        if json.loads(response.text)["api:statuscode"] != 0 != 200: return exceptions.CheckException(json.loads(response.text))
-        else: return response.status_code
 
     def invite_to_chat(self, userId: [str, list], chatId: str):
         if isinstance(userId, str): userIds = [userId]
@@ -705,23 +654,12 @@ class SubClient(client.Client):
         if json.loads(response.text)["api:statuscode"] != 0: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
 
-    def generate_invite_code(self, duration: int = 0, force: bool = True):
-        data = json.dumps({
-            "duration": duration,
-            "force": force,
-            "timestamp": int(timestamp() * 1000)
-        })
-
-        response = requests.post(f"{self.apip}/g/s-x{self.comId}/community/invitation", headers=headers.Headers().s_headers, data=data, proxies=self.proxies, verify=self.certificatePath)
-        if json.loads(response.text)["api:statuscode"] != 0: return exceptions.CheckException(json.loads(response.text))
-        else: return objects.InviteCode(json.loads(response.text)["communityInvitation"]).InviteCode
-
     def delete_invite_code(self, inviteId: str):
         response = requests.delete(f"{self.apip}/g/s-x{self.comId}/community/invitation/{inviteId}", headers=headers.Headers().s_headers, proxies=self.proxies, verify=self.certificatePath)
         if json.loads(response.text)["api:statuscode"] != 0: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
 
-    def post_blog(self, title: str, content: str, imageList: list = None, captionList: list = None, categoriesList: list = None, backgroundColor: str = None, fansOnly: bool = False, extensions: dict = None, crash: bool = False):
+    def post_blog(self, title: str, content: str, imageList: list = None, captionList: list = None, categoriesList: list = None, backgroundColor: str = None, fansOnly: bool = False, extensions: dict = None):
         mediaList = []
 
         if captionList is not None:
@@ -1249,19 +1187,6 @@ class SubClient(client.Client):
         response = requests.delete(f"{self.apip}/x{self.comId}/s/chat/thread/{chatId}/member/{userId}?allowRejoin={allowRejoin}", headers=headers.Headers().s_headers, proxies=self.proxies, verify=self.certificatePath)
         if json.loads(response.text)["api:statuscode"] != 0: return exceptions.CheckException(json.loads(response.text))
         else: return response.text
-
-    def delete_chat(self, chatId: str):
-        """
-        Delete a Chat.
-        **Parameters**
-            - **chatId** : ID of the Chat.
-        **Returns**
-            - **Success** : 200 (int)
-            - **Fail** : :meth:`Exceptions <aminofix.lib.util.exceptions>`
-        """
-        response = requests.delete(f"{self.apip}/x{self.comId}/s/chat/thread/{chatId}", headers=headers.Headers().s_headers, proxies=self.proxies, verify=self.certificatePath)
-        if json.loads(response.text)["api:statuscode"] != 0: return exceptions.CheckException(json.loads(response.text))
-        else: return response.status_code
         
     def subscribe(self, userId: str, autoRenew: str = False, transactionId: str = None):
         if transactionId is None: transactionId = str(UUID(hexlify(urandom(16)).decode('ascii')))
@@ -1330,11 +1255,6 @@ class SubClient(client.Client):
         response = requests.post(f"{self.apip}/x{self.comId}/s/chat/thread/{chatId}/vvchat-permission", headers=headers.Headers().s_headers, data=data, proxies=self.proxies, verify=self.certificatePath)
         if json.loads(response.text)["api:statuscode"] != 0: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
-
-    def get_vc_reputation_info(self, chatId: str):
-        response = requests.get(f"{self.apip}/x{self.comId}/s/chat/thread/{chatId}/avchat-reputation", headers=headers.Headers().s_headers, proxies=self.proxies, verify=self.certificatePath)
-        if json.loads(response.text)["api:statuscode"] != 0: return exceptions.CheckException(json.loads(response.text))
-        else: return objects.VcReputation(json.loads(response.text)).VcReputation
 
     def claim_vc_reputation(self, chatId: str):
         response = requests.post(f"{self.apip}/x{self.comId}/s/chat/thread/{chatId}/avchat-reputation", headers=headers.Headers().s_headers, proxies=self.proxies, verify=self.certificatePath)
@@ -1413,7 +1333,7 @@ class SubClient(client.Client):
             - *start* : Where to start the list.
             - *size* : Size of the list.
         **Returns**
-            - **Success** : :meth:`Visitors List <amino.libfix.util.objects.visitorsList>`
+            - **Success** : :meth:`Visitors List <amino.lib.util.objects.visitorsList>`
             - **Fail** : :meth:`Exceptions <aminofix.lib.util.exceptions>`
         """
         response = requests.get(f"{self.apip}/x{self.comId}/s/user-profile/{userId}/visitors?start={start}&size={size}", headers=headers.Headers().s_headers, proxies=self.proxies, verify=self.certificatePath)
@@ -1496,7 +1416,7 @@ class SubClient(client.Client):
         if json.loads(response.text)["api:statuscode"] != 0: return exceptions.CheckException(json.loads(response.text))
         else: return objects.BlogCategoryList(json.loads(response.text)["blogCategoryList"]).BlogCategoryList
 
-    def get_blogs_by_category(self, categoryId: str,start: int = 0, size: int = 25):
+    def get_blogs_by_category(self, categoryId: str, start: int = 0, size: int = 25):
         response = requests.get(f"{self.apip}/x{self.comId}/s/blog-category/{categoryId}/blog-list?start={start}&size={size}", headers=headers.Headers().s_headers, proxies=self.proxies, verify=self.certificatePath)
         if json.loads(response.text)["api:statuscode"] != 0: return exceptions.CheckException(json.loads(response.text))
         else: return objects.BlogList(json.loads(response.text)["blogList"]).BlogList
@@ -1731,7 +1651,7 @@ class SubClient(client.Client):
             data["adminOpName"] = 110
             data["adminOpValue"] = 0
             data = json.dumps(data)
-            response = requests.post(f"{self.apip}/x{self.comId}/s/blog/{quizId}/admin", headers=self.parse_headers(data=data), data=data, proxies=self.proxies, verify=self.certificatePath)
+            response = requests.post(f"{self.apip}/x{self.comId}/s/blog/{quizId}/admin", headers=headers.Headers().s_headers, data=data, proxies=self.proxies, verify=self.certificatePath)
 
         elif wikiId:
             data["adminOpName"] = 110
@@ -1948,25 +1868,6 @@ class SubClient(client.Client):
         if json.loads(response.text)["api:statuscode"] != 0: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
 
-    def invite_to_vc(self, chatId: str, userId: str):
-        """
-        Invite a User to a Voice Chat
-        **Parameters**
-            - **chatId** - ID of the Chat
-            - **userId** - ID of the User
-        **Returns**
-            - **Success** : 200 (int)
-            - **Fail** : :meth:`Exceptions <aminofix.lib.util.exceptions>`
-        """
-
-        data = json.dumps({
-            "uid": userId
-        })
-
-        response = requests.post(f"{self.apip}/x{self.comId}/s/chat/thread/{chatId}/vvchat-presenter/invite/", headers.Headers().s_headers, data=data, proxies=self.proxies, verify=self.certificatePath)
-        if json.loads(response.text)["api:statuscode"] != 0: return exceptions.CheckException(json.loads(response.text))
-        else: return response.status_code
-
     def add_poll_option(self, blogId: str, question: str):
         data = json.dumps({
             "mediaList": None,
@@ -1993,10 +1894,10 @@ class SubClient(client.Client):
         if json.loads(response.text)["api:statuscode"] != 0: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
 
-    def create_shared_folder(self,title: str):
+    def create_shared_folder(self, title: str):
         data = json.dumps({
-                "title":title,
-                "timestamp":int(timestamp() * 1000)
+                "title": title,
+                "timestamp": int(timestamp() * 1000)
             })
         response = requests.post(f"{self.apip}/x{self.comId}/s/shared-folder/folders", headers=headers.Headers().s_headers, data=data, proxies=self.proxies, verify=self.certificatePath)
         if json.loads(response.text)["api:statuscode"] != 0: return exceptions.CheckException(json.loads(response.text))

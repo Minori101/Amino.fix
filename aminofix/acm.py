@@ -232,7 +232,7 @@ class ACM(client.Client):
 
     def get_notice_list(self, start: int = 0, size: int = 25):
         if self.comId is None: raise exceptions.CommunityNeeded()
-        response = requests.get(f"{self.apip}/x{self.comId}/s/notice?type=management&status=1&start={start}&size={size}", headers=headers.Headers().s-headers)
+        response = requests.get(f"{self.apip}/x{self.comId}/s/notice?type=management&status=1&start={start}&size={size}", headers=headers.Headers().s_headers)
         if json.loads(response.text)["api:statuscode"] != 0: return exceptions.CheckException(json.loads(response.text))
         else: return objects.NoticeList(json.loads(response.text)["noticeList"]).NoticeList
 

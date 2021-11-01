@@ -85,7 +85,7 @@ class SocketHandler:
 
         self.socket.send(data)
 
-    #from amino-new.py
+    # from amino-new.py
     def token(self):
         header = {
             "cookie": "sid="+self.client.sid
