@@ -1,27 +1,22 @@
-import aiohttp
+
+
 import requests
-import hmac
 import json
 import base64
-from hashlib import sha1
 import time
 from time import time as timestamp
-from time import timezone, sleep
+from time import timezone
 from typing import BinaryIO
+from binascii import hexlify
+from os import urandom
 from locale import getdefaultlocale as locale
 from uuid import UUID, uuid4
-import concurrent.futures
-import asyncio
-
-import random
-import string
 
 from .lib.util import exceptions, device, objects, helpers, headers
 from .socket import Callbacks, SocketHandler
 
-#not all functions work properly
-
 device = device.DeviceGenerator()
+
 
 class Client(Callbacks, SocketHandler):
     def __init__(self, deviceId: str = None, proxies: dict = None, certificatePath = None, socket_trace = False, socketDebugging = False):
@@ -51,6 +46,9 @@ class Client(Callbacks, SocketHandler):
         self.comId = None
         self.json = None
         self.uid = None
+        self.profile = None
+        self.account = None
+        self.authenticated = False
 
     def join_voice_chat(self, comId: str, chatId: str, joinType: int = 1):
         """
@@ -174,7 +172,7 @@ class Client(Callbacks, SocketHandler):
             self.json = json.loads(response.text)
             try:
                 self.sid = self.json["sid"]
-            except:
+            except Exception:
                 print(self.json)
             self.userId = self.json["account"]["uid"]
             self.account: objects.UserProfile = objects.UserProfile(self.json["account"]).UserProfile
@@ -197,7 +195,7 @@ class Client(Callbacks, SocketHandler):
 
         **Parameters**
             - **code** : Code from the Amino URL.
-                - ``http://aminoapps.com/p/EXAMPLE``, the ``code`` is 'EXAMPLE'.
+                - ``https://aminoapps.com/p/EXAMPLE``, the ``code`` is 'EXAMPLE'.
 
         **Returns**
             - **Success** : :meth:`From Code Object <amino.lib.util.objects.FromCode>`
@@ -208,7 +206,7 @@ class Client(Callbacks, SocketHandler):
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return objects.FromCode(json.loads(response.text)["linkInfoV2"]).FromCode
 
-    def join_community(self, comId: str, invitationId: str = None):
+    def join_community(self, comId: str):
         url = f"{self.apip}/x{comId}/s/community/join"
         response = requests.post(url=url, headers=headers.Headers().s_headers, proxies=self.proxies, verify=self.certificatePath)
         if json.loads(response.text)["api:statuscode"] != 0:
@@ -223,6 +221,7 @@ class Client(Callbacks, SocketHandler):
             return exceptions.CheckException(json.loads(response.text))
         else:
             return response.status_code
+
     def get_user_info(self, userId: str):
         url = f"{self.api}/g/s/user-profile/{userId}"
         response = requests.get(url=url, headers=headers.Headers().headers, proxies=self.proxies, verify=self.certificatePath)
@@ -230,6 +229,7 @@ class Client(Callbacks, SocketHandler):
             return exceptions.CheckException(json.loads(response.text))
         else:
             return objects.UserProfile(json.loads(response.text)["userProfile"]).UserProfile
+
     def get_from_deviceid(self, deviceId: str):
         """
         Get the User ID from an Device ID.
@@ -327,6 +327,7 @@ class Client(Callbacks, SocketHandler):
             return exceptions.CheckException(json.loads(response.text))
         else: 
             return response.status_code
+
     def get_chat_threads(self, start: int = 0, size: int = 25):
         response = requests.get(f"{self.apip}/g/s/chat/thread?type=joined-me&start={start}&size={size}", headers=headers.Headers().s_headers, proxies=self.proxies, verify=self.certificatePath)
         if json.loads(response.text)["api:statuscode"] != 0: 
@@ -405,6 +406,7 @@ class Client(Callbacks, SocketHandler):
             return exceptions.CheckException(json.loads(response.text))
         else: 
             return objects.GetMessages(json.loads(response.text)).GetMessages
+
     def get_message_info(self, chatId: str, messageId: str):
         response = requests.get(f"{self.apip}/g/s/chat/thread/{chatId}/message/{messageId}", headers=headers.Headers().s_headers, proxies=self.proxies, verify=self.certificatePath)
         if json.loads(response.text)["api:statuscode"] != 0: 
@@ -425,6 +427,7 @@ class Client(Callbacks, SocketHandler):
             return exceptions.CheckException(json.loads(response.text))
         else: 
             return objects.CommunityList(json.loads(response.text)["communityList"]).CommunityList
+
     def get_community_info(self, comId: str):
         response = requests.get(f"{self.apip}/g/s-x{comId}/community/info?withInfluencerList=1&withTopicList=true&influencerListOrderStrategy=fansCount", headers=headers.Headers().s_headers, proxies=self.proxies, verify=self.certificatePath)
         if json.loads(response.text)["api:statuscode"] != 0: 
@@ -447,6 +450,7 @@ class Client(Callbacks, SocketHandler):
         response = requests.get(f"{self.apip}/x{self.comId}/s/chat/thread/{chatId}", headers=headers.Headers().s_headers, proxies=self.proxies, verify=self.certificatePath)
         if json.loads(response.text)["api:statuscode"] != 0: return exceptions.CheckException(json.loads(response.text))
         else: return objects.Thread(json.loads(response.text)["thread"]).Thread
+
     def get_public_chat_threads(self, type: str = "recommended", start: int = 0, size: int = 25):
         """
         List of Public Chats of the Community.
@@ -463,6 +467,7 @@ class Client(Callbacks, SocketHandler):
         response = requests.get(f"{self.apip}/x{self.comId}/s/chat/thread?type=public-all&filterType={type}&start={start}&size={size}", headers=headers.Headers().s_headers, proxies=self.proxies, verify=self.certificatePath)
         if json.loads(response.text)["api:statuscode"] != 0: return exceptions.CheckException(json.loads(response.text))
         else: return objects.ThreadList(json.loads(response.text)["threadList"]).ThreadList
+
     def get_all_users(self, start: int = 0, size: int = 25):
         """
         Get list of users of Amino.
@@ -478,18 +483,21 @@ class Client(Callbacks, SocketHandler):
         else: return objects.UserProfileCountList(json.loads(response.text)).UserProfileCountList
 
     def request_verify_code(self, email: str, resetPassword: bool = False):
-        data = json.dumps({
+        data = {
             "identity": email,
             "type": 1,
             "deviceID": self.device_id
-        })
+        }
 
         if resetPassword is True:
             data["level"] = 2
             data["purpose"] = "reset-password"
+
+        data = json.dumps(data)
         response = requests.post(f"{self.apip}/g/s/auth/request-security-validation", headers=headers.Headers().s_headers, proxies=self.proxies, data=data)
         if json.loads(response.text)["api:statuscode"] != 0: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
+
     def get_wall_comments(self, userId: str, sorting: str, start: int = 0, size: int = 25):
         """
         List of Wall Comments of an User.
@@ -600,6 +608,7 @@ class Client(Callbacks, SocketHandler):
         response = requests.get(f"{self.apip}/g/s/block?start={start}&size={size}", headers=headers.Headers().s_headers, proxies=self.proxies, verify=self.certificatePath)
         if json.loads(response.text)["api:statuscode"] != 0: return exceptions.CheckException(json.loads(response.text))
         else: return objects.UserProfileList(json.loads(response.text)["userProfileList"]).UserProfileList
+
     # By Marshall (Smile, Texaz) (from SAmino)
     def watch_ad(self, uid: str = None):
         if uid: self.ad_data["reward"]["custom_json"]["hashed_user_id"] = uid
@@ -691,7 +700,7 @@ class Client(Callbacks, SocketHandler):
         if json.loads(response.text)["api:statuscode"] != 0: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
 
-    def register_c(self, nickname: str, email: str, password: str, verificationCode: str, deviceId: str = device.device_id):
+    def register_c(self, nickname: str, email: str, password: str, deviceId: str = device.device_id):
         """
         Register an account.
         **Parameters**
@@ -744,6 +753,7 @@ class Client(Callbacks, SocketHandler):
         response = requests.post(f"{self.apip}/g/s/account/delete-request/cancel", headers=headers.Headers().s_headers, data=data, proxies=self.proxies, verify=self.certificatePath)
         if json.loads(response.text)["api:statuscode"] != 0: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
+
     def logout(self):
         """
         Logout from an account.
@@ -1425,7 +1435,7 @@ class Client(Callbacks, SocketHandler):
         if getNotifications: data["privacyMode"] = 1
 
         data = json.dumps(data)
-        response = requests.post(f"{self.apip}/g/s/account/visit-settings", headers=sheaders.Headers().s_headers, data=data, proxies=self.proxies, verify=self.certificatePath)
+        response = requests.post(f"{self.apip}/g/s/account/visit-settings", headers=headers.Headers().s_headers, data=data, proxies=self.proxies, verify=self.certificatePath)
         if json.loads(response.text)["api:statuscode"] != 0: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
 
@@ -1540,7 +1550,7 @@ class Client(Callbacks, SocketHandler):
         elif wikiId:
             data["eventSource"] = "PostDetailView"
             data = json.dumps(data)
-            response = requests.post(f"{self.api}/g/s/item/{wikiId}/g-vote?cv=1.2", headers=self.parse_headers(data=data), data=data, proxies=self.proxies, verify=self.certificatePath)
+            response = requests.post(f"{self.api}/g/s/item/{wikiId}/g-vote?cv=1.2", headers=headers.Headers().s_headers, data=data, proxies=self.proxies, verify=self.certificatePath)
 
         else: raise exceptions.SpecifyType()
 
@@ -1752,7 +1762,7 @@ class Client(Callbacks, SocketHandler):
 
     def subscribe_amino_plus(self, transactionId="", sku="d940cf4a-6cf2-4737-9f3d-655234a92ea5", autoRenew: str = True):
         """
-        Subscibes to amino+
+        Subscribes to amino+
         **Parameters**
             - **transactionId** - The transaction Id as a uuid4
         **Returns**
@@ -1772,6 +1782,6 @@ class Client(Callbacks, SocketHandler):
         if json.loads(response.text)["api:statuscode"] != 0: return exceptions.CheckException(json.loads(response.text))
         else: return response.text
 
-#fix Amino.py 1.2.17 by Minori
-#SAmino - https://github.com/SirLez/SAmino
-#Amino.py - https://github.com/Slimakoi/Amino.py
+# fix Amino.py 1.2.17 by Minori
+# SAmino - https://github.com/SirLez/SAmino
+# Amino.py - https://github.com/Slimakoi/Amino.py
