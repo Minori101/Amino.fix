@@ -10,7 +10,7 @@ setup(
     name="amino.fix",
     license='MIT',
     author="Minori",
-    version="1.2.20.3",
+    version="1.2.20.4",
     author_email="",
     description="Amino 1.2.17 fix lib. Discord - https://discord.gg/Bf3dpBRJHj",
     url="https://github.com/Minori100/Amino.fix",
