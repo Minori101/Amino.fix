@@ -2,13 +2,14 @@ __title__ = 'Amino.fix'
 __author__ = 'Minori'
 __license__ = 'MIT'
 __copyright__ = 'Copyright 2021-2022 Minori'
-__version__ = '1.2.20.4'
+__version__ = '2.0.0'
 
 from .acm import ACM
 from .client import Client
 from .sub_client import SubClient
 from .lib.util import device, exceptions, helpers, objects, headers
 from .socket import Callbacks, SocketHandler
+from .asyncfix import acm, client, sub_client, socket
 from requests import get
 from json import loads
 
