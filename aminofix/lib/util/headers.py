@@ -1,9 +1,8 @@
 from aminofix.lib.util import device
 
+from uuid import uuid4
+
 sid = None
-gen_msg_sig = None
-web = None
-uid = None
 
 class Headers:
     def __init__(self, data = None, type = None, deviceId: str = None, sig: str = None):
@@ -13,102 +12,97 @@ class Headers:
             dev = device.DeviceGenerator()
 
         headers = {
-            "NDCLANG": "en",
-            "NDC-MSG-SIG": gen_msg_sig,
-            "NDCDEVICEID": dev.device_id,
-            "SMDEVICEID": "b89d9a00-f78e-46a3-bd54-6507d68b343c",
-            "NDCAUTH": f"sid={sid}",
-            "Accept-Language": "en-US",
-            "Content-Type": "application/json; charset=utf-8",
-            "User-Agent": dev.user_agent,
-            "Host": "service.narvii.com",
-            "Connection": "Keep-Alive",
-            "Accept-Encoding": "gzip"
-        }
-
-        s_headers = {"NDCDEVICEID": dev.device_id}
-
-        web_headers = {
-            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36",
-            "x-requested-with": "xmlhttprequest"
+            "NDCDEVICEID": dev.device_id
         }
 
         if data: headers["Content-Length"] = str(len(data))
-        if sid: 
-            headers["NDCAUTH"] = f"{sid}"
-            s_headers["NDCAUTH"] = f"{sid}"
-            web_headers["cookie"] = f"{sid}"
+        if sid: headers["NDCAUTH"] = f"sid={sid}"
         if type: headers["Content-Type"] = type
-        if sig: headers["NDC-MSG-SIG"] = sig
-        if web: web_headers = web
         self.headers = headers
-        self.s_headers = s_headers
-        self.web_headers = web_headers
 
-# By SirLez (from SAmino)
-class AdHeaders:
-    def __init__(self):
-        # watch ad data and headers by Marshall (Smile, Texaz)
-        # And the headers is Marshall (Smile, Texaz) headers
+class ApisHeaders:
+    def __init__(self, data = None, type = None, deviceId: str = None, sig: str = None):
+        dev = device.DeviceGenerator(deviceId=deviceId if deviceId else None)
+
+        headers = {
+            "NDCDEVICEID": dev.device_id,
+            "Accept-Language": "en-US",
+            "Content-Type": "text/javascript; charset=UTF-8",
+            "User-Agent": dev.user_agent,
+            "Host": "service.narvii.com",
+            "Accept-Encoding": "gzip",
+            "Connection": "Upgrade"
+        }
+
+        if data: headers["Content-Length"] = str(len(data))
+        if sid: headers["NDCAUTH"] = f"sid={sid}"
+        if type: headers["Content-Type"] = type
+        self.headers = headers
+
+class Tapjoy:
+    def __init__(self, userId: str = None):
         self.data = {
             "reward": {
-                "ad_unit_id": "255884441431980_807351306285288",
+                "ad_unit_id": "t00_tapjoy_android_master_checkinwallet_rewardedvideo_322",
                 "credentials_type": "publisher",
                 "custom_json": {
-                    "hashed_user_id": None
+                    "hashed_user_id": userId
                 },
                 "demand_type": "sdk_bidding",
-                "event_id": None,
-                "network": "facebook",
+                "event_id": str(uuid4()),
+                "network": "tapjoy",
                 "placement_tag": "default",
                 "reward_name": "Amino Coin",
-                "reward_valid": "true",
+                "reward_valid": True,
                 "reward_value": 2,
-                "shared_id": "dc042f0c-0c80-4dfd-9fde-87a5979d0d2f",
+                "shared_id": "4d7cc3d9-8c8a-4036-965c-60c091e90e7b",
                 "version_id": "1569147951493",
-                "waterfall_id": "dc042f0c-0c80-4dfd-9fde-87a5979d0d2f"
+                "waterfall_id": "4d7cc3d9-8c8a-4036-965c-60c091e90e7b"
             },
             "app": {
                 "bundle_id": "com.narvii.amino.master",
                 "current_orientation": "portrait",
-                "release_version": "3.4.33567",
+                "release_version": "3.4.33585",
                 "user_agent": "Dalvik\/2.1.0 (Linux; U; Android 10; G8231 Build\/41.2.A.0.219; com.narvii.amino.master\/3.4.33567)"
             },
-            "date_created": 1620295485,
-            "session_id": "49374c2c-1aa3-4094-b603-1cf2720dca67",
             "device_user": {
                 "country": "US",
                 "device": {
                     "architecture": "aarch64",
                     "carrier": {
-                        "country_code": 602,
+                        "country_code": 255,
                         "name": "Vodafone",
                         "network_code": 0
                     },
-                    "is_phone": "true",
+                    "is_phone": True,
                     "model": "GT-S5360",
                     "model_type": "Samsung",
                     "operating_system": "android",
                     "operating_system_version": "29",
                     "screen_size": {
-                        "height": 2260,
-                        "resolution": 2.55,
+                        "height": 2300,
+                        "resolution": 2.625,
                         "width": 1080
                     }
                 },
-                "do_not_track": "false",
-                "idfa": "7495ec00-0490-4d53-8b9a-b5cc31ba885b",
+                "do_not_track": False,
+                "idfa": "0c26b7c3-4801-4815-a155-50e0e6c27eeb",
                 "ip_address": "",
-                "locale": "en",
+                "locale": "ru",
                 "timezone": {
                     "location": "Asia\/Seoul",
-                    "offset": "GMT+09: 00"
+                    "offset": "GMT+02:00"
                 },
-                "volume_enabled": "true"
-            }
+                "volume_enabled": True
+            },
+            "session_id": "7fe1956a-6184-4b59-8682-04ff31e24bc0",
+            "date_created": 1633283996
         }
+
         self.headers = {
             "cookies": "__cfduid=d0c98f07df2594b5f4aad802942cae1f01619569096",
-            "authorization": "Basic NWJiNTM0OWUxYzlkNDQwMDA2NzUwNjgwOmM0ZDJmYmIxLTVlYjItNDM5MC05MDk3LTkxZjlmMjQ5NDI4OA=="
+            "authorization": "Basic NWJiNTM0OWUxYzlkNDQwMDA2NzUwNjgwOmM0ZDJmYmIxLTVlYjItNDM5MC05MDk3LTkxZjlmMjQ5NDI4OA==",
+            "X-Tapdaq-SDK-Version": "android-sdk_7.1.1",
+            "Content-Type": "application/x-www-form-urlencoded",
+            "User-Agent": "Dalvik/2.1.0 (Linux; U; Android 10; Redmi Note 9 Pro Build/QQ3A.200805.001; com.narvii.amino.master/3.4.33585)"
         }
-        if uid: self.data["reward"]["custom_json"]["hashed_user_id"] = uid

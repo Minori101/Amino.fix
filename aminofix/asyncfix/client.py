@@ -16,7 +16,7 @@ from .socket import Callbacks, SocketHandler
 device = device.DeviceGenerator()
 
 class Client(Callbacks, SocketHandler):
-    def __init__(self, deviceId: str = None, socketDebugging = False):
+    def __init__(self, deviceId: str = None, socket_trace = False, socketDebugging = False):
         self.api = "https://aminoapps.com/api-p"
         self.apis = "https://service.narvii.com/api/v1"
         self.authenticated = False
@@ -25,7 +25,7 @@ class Client(Callbacks, SocketHandler):
         if deviceId is not None: self.device_id = deviceId
         else: self.device_id = device.device_id
 
-        SocketHandler.__init__(self, self, debug=socketDebugging)
+        SocketHandler.__init__(self, self, socket_trace=socket_trace, debug=socketDebugging)
         Callbacks.__init__(self, self)
 
         self.tapjoy_headers = headers.Tapjoy().headers
@@ -190,7 +190,8 @@ class Client(Callbacks, SocketHandler):
         self.account: objects.UserProfile = await self.get_user_info(uId)
         self.profile: objects.UserProfile = await self.get_user_info(uId)
         headers.sid = self.sid
-        await self.startup()
+        self.start()
+        self.run_socket()
 
     async def login(self, email: str, password: str):
         """
@@ -225,7 +226,8 @@ class Client(Callbacks, SocketHandler):
                 self.account: objects.UserProfile = objects.UserProfile(self.json["account"]).UserProfile
                 self.profile: objects.UserProfile = objects.UserProfile(self.json["userProfile"]).UserProfile
                 headers.sid = self.sid
-                await self.startup()
+                self.start()
+                self.run_socket()
                 return response.status
 
     async def register(self, nickname: str, email: str, password: str, verificationCode: str, deviceId: str = device.device_id):
@@ -323,7 +325,7 @@ class Client(Callbacks, SocketHandler):
                 self.account: None
                 self.profile: None
                 headers.sid = None
-                await self.close()
+                self.close()
                 await self.session.close()
                 return response.status
 

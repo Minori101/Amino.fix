@@ -55,11 +55,11 @@ class SocketHandler:
 
             time.sleep(5)
 
-    def on_open(self):
+    def on_open(self, ws):
         if self.debug:
             print("[socket][on_open] Socket Opened")
 
-    def on_close(self):
+    def on_close(self, ws):
         if self.debug:
             print("[socket][on_close] Socket Closed")
 
@@ -69,13 +69,13 @@ class SocketHandler:
             if self.debug:
                 print("[socket][on_close] reconnect is True, Opening Socket")
 
-    def on_ping(self, data):
+    def on_ping(self, ws, data):
         if self.debug:
             print("[socket][on_ping] Socket Pinged")
 
         contextlib.suppress(self.socket.sock.pong(data))
 
-    def handle_message(self, data):
+    def handle_message(self, ws, data):
         self.client.handle_socket_message(data)
         return
 
