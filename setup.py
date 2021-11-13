@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-requirements = ["aiohttp", "requests", "asyncio", "typing", "websocket-client==0.57.0", "setuptools", "json_minify",
+requirements = ["aiohttp", "requests", "asyncio", "typing", "websocket-client==0.58.0", "setuptools", "json_minify",
                 "six", "websockets"]
 
 with open("README.md", "r") as stream:
