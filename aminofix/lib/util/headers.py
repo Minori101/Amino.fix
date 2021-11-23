@@ -37,6 +37,7 @@ class ApisHeaders:
         if data: headers["Content-Length"] = str(len(data))
         if sid: headers["NDCAUTH"] = f"sid={sid}"
         if type: headers["Content-Type"] = type
+        if sig: headers["NDC-MSG-SIG"] = sig
         self.headers = headers
 
 class Tapjoy:

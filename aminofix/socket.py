@@ -3,16 +3,24 @@ import json
 import websocket
 import threading
 import contextlib
-import requests
 
 from sys import _getframe as getframe
 
+import hmac
+import base64
+from hashlib import sha1
+
 from .lib.util import objects
 
+def signature(data):
+    mac = hmac.new(bytes.fromhex("307c3c8cd389e69dc298d951341f88419a8377f4"), data.encode("utf-8"), sha1)
+    digest = bytes.fromhex("22") + mac.digest()
+    return base64.b64encode(digest).decode("utf-8")
 
 class SocketHandler:
     def __init__(self, client, socket_trace = False, debug = False):
         if socket_trace: websocket.enableTrace(True)
+        self.socket_url = "wss://ws1.narvii.com"
         self.client = client
         self.debug = debug
         self.active = True
@@ -23,7 +31,7 @@ class SocketHandler:
         self.socket_stop = False
         self.socketDelay = 0
         self.socket_trace = socket_trace
-        self.socketDelayFetch = 60  # Reconnects every 60 seconds.
+        self.socketDelayFetch = 120  # Reconnects every 120 seconds.
 
     def run_socket(self):
         threading.Thread(target=self.reconnect_handler).start()
@@ -80,30 +88,26 @@ class SocketHandler:
         return
 
     def send(self, data):
+        self.headers["NDC-MSG-SIG"] = signature(data)
         if self.debug:
             print(f"[socket][send] Sending Data : {data}")
 
         self.socket.send(data)
-
-    # from amino-new.py
-    def token(self):
-        header = {
-            "cookie": "sid="+self.client.sid
-        }
-        response = requests.get("https://aminoapps.com/api/chat/web-socket-url", headers=header)
-        if response.status_code != 200: return response.text
-        else: return json.loads(response.text)["result"]["url"]
 
     def start(self):
         if self.debug:
             print(f"[socket][start] Starting Socket")
 
         self.headers = {
-            "cookie": "sid="+self.client.sid
+            "NDCDEVICEID": self.client.device_id,
+            "NDCAUTH": f"sid={self.client.sid}"
         }
+        milliseconds = int(time.time() * 1000)
+        data = f"{self.client.device_id}|{milliseconds}"
+        self.headers["NDC-MSG-SIG"] = signature(data)
 
         self.socket = websocket.WebSocketApp(
-            self.token(),
+            f"{self.socket_url}/?signbody={self.client.device_id}%7C{milliseconds}",
             on_message = self.handle_message,
             on_open = self.on_open,
             on_close = self.on_close,
