@@ -5,17 +5,7 @@ import threading
 import contextlib
 
 from sys import _getframe as getframe
-
-import hmac
-import base64
-from hashlib import sha1
-
-from .lib.util import objects
-
-def signature(data):
-    mac = hmac.new(bytes.fromhex("307c3c8cd389e69dc298d951341f88419a8377f4"), data.encode("utf-8"), sha1)
-    digest = bytes.fromhex("22") + mac.digest()
-    return base64.b64encode(digest).decode("utf-8")
+from .lib.util import objects, signature
 
 class SocketHandler:
     def __init__(self, client, socket_trace = False, debug = False):

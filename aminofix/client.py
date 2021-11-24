@@ -2,28 +2,21 @@ import json
 import base64
 import requests
 import threading
-
-import hmac
 import base64
-from hashlib import sha1
 
 from uuid import UUID
 from os import urandom
 from time import timezone, sleep
-from typing import BinaryIO
+from typing import BinaryIO, Union
 from binascii import hexlify
 from time import time as timestamp
 from locale import getdefaultlocale as locale
 
-from .lib.util import exceptions, headers, device, objects, helpers
+from .lib.util import exceptions, headers, device, objects, helpers, signature
 from .socket import Callbacks, SocketHandler
 
 device = device.DeviceGenerator()
 
-def signature(data):
-    mac = hmac.new(bytes.fromhex("307c3c8cd389e69dc298d951341f88419a8377f4"), data.encode("utf-8"), sha1)
-    digest = bytes.fromhex("22") + mac.digest()
-    return base64.b64encode(digest).decode("utf-8")
 
 class Client(Callbacks, SocketHandler):
     def __init__(self, deviceId: str = None, proxies: dict = None, certificatePath = None, socket_trace = False, socketDebugging = False):
@@ -615,10 +608,9 @@ class Client(Callbacks, SocketHandler):
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return objects.UserProfile(json.loads(response.text)["userProfile"]).UserProfile
 
-
     def watch_ad(self, userId: str = None):
-        data = json.dumps(tapjoy.Tapjoy(userId if userId else self.userId).data)
-        response = requests.post("https://ads.tapdaq.com/v4/analytics/reward", data=data, headers=self.tapjoy_headers)
+        data = json.dumps(headers.Tapjoy(userId if userId else self.userId).data) 
+        response = requests.post("https://ads.tapdaq.com/v4/analytics/reward", data=data, headers=headers.Tapjoy.headers)
         if response.status_code != 204: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
 
@@ -692,7 +684,7 @@ class Client(Callbacks, SocketHandler):
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
 
-    def start_chat(self, userId: [str, list], message: str, title: str = None, content: str = None, isGlobal: bool = False, publishToGlobal: bool = False):
+    def start_chat(self, userId: Union[str, list], message: str, title: str = None, content: str = None, isGlobal: bool = False, publishToGlobal: bool = False):
         """
         Start an Chat with an User or List of Users.
 
@@ -735,7 +727,7 @@ class Client(Callbacks, SocketHandler):
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
 
-    def invite_to_chat(self, userId: [str, list], chatId: str):
+    def invite_to_chat(self, userId: Union[str, list], chatId: str):
         """
         Invite a User or List of Users to a Chat.
 
@@ -1348,7 +1340,7 @@ class Client(Callbacks, SocketHandler):
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
 
-    def follow(self, userId: [str, list]):
+    def follow(self, userId: Union[str, list]):
         """
         Follow an User or Multiple Users.
 
@@ -1748,7 +1740,7 @@ class Client(Callbacks, SocketHandler):
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
 
-    def like_blog(self, blogId: [str, list] = None, wikiId: str = None):
+    def like_blog(self, blogId: Union[str, list] = None, wikiId: str = None):
         """
         Like a Blog, Multiple Blogs or a Wiki.
 
@@ -2146,5 +2138,5 @@ class Client(Callbacks, SocketHandler):
         })
         sig = signature(data)
         response = requests.post(f"{self.api}/g/s/store/purchase", headers=self.parse_headers(data=data, sig=sig), data=data)
-        if response.status != 200: return exceptions.CheckException(json.loads(response.text()))
-        else: return response.status
+        if response.status_code != 200: return exceptions.CheckException(json.loads(response.text()))
+        else: return response.status_code
