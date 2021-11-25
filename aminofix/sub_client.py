@@ -1,27 +1,20 @@
-import hmac
 import json
 import base64
 import requests
 
 from uuid import UUID
 from os import urandom
-from hashlib import sha1
 from time import timezone
-from typing import BinaryIO
+from typing import BinaryIO, Union
 from binascii import hexlify
 from time import time as timestamp
 from json_minify import json_minify
 
 from . import client
-from .lib.util import exceptions, headers, device, objects
+from .lib.util import exceptions, headers, device, objects, signature
 
 device = device.DeviceGenerator()
 headers.sid = client.Client().sid
-
-def signature(data):
-    mac = hmac.new(bytes.fromhex("307c3c8cd389e69dc298d951341f88419a8377f4"), data.encode("utf-8"), sha1)
-    digest = bytes.fromhex("22") + mac.digest()
-    return base64.b64encode(digest).decode("utf-8")
 
 class VCHeaders:
     def __init__(self, data = None):
@@ -323,7 +316,7 @@ class SubClient(client.Client):
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
 
-    def like_blog(self, blogId: [str, list] = None, wikiId: str = None):
+    def like_blog(self, blogId: Union[str, list] = None, wikiId: str = None):
         """
         Like a Blog, Multiple Blogs or a Wiki.
 
@@ -455,10 +448,9 @@ class SubClient(client.Client):
     def send_active_obj(self, startTime: int = None, endTime: int = None, optInAdsFlags: int = 2147483647, tz: int = -timezone // 1000, timers: list = None, timestamp: int = int(timestamp() * 1000)): 
         data = {"userActiveTimeChunkList": [{"start": startTime, "end": endTime}], "timestamp": timestamp, "optInAdsFlags": optInAdsFlags, "timezone": tz} 
         if timers: data["userActiveTimeChunkList"] = timers 
-        data = json_minify(json.dumps(data)) 
-        mac = hmac.new(bytes.fromhex("307c3c8cd389e69dc298d951341f88419a8377f4"), data.encode("utf-8"), sha1) 
-        signature = base64.b64encode(bytes.fromhex("22") + mac.digest()).decode("utf-8") 
-        response = requests.post(f"{self.api}/x{self.comId}/s/community/stats/user-active-time", headers=headers.ApisHeaders(data=data, sig=signature, deviceId=self.device_id).headers, data=data, proxies=self.proxies, verify=self.certificatePath) 
+        data = json_minify(json.dumps(data))  
+        sig = signature(data)
+        response = requests.post(f"{self.api}/x{self.comId}/s/community/stats/user-active-time", headers=headers.ApisHeaders(data=data, sig=sig, deviceId=self.device_id).headers, data=data, proxies=self.proxies, verify=self.certificatePath) 
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text)) 
         else: return response.status_code
 
@@ -498,7 +490,7 @@ class SubClient(client.Client):
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
 
-    def start_chat(self, userId: [str, list], message: str, title: str = None, content: str = None, isGlobal: bool = False, publishToGlobal: bool = False):
+    def start_chat(self, userId: Union[str, list], message: str, title: str = None, content: str = None, isGlobal: bool = False, publishToGlobal: bool = False):
         if isinstance(userId, str): userIds = [userId]
         elif isinstance(userId, list): userIds = userId
         else: raise exceptions.WrongType(type(userId))
@@ -523,7 +515,7 @@ class SubClient(client.Client):
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
 
-    def invite_to_chat(self, userId: [str, list], chatId: str):
+    def invite_to_chat(self, userId: Union[str, list], chatId: str):
         if isinstance(userId, str): userIds = [userId]
         elif isinstance(userId, list): userIds = userId
         else: raise exceptions.WrongType(type(userId))
@@ -572,7 +564,7 @@ class SubClient(client.Client):
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
 
-    def follow(self, userId: [str, list]):
+    def follow(self, userId: Union[str, list]):
         """
         Follow an User or Multiple Users.
 

@@ -99,8 +99,10 @@ class Tapjoy:
             "session_id": "7fe1956a-6184-4b59-8682-04ff31e24bc0",
             "date_created": 1633283996
         }
-
-        self.headers = {
+    
+    @property
+    def headers():
+        return {
             "cookies": "__cfduid=d0c98f07df2594b5f4aad802942cae1f01619569096",
             "authorization": "Basic NWJiNTM0OWUxYzlkNDQwMDA2NzUwNjgwOmM0ZDJmYmIxLTVlYjItNDM5MC05MDk3LTkxZjlmMjQ5NDI4OA==",
             "X-Tapdaq-SDK-Version": "android-sdk_7.1.1",
