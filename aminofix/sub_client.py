@@ -53,9 +53,9 @@ class SubClient(client.Client):
 
     def parse_headers(self, data: str = None, sig: str = None):
         if data is not None:
-            return headers.Headers(data=data, deviceId=self.device_id, sig=sig).headers
+            return headers.ApisHeaders(data=data, deviceId=self.device_id, sig=sig).headers
         else:
-            return headers.Headers(deviceId=self.device_id, sig=sig).headers
+            return headers.ApisHeaders(deviceId=self.device_id, sig=sig).headers
 
 
     def get_invite_codes(self, status: str = "normal", start: int = 0, size: int = 25):
