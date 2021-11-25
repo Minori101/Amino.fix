@@ -18,7 +18,7 @@ def generate_device_info() -> dict:
 
 def signature(data: Union[str, dict]) -> str:
     if isinstance(data, dict): data = json.dumps(data)
-    mac = hmac.new(bytes.fromhex("307c3c8cd389e69dc298d951341f88419a8377f4"), data.encode("utf-8"), sha1)
+    mac = hmac.new(bytes.fromhex("307c3c8cd389e69dc298d951341f88419a8377f4"), str(data).encode("utf-8"), sha1)
     digest = bytes.fromhex("22") + mac.digest()
     return base64.b64encode(digest).decode("utf-8")
 
