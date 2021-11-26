@@ -610,7 +610,7 @@ class Client(Callbacks, SocketHandler):
 
     def watch_ad(self, userId: str = None):
         data = json.dumps(headers.Tapjoy(userId if userId else self.userId).data) 
-        response = requests.post("https://ads.tapdaq.com/v4/analytics/reward", data=data, headers=headers.Tapjoy.headers)
+        response = requests.post("https://ads.tapdaq.com/v4/analytics/reward", data=data, headers=headers.Tapjoy().headers)
         if response.status_code != 204: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
 

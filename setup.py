@@ -1,7 +1,13 @@
 from setuptools import setup, find_packages
 
-requirements = ["aiohttp", "requests", "asyncio", "typing", "websocket-client==0.58.0", "setuptools", "json_minify",
-                "six", "websockets"]
+requirements = [
+    "requests", 
+    "typing",
+    "websocket-client==0.58.0", 
+    "setuptools", 
+    "json_minify", 
+    "six"
+]
 
 with open("README.md", "r") as stream:
     long_description = stream.read()
@@ -10,7 +16,7 @@ setup(
     name="amino.fix",
     license='MIT',
     author="Minori",
-    version="2.0.5.6",
+    version="2.0.5.7",
     author_email="",
     description="Amino 1.2.17 fix lib. Discord - https://discord.gg/Bf3dpBRJHj",
     url="https://github.com/Minori100/Amino.fix",
