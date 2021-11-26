@@ -101,7 +101,7 @@ class Tapjoy:
         }
     
     @property
-    def headers():
+    def headers(self):
         return {
             "cookies": "__cfduid=d0c98f07df2594b5f4aad802942cae1f01619569096",
             "authorization": "Basic NWJiNTM0OWUxYzlkNDQwMDA2NzUwNjgwOmM0ZDJmYmIxLTVlYjItNDM5MC05MDk3LTkxZjlmMjQ5NDI4OA==",
