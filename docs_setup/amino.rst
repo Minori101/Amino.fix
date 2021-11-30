@@ -5,56 +5,56 @@ Modules
 
 ACM
 -------------------
-.. automodule:: amino.acm
+.. automodule:: aminofix.acm
    :members:
    :undoc-members:
    :show-inheritance:
 
 Client
 -------------------
-.. automodule:: amino.client
+.. automodule:: aminofix.client
    :members:
    :undoc-members:
    :show-inheritance:
 
 SubClient
 -------------------
-.. automodule:: amino.sub_client
+.. automodule:: aminofix.sub_client
    :members:
    :undoc-members:
    :show-inheritance:
 
 Socket
 -------------------
-.. automodule:: amino.socket
+.. automodule:: aminofix.socket
    :members:
    :undoc-members:
    :show-inheritance:
 
 Objects
 =============
-.. automodule:: amino.lib.util.objects
+.. automodule:: aminofix.lib.util.objects
    :members:
    :undoc-members:
    :show-inheritance:
 
 Exceptions
 =============
-.. automodule:: amino.lib.util.exceptions
+.. automodule:: aminofix.lib.util.exceptions
    :members:
    :undoc-members:
    :show-inheritance:
 
 Device
 =============
-.. automodule:: amino.lib.util.device
+.. automodule:: aminofix.lib.util.device
    :members:
    :undoc-members:
    :show-inheritance:
 
 Headers
 =============
-.. automodule:: amino.lib.util.headers
+.. automodule:: aminofix.lib.util.headers
    :members:
    :undoc-members:
    :show-inheritance:
@@ -62,7 +62,7 @@ Headers
 
 Helpers
 =============
-.. automodule:: amino.lib.util.helpers
+.. automodule:: aminofix.lib.util.helpers
    :members:
    :undoc-members:
    :show-inheritance:
