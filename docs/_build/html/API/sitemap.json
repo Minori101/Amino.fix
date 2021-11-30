@@ -1,0 +1,79 @@
+{
+    "pages": [
+        {
+            "name": "Introduction",
+            "description": "This is the introduction for Amino.py",
+            "url": "https://slimakoi.github.io/Amino.py/intro.html"
+        },
+        {
+            "name": "API",
+            "description": "Api link menu",
+            "url": "https://slimakoi.github.io/Amino.py/modules.html"
+        },
+        {
+            "name": "Modules", 
+            "description": "Amino.py modules",
+            "url": "https://slimakoi.github.io/Amino.py/amino.html"
+        },
+        {
+            "name": "Objects", 
+            "description": "Amino.py objects",
+            "url": "https://slimakoi.github.io/Amino.py/amino.html#module-amino.lib.util.objects"
+        },
+        {
+            "name": "Exceptions", 
+            "description": "All of the Exceptions Amino.py has",
+            "url": "https://slimakoi.github.io/Amino.py/amino.html#module-amino.lib.util.exceptions"
+        },
+        {
+            "name": "Device", 
+            "description": "Amino.py Device documentation",
+            "url": "https://slimakoi.github.io/Amino.py/amino.html#module-amino.lib.util.device"
+        },
+        {
+            "name": "Headers", 
+            "description": "All the Amino.py headers",
+            "url": "https://slimakoi.github.io/Amino.py/amino.html#module-amino.lib.util.headers"
+        },
+        {
+            "name": "Helpers", 
+            "description": "All the API helpers",
+            "url": "https://slimakoi.github.io/Amino.py/amino.html#module-amino.lib.util.helpers"
+        },
+        {
+            "name": "Contact", 
+            "description": "The contact information of the developer(s)",
+            "url": "https://slimakoi.github.io/Amino.py/contact.html"
+        },
+        {
+            "name": "ACM", 
+            "description": "Modules - ACM",
+            "url": "https://slimakoi.github.io/Amino.py/amino.html#module-amino.acm"
+        },
+        {
+            "name": "Client", 
+            "description": "Modules - Client",
+            "url": "https://slimakoi.github.io/Amino.py/amino.html#module-amino.client"
+        },
+        {
+            "name": "SubClient", 
+            "description": "Modules - SubClient",
+            "url": "https://slimakoi.github.io/Amino.py/amino.html#module-amino.sub_client"
+        },
+        {
+            "name": "Socket", 
+            "description": "Modules - Socket",
+            "url": "https://slimakoi.github.io/Amino.py/amino.html#module-amino.socket"
+        },
+        {
+            "name": "Python Module Index",
+            "description": "Module file structure",
+            "url": "https://slimakoi.github.io/Amino.py/py-modindex.html"
+        },
+        {
+            "name": "Gen Index",
+            "description": "Still have not found what you need? Try this!",
+            "url": "https://slimakoi.github.io/Amino.py/genindex.html"
+        }
+    ]
+}
