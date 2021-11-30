@@ -1,0 +1,14 @@
+{
+    "sources": [
+        {
+            "name": "Amino.py - Github Repo",
+            "description": "The official github repo for Amino.py",
+            "url": "https://github.com/slimakoi/amino.py"
+        },
+        {
+            "name": "Support Server",
+            "description": "Need help?",
+            "url": "https://rebrand.ly/slimakoi-and-friends"
+        }
+    ]
+}
