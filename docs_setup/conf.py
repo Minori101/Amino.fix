@@ -15,19 +15,19 @@ import sys
 
 sys.path.insert(0, os.path.abspath('..'))
 
-import amino
+import aminofix
 
 
 # -- Project information -----------------------------------------------------
 
-project = 'Amino.py'
-copyright = '2020-2021 Slimakoi'
+project = 'Amino.fix'
+copyright = '2020-2021 Minori'
 license = 'MIT'
-author = 'Slimakoi'
+author = 'Minori'
 description = 'A library to create Amino bots.'
 
 # The full version, including alpha/beta/rc tags
-release = '2.0.0'
+release = '2.0.6'
 
 # -- General configuration ---------------------------------------------------
 
