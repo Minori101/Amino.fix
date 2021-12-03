@@ -201,9 +201,9 @@ class Client(Callbacks, SocketHandler):
             "timestamp": int(timestamp() * 1000)
         })
 
-        sig = signature(data)
+        
 
-        response = requests.post(f"{self.api}/g/s/auth/login", headers=self.parse_headers(data=data, sig=sig), data=data, proxies=self.proxies, verify=self.certificatePath)
+        response = requests.post(f"{self.api}/g/s/auth/login", headers=self.parse_headers(data=data, sig=signature(data)), data=data, proxies=self.proxies, verify=self.certificatePath)
         self.run_socket()
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
 
@@ -257,9 +257,9 @@ class Client(Callbacks, SocketHandler):
             "timestamp": int(timestamp() * 1000)
         })
 
-        sig = signature(data)
+        
 
-        response = requests.post(f"{self.api}/g/s/auth/register", data=data, headers=self.parse_headers(data=data, sig=sig), proxies=self.proxies, verify=self.certificatePath)
+        response = requests.post(f"{self.api}/g/s/auth/register", data=data, headers=self.parse_headers(data=data, sig=signature(data)), proxies=self.proxies, verify=self.certificatePath)
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
 
@@ -283,9 +283,9 @@ class Client(Callbacks, SocketHandler):
             "timestamp": int(timestamp() * 1000)
         })
 
-        sig = signature(data)
+        
 
-        response = requests.post(f"{self.api}/g/s/account/delete-request/cancel", headers=self.parse_headers(data=data, sig=sig), data=data, proxies=self.proxies, verify=self.certificatePath)
+        response = requests.post(f"{self.api}/g/s/account/delete-request/cancel", headers=self.parse_headers(data=data, sig=signature(data)), data=data, proxies=self.proxies, verify=self.certificatePath)
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
 
@@ -307,9 +307,9 @@ class Client(Callbacks, SocketHandler):
             "timestamp": int(timestamp() * 1000)
         })
 
-        sig = signature(data)
+        
 
-        response = requests.post(f"{self.api}/g/s/auth/logout", headers=self.parse_headers(data=data, sig=sig), data=data, proxies=self.proxies, verify=self.certificatePath)
+        response = requests.post(f"{self.api}/g/s/auth/logout", headers=self.parse_headers(data=data, sig=signature(data)), data=data, proxies=self.proxies, verify=self.certificatePath)
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else:
             self.authenticated = False
@@ -349,9 +349,9 @@ class Client(Callbacks, SocketHandler):
             "timestamp": int(timestamp() * 1000)
         })
 
-        sig = signature(data)
+        
 
-        response = requests.post(f"{self.api}/g/s/persona/profile/basic", data=data, headers=self.parse_headers(data=data, sig=sig), proxies=self.proxies, verify=self.certificatePath)
+        response = requests.post(f"{self.api}/g/s/persona/profile/basic", data=data, headers=self.parse_headers(data=data, sig=signature(data)), proxies=self.proxies, verify=self.certificatePath)
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
 
@@ -377,9 +377,9 @@ class Client(Callbacks, SocketHandler):
             "timestamp": int(timestamp() * 1000)
         })
 
-        sig = signature(data)
+        
 
-        response = requests.post(f"{self.api}/g/s/auth/check-security-validation", headers=self.parse_headers(data=data, sig=sig), data=data, proxies=self.proxies, verify=self.certificatePath)
+        response = requests.post(f"{self.api}/g/s/auth/check-security-validation", headers=self.parse_headers(data=data, sig=signature(data)), data=data, proxies=self.proxies, verify=self.certificatePath)
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
 
@@ -406,10 +406,10 @@ class Client(Callbacks, SocketHandler):
             data["level"] = 2
             data["purpose"] = "reset-password"
 
-        sig = signature(data)
+        
 
         data = json.dumps(data)
-        response = requests.post(f"{self.api}/g/s/auth/request-security-validation", headers=self.parse_headers(data=data, sig=sig), data=data, proxies=self.proxies, verify=self.certificatePath)
+        response = requests.post(f"{self.api}/g/s/auth/request-security-validation", headers=self.parse_headers(data=data, sig=signature(data)), data=data, proxies=self.proxies, verify=self.certificatePath)
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
 
@@ -434,9 +434,9 @@ class Client(Callbacks, SocketHandler):
             "deviceID": device.device_id
         })
 
-        sig = signature(data)
+        
 
-        response = requests.post(f"{self.api}/g/s/auth/activate-email", headers=self.parse_headers(data=data, sig=sig), data=data, proxies=self.proxies, verify=self.certificatePath)
+        response = requests.post(f"{self.api}/g/s/auth/activate-email", headers=self.parse_headers(data=data, sig=signature(data)), data=data, proxies=self.proxies, verify=self.certificatePath)
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
 
@@ -459,9 +459,9 @@ class Client(Callbacks, SocketHandler):
             "secret": f"0 {password}"
         })
 
-        sig = signature(data)
+        
 
-        response = requests.post(f"{self.api}/g/s/account/delete-request", headers=self.parse_headers(data=data, sig=sig), data=data, proxies=self.proxies, verify=self.certificatePath)
+        response = requests.post(f"{self.api}/g/s/account/delete-request", headers=self.parse_headers(data=data, sig=signature(data)), data=data, proxies=self.proxies, verify=self.certificatePath)
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
 
@@ -495,9 +495,9 @@ class Client(Callbacks, SocketHandler):
             "deviceID": device.device_id
         })
 
-        sig = signature(data)
+        
 
-        response = requests.post(f"{self.api}/g/s/auth/reset-password", headers=self.parse_headers(data=data, sig=sig), data=data, proxies=self.proxies, verify=self.certificatePath)
+        response = requests.post(f"{self.api}/g/s/auth/reset-password", headers=self.parse_headers(data=data, sig=signature(data)), data=data, proxies=self.proxies, verify=self.certificatePath)
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
 
@@ -523,9 +523,9 @@ class Client(Callbacks, SocketHandler):
             "timestamp": int(timestamp() * 1000)
         })
 
-        sig = signature(data)
+        
 
-        response = requests.post(f"{self.api}/g/s/device", headers=self.parse_headers(data=data, sig=sig), data=data, proxies=self.proxies, verify=self.certificatePath)
+        response = requests.post(f"{self.api}/g/s/device", headers=self.parse_headers(data=data, sig=signature(data)), data=data, proxies=self.proxies, verify=self.certificatePath)
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: self.configured = True; return response.status_code
 
@@ -554,7 +554,7 @@ class Client(Callbacks, SocketHandler):
 
         data = file.read()
 
-        sig = signature(data)
+        
 
         response = requests.post(f"{self.api}/g/s/media/upload", data=data, headers=headers.Headers(type=t, data=data, deviceId=self.device_id, sig=sig).headers, proxies=self.proxies, verify=self.certificatePath)
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
@@ -721,9 +721,8 @@ class Client(Callbacks, SocketHandler):
 
         data = json.dumps(data)
 
-        sig = signature(data)
 
-        response = requests.post(f"{self.api}/g/s/chat/thread", data=data, headers=self.parse_headers(data=data, sig=sig), proxies=self.proxies, verify=self.certificatePath)
+        response = requests.post(f"{self.api}/g/s/chat/thread", data=data, headers=self.parse_headers(data=data, sig=signature(data)), proxies=self.proxies, verify=self.certificatePath)
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
 
@@ -749,9 +748,9 @@ class Client(Callbacks, SocketHandler):
             "timestamp": int(timestamp() * 1000)
         })
 
-        sig = signature(data)
+        
 
-        response = requests.post(f"{self.api}/g/s/chat/thread/{chatId}/member/invite", headers=self.parse_headers(data=data, sig=sig), data=data, proxies=self.proxies, verify=self.certificatePath)
+        response = requests.post(f"{self.api}/g/s/chat/thread/{chatId}/member/invite", headers=self.parse_headers(data=data, sig=signature(data)), data=data, proxies=self.proxies, verify=self.certificatePath)
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
 
@@ -1028,7 +1027,7 @@ class Client(Callbacks, SocketHandler):
         else: flg = "flag"
 
         data = json.dumps(data)
-        response = requests.post(f"{self.api}/g/s/{flg}", data=data, headers=self.parse_headers(data=data), proxies=self.proxies, verify=self.certificatePath)
+        response = requests.post(f"{self.api}/g/s/{flg}", data=data, headers=self.parse_headers(data=data, sig=signature(data)), proxies=self.proxies, verify=self.certificatePath)
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
 
@@ -1114,9 +1113,9 @@ class Client(Callbacks, SocketHandler):
 
         data = json.dumps(data)
 
-        sig = signature(data)
+        
 
-        response = requests.post(f"{self.api}/g/s/chat/thread/{chatId}/message", headers=self.parse_headers(data=data, sig=sig), data=data, proxies=self.proxies, verify=self.certificatePath)
+        response = requests.post(f"{self.api}/g/s/chat/thread/{chatId}/message", headers=self.parse_headers(data=data, sig=signature(data)), data=data, proxies=self.proxies, verify=self.certificatePath)
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
 
@@ -1142,9 +1141,9 @@ class Client(Callbacks, SocketHandler):
         }
 
         data = json.dumps(data)
-        sig = signature(data)
+        
         if not asStaff: response = requests.delete(f"{self.api}/g/s/chat/thread/{chatId}/message/{messageId}", headers=self.parse_headers(), proxies=self.proxies, verify=self.certificatePath)
-        else: response = requests.post(f"{self.api}/g/s/chat/thread/{chatId}/message/{messageId}/admin", headers=self.parse_headers(data=data, sig=sig), data=data, proxies=self.proxies, verify=self.certificatePath)
+        else: response = requests.post(f"{self.api}/g/s/chat/thread/{chatId}/message/{messageId}/admin", headers=self.parse_headers(data=data, sig=signature(data)), data=data, proxies=self.proxies, verify=self.certificatePath)
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
 
@@ -1165,7 +1164,7 @@ class Client(Callbacks, SocketHandler):
             "messageId": messageId,
             "timestamp": int(timestamp() * 1000)
         })
-        sig = signature(data)
+        
         response = requests.post(f"{self.api}/g/s/chat/thread/{chatId}/mark-as-read", headers=self.parse_headers(sig=sig), data=data, proxies=self.proxies, verify=self.certificatePath)
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
@@ -1215,15 +1214,15 @@ class Client(Callbacks, SocketHandler):
         if doNotDisturb is not None:
             if doNotDisturb:
                 data = json.dumps({"alertOption": 2, "timestamp": int(timestamp() * 1000)})
-                sig = signature(data)
-                response = requests.post(f"{self.api}/g/s/chat/thread/{chatId}/member/{self.userId}/alert", data=data, headers=self.parse_headers(data=data, sig=sig), proxies=self.proxies, verify=self.certificatePath)
+                
+                response = requests.post(f"{self.api}/g/s/chat/thread/{chatId}/member/{self.userId}/alert", data=data, headers=self.parse_headers(data=data, sig=signature(data)), proxies=self.proxies, verify=self.certificatePath)
                 if response.status_code != 200: res.append(exceptions.CheckException(json.loads(response.text)))
                 else: res.append(response.status_code)
 
             if not doNotDisturb:
                 data = json.dumps({"alertOption": 1, "timestamp": int(timestamp() * 1000)})
-                sig = signature(data)
-                response = requests.post(f"{self.api}/g/s/chat/thread/{chatId}/member/{self.userId}/alert", data=data, headers=self.parse_headers(data=data, sig=sig), proxies=self.proxies, verify=self.certificatePath)
+                
+                response = requests.post(f"{self.api}/g/s/chat/thread/{chatId}/member/{self.userId}/alert", data=data, headers=self.parse_headers(data=data, sig=signature(data)), proxies=self.proxies, verify=self.certificatePath)
                 if response.status_code != 200: res.append(exceptions.CheckException(json.loads(response.text)))
                 else: res.append(response.status_code)
 
@@ -1240,60 +1239,60 @@ class Client(Callbacks, SocketHandler):
 
         if backgroundImage is not None:
             data = json.dumps({"media": [100, backgroundImage, None], "timestamp": int(timestamp() * 1000)})
-            sig = signature(data)
-            response = requests.post(f"{self.api}/g/s/chat/thread/{chatId}/member/{self.userId}/background", data=data, headers=self.parse_headers(data=data, sig=sig), proxies=self.proxies, verify=self.certificatePath)
+            
+            response = requests.post(f"{self.api}/g/s/chat/thread/{chatId}/member/{self.userId}/background", data=data, headers=self.parse_headers(data=data, sig=signature(data)), proxies=self.proxies, verify=self.certificatePath)
             if response.status_code != 200: res.append(exceptions.CheckException(json.loads(response.text)))
             else: res.append(response.status_code)
 
         if coHosts is not None:
             data = json.dumps({"uidList": coHosts, "timestamp": int(timestamp() * 1000)})
-            sig = signature(data)
-            response = requests.post(f"{self.api}/g/s/chat/thread/{chatId}/co-host", data=data, headers=self.parse_headers(data=data, sig=sig), proxies=self.proxies, verify=self.certificatePath)
+            
+            response = requests.post(f"{self.api}/g/s/chat/thread/{chatId}/co-host", data=data, headers=self.parse_headers(data=data, sig=signature(data)), proxies=self.proxies, verify=self.certificatePath)
             if response.status_code != 200: res.append(exceptions.CheckException(json.loads(response.text)))
             else: res.append(response.status_code)
 
         if viewOnly is not None:
             if viewOnly:
-                sig = signature(data)
-                response = requests.post(f"{self.api}/g/s/chat/thread/{chatId}/view-only/enable", data=data, headers=self.parse_headers(data=data, sig=sig), proxies=self.proxies, verify=self.certificatePath)
+                
+                response = requests.post(f"{self.api}/g/s/chat/thread/{chatId}/view-only/enable", data=data, headers=self.parse_headers(data=data, sig=signature(data)), proxies=self.proxies, verify=self.certificatePath)
                 if response.status_code != 200: res.append(exceptions.CheckException(json.loads(response.text)))
                 else: res.append(response.status_code)
 
             if not viewOnly:
-                sig = signature(data)
-                response = requests.post(f"{self.api}/g/s/chat/thread/{chatId}/view-only/disable", data=data, headers=self.parse_headers(data=data, sig=sig), proxies=self.proxies, verify=self.certificatePath)
+                
+                response = requests.post(f"{self.api}/g/s/chat/thread/{chatId}/view-only/disable", data=data, headers=self.parse_headers(data=data, sig=signature(data)), proxies=self.proxies, verify=self.certificatePath)
                 if response.status_code != 200: res.append(exceptions.CheckException(json.loads(response.text)))
                 else: res.append(response.status_code)
 
         if canInvite is not None:
             if canInvite:
-                sig = signature(data)
-                response = requests.post(f"{self.api}/g/s/chat/thread/{chatId}/members-can-invite/enable", data=data, headers=self.parse_headers(data=data, sig=sig), proxies=self.proxies, verify=self.certificatePath)
+                
+                response = requests.post(f"{self.api}/g/s/chat/thread/{chatId}/members-can-invite/enable", data=data, headers=self.parse_headers(data=data, sig=signature(data)), proxies=self.proxies, verify=self.certificatePath)
                 if response.status_code != 200: res.append(exceptions.CheckException(json.loads(response.text)))
                 else: res.append(response.status_code)
 
             if not canInvite:
-                sig = signature(data)
-                response = requests.post(f"{self.api}/g/s/chat/thread/{chatId}/members-can-invite/disable", data=data, headers=self.parse_headers(data=data, sig=sig), proxies=self.proxies, verify=self.certificatePath)
+                
+                response = requests.post(f"{self.api}/g/s/chat/thread/{chatId}/members-can-invite/disable", data=data, headers=self.parse_headers(data=data, sig=signature(data)), proxies=self.proxies, verify=self.certificatePath)
                 if response.status_code != 200: res.append(exceptions.CheckException(json.loads(response.text)))
                 else: res.append(response.status_code)
 
         if canTip is not None:
             if canTip:
-                sig = signature(data)
-                response = requests.post(f"{self.api}/g/s/chat/thread/{chatId}/tipping-perm-status/enable", data=data, headers=self.parse_headers(data=data, sig=sig), proxies=self.proxies, verify=self.certificatePath)
+                
+                response = requests.post(f"{self.api}/g/s/chat/thread/{chatId}/tipping-perm-status/enable", data=data, headers=self.parse_headers(data=data, sig=signature(data)), proxies=self.proxies, verify=self.certificatePath)
                 if response.status_code != 200: res.append(exceptions.CheckException(json.loads(response.text)))
                 else: res.append(response.status_code)
 
             if not canTip:
-                sig = signature(data)
-                response = requests.post(f"{self.api}/g/s/chat/thread/{chatId}/tipping-perm-status/disable", data=data, headers=self.parse_headers(data=data, sig=sig), proxies=self.proxies, verify=self.certificatePath)
+                
+                response = requests.post(f"{self.api}/g/s/chat/thread/{chatId}/tipping-perm-status/disable", data=data, headers=self.parse_headers(data=data, sig=signature(data)), proxies=self.proxies, verify=self.certificatePath)
                 if response.status_code != 200: res.append(exceptions.CheckException(json.loads(response.text)))
                 else: res.append(response.status_code)
 
         data = json.dumps(data)
-        sig = signature(data)
-        response = requests.post(f"{self.api}/g/s/chat/thread/{chatId}", headers=self.parse_headers(data=data, sig=sig), data=data, proxies=self.proxies, verify=self.certificatePath)
+        
+        response = requests.post(f"{self.api}/g/s/chat/thread/{chatId}", headers=self.parse_headers(data=data, sig=signature(data)), data=data, proxies=self.proxies, verify=self.certificatePath)
         if response.status_code != 200: res.append(exceptions.CheckException(json.loads(response.text)))
         else: res.append(response.status_code)
 
@@ -1335,8 +1334,8 @@ class Client(Callbacks, SocketHandler):
         if url is None: raise exceptions.SpecifyType()
 
         data = json.dumps(data)
-        sig = signature(data)
-        response = requests.post(url, headers=self.parse_headers(data=data, sig=sig), data=data, proxies=self.proxies, verify=self.certificatePath)
+        
+        response = requests.post(url, headers=self.parse_headers(data=data, sig=signature(data)), data=data, proxies=self.proxies, verify=self.certificatePath)
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
 
@@ -1357,8 +1356,8 @@ class Client(Callbacks, SocketHandler):
 
         elif isinstance(userId, list):
             data = json.dumps({"targetUidList": userId, "timestamp": int(timestamp() * 1000)})
-            sig = signature(data)
-            response = requests.post(f"{self.api}/g/s/user-profile/{self.userId}/joined", headers=self.parse_headers(data=data, sig=sig), data=data, proxies=self.proxies, verify=self.certificatePath)
+            
+            response = requests.post(f"{self.api}/g/s/user-profile/{self.userId}/joined", headers=self.parse_headers(data=data, sig=signature(data)), data=data, proxies=self.proxies, verify=self.certificatePath)
 
         else: raise exceptions.WrongType
 
@@ -1430,8 +1429,8 @@ class Client(Callbacks, SocketHandler):
         if invitationId: data["invitationId"] = invitationId
 
         data = json.dumps(data)
-        sig = signature(data)
-        response = requests.post(f"{self.api}/x{comId}/s/community/join", data=data, headers=self.parse_headers(data=data, sig=sig), proxies=self.proxies, verify=self.certificatePath)
+        
+        response = requests.post(f"{self.api}/x{comId}/s/community/join", data=data, headers=self.parse_headers(data=data, sig=signature(data)), proxies=self.proxies, verify=self.certificatePath)
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
 
@@ -1449,8 +1448,8 @@ class Client(Callbacks, SocketHandler):
             - **Fail** : :meth:`Exceptions <aminofix.lib.util.exceptions>`
         """
         data = json.dumps({"message": message, "timestamp": int(timestamp() * 1000)})
-        sig = signature(data)
-        response = requests.post(f"{self.api}/x{comId}/s/community/membership-request", data=data, headers=self.parse_headers(data=data, sig=sig), proxies=self.proxies, verify=self.certificatePath)
+        
+        response = requests.post(f"{self.api}/x{comId}/s/community/membership-request", data=data, headers=self.parse_headers(data=data, sig=signature(data)), proxies=self.proxies, verify=self.certificatePath)
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
 
@@ -1497,8 +1496,8 @@ class Client(Callbacks, SocketHandler):
 
         if isGuest: flg = "g-flag"
         else: flg = "flag"
-        sig = signature(data)
-        response = requests.post(f"{self.api}/x{comId}/s/{flg}", data=data, headers=self.parse_headers(data=data, sig=sig), proxies=self.proxies, verify=self.certificatePath)
+        
+        response = requests.post(f"{self.api}/x{comId}/s/{flg}", data=data, headers=self.parse_headers(data=data, sig=signature(data)), proxies=self.proxies, verify=self.certificatePath)
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
 
@@ -1536,8 +1535,8 @@ class Client(Callbacks, SocketHandler):
         if defaultBubbleId: data["extensions"] = {"defaultBubbleId": defaultBubbleId}
 
         data = json.dumps(data)
-        sig = signature(data)
-        response = requests.post(f"{self.api}/g/s/user-profile/{self.userId}", headers=self.parse_headers(data=data, sig=sig), data=data, proxies=self.proxies, verify=self.certificatePath)
+        
+        response = requests.post(f"{self.api}/g/s/user-profile/{self.userId}", headers=self.parse_headers(data=data, sig=signature(data)), data=data, proxies=self.proxies, verify=self.certificatePath)
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
 
@@ -1563,8 +1562,8 @@ class Client(Callbacks, SocketHandler):
         if getNotifications: data["privacyMode"] = 1
 
         data = json.dumps(data)
-        sig = signature(data)
-        response = requests.post(f"{self.api}/g/s/account/visit-settings", headers=self.parse_headers(data=data, sig=sig), data=data, proxies=self.proxies, verify=self.certificatePath)
+        
+        response = requests.post(f"{self.api}/g/s/account/visit-settings", headers=self.parse_headers(data=data, sig=signature(data)), data=data, proxies=self.proxies, verify=self.certificatePath)
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
 
@@ -1581,8 +1580,8 @@ class Client(Callbacks, SocketHandler):
             - **Fail** : :meth:`Exceptions <aminofix.lib.util.exceptions>`
         """
         data = json.dumps({"aminoId": aminoId, "timestamp": int(timestamp() * 1000)})
-        sig = signature(data)
-        response = requests.post(f"{self.api}/g/s/account/change-amino-id", headers=self.parse_headers(data=data, sig=sig), data=data, proxies=self.proxies, verify=self.certificatePath)
+        
+        response = requests.post(f"{self.api}/g/s/account/change-amino-id", headers=self.parse_headers(data=data, sig=signature(data)), data=data, proxies=self.proxies, verify=self.certificatePath)
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
 
@@ -1631,8 +1630,8 @@ class Client(Callbacks, SocketHandler):
             - **Fail** : :meth:`Exceptions <aminofix.lib.util.exceptions>`
         """
         data = json.dumps({"ndcIds": comIds, "timestamp": int(timestamp() * 1000)})
-        sig = signature(data)
-        response = requests.post(f"{self.api}/g/s/user-profile/{self.userId}/linked-community/reorder", headers=self.parse_headers(data=data, sig=sig), data=data, proxies=self.proxies, verify=self.certificatePath)
+        
+        response = requests.post(f"{self.api}/g/s/user-profile/{self.userId}/linked-community/reorder", headers=self.parse_headers(data=data, sig=signature(data)), data=data, proxies=self.proxies, verify=self.certificatePath)
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
 
@@ -1698,20 +1697,20 @@ class Client(Callbacks, SocketHandler):
         if userId:
             data["eventSource"] = "UserProfileView"
             data = json.dumps(data)
-            sig = signature(data)
-            response = requests.post(f"{self.api}/g/s/user-profile/{userId}/g-comment", headers=self.parse_headers(data=data, sig=sig), data=data, proxies=self.proxies, verify=self.certificatePath)
+            
+            response = requests.post(f"{self.api}/g/s/user-profile/{userId}/g-comment", headers=self.parse_headers(data=data, sig=signature(data)), data=data, proxies=self.proxies, verify=self.certificatePath)
 
         elif blogId:
             data["eventSource"] = "PostDetailView"
             data = json.dumps(data)
-            sig = signature(data)
-            response = requests.post(f"{self.api}/g/s/blog/{blogId}/g-comment", headers=self.parse_headers(data=data, sig=sig), data=data, proxies=self.proxies, verify=self.certificatePath)
+            
+            response = requests.post(f"{self.api}/g/s/blog/{blogId}/g-comment", headers=self.parse_headers(data=data, sig=signature(data)), data=data, proxies=self.proxies, verify=self.certificatePath)
 
         elif wikiId:
             data["eventSource"] = "PostDetailView"
             data = json.dumps(data)
-            sig = signature(data)
-            response = requests.post(f"{self.api}/g/s/item/{wikiId}/g-comment", headers=self.parse_headers(data=data, sig=sig), data=data, proxies=self.proxies, verify=self.certificatePath)
+            
+            response = requests.post(f"{self.api}/g/s/item/{wikiId}/g-comment", headers=self.parse_headers(data=data, sig=signature(data)), data=data, proxies=self.proxies, verify=self.certificatePath)
 
         else: raise exceptions.SpecifyType
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
@@ -1762,22 +1761,22 @@ class Client(Callbacks, SocketHandler):
             if isinstance(blogId, str):
                 data["eventSource"] = "UserProfileView"
                 data = json.dumps(data)
-                sig = signature(data)
-                response = requests.post(f"{self.api}/g/s/blog/{blogId}/g-vote?cv=1.2", headers=self.parse_headers(data=data, sig=sig), data=data, proxies=self.proxies, verify=self.certificatePath)
+                
+                response = requests.post(f"{self.api}/g/s/blog/{blogId}/g-vote?cv=1.2", headers=self.parse_headers(data=data, sig=signature(data)), data=data, proxies=self.proxies, verify=self.certificatePath)
 
             elif isinstance(blogId, list):
                 data["targetIdList"] = blogId
                 data = json.dumps(data)
-                sig = signature(data)
-                response = requests.post(f"{self.api}/g/s/feed/g-vote", headers=self.parse_headers(data=data, sig=sig), data=data, proxies=self.proxies, verify=self.certificatePath)
+                
+                response = requests.post(f"{self.api}/g/s/feed/g-vote", headers=self.parse_headers(data=data, sig=signature(data)), data=data, proxies=self.proxies, verify=self.certificatePath)
 
             else: raise exceptions.WrongType(type(blogId))
 
         elif wikiId:
             data["eventSource"] = "PostDetailView"
             data = json.dumps(data)
-            sig = signature(data)
-            response = requests.post(f"{self.api}/g/s/item/{wikiId}/g-vote?cv=1.2", headers=self.parse_headers(data=data, sig=sig), data=data, proxies=self.proxies, verify=self.certificatePath)
+            
+            response = requests.post(f"{self.api}/g/s/item/{wikiId}/g-vote?cv=1.2", headers=self.parse_headers(data=data, sig=signature(data)), data=data, proxies=self.proxies, verify=self.certificatePath)
 
         else: raise exceptions.SpecifyType()
 
@@ -1827,20 +1826,20 @@ class Client(Callbacks, SocketHandler):
         if userId:
             data["eventSource"] = "UserProfileView"
             data = json.dumps(data)
-            sig = signature(data)
-            response = requests.post(f"{self.api}/g/s/user-profile/{userId}/comment/{commentId}/g-vote?cv=1.2&value=1", headers=self.parse_headers(data=data, sig=sig), data=data, proxies=self.proxies, verify=self.certificatePath)
+            
+            response = requests.post(f"{self.api}/g/s/user-profile/{userId}/comment/{commentId}/g-vote?cv=1.2&value=1", headers=self.parse_headers(data=data, sig=signature(data)), data=data, proxies=self.proxies, verify=self.certificatePath)
 
         elif blogId:
             data["eventSource"] = "PostDetailView"
             data = json.dumps(data)
-            sig = signature(data)
-            response = requests.post(f"{self.api}/g/s/blog/{blogId}/comment/{commentId}/g-vote?cv=1.2&value=1", headers=self.parse_headers(data=data, sig=sig), data=data, proxies=self.proxies, verify=self.certificatePath)
+            
+            response = requests.post(f"{self.api}/g/s/blog/{blogId}/comment/{commentId}/g-vote?cv=1.2&value=1", headers=self.parse_headers(data=data, sig=signature(data)), data=data, proxies=self.proxies, verify=self.certificatePath)
 
         elif wikiId:
             data["eventSource"] = "PostDetailView"
             data = json.dumps(data)
-            sig = signature(data)
-            response = requests.post(f"{self.api}/g/s/item/{wikiId}/comment/{commentId}/g-vote?cv=1.2&value=1", headers=self.parse_headers(data=data, sig=sig), data=data, proxies=self.proxies, verify=self.certificatePath)
+            
+            response = requests.post(f"{self.api}/g/s/item/{wikiId}/comment/{commentId}/g-vote?cv=1.2&value=1", headers=self.parse_headers(data=data, sig=signature(data)), data=data, proxies=self.proxies, verify=self.certificatePath)
 
         else: raise exceptions.SpecifyType
 
@@ -1992,9 +1991,9 @@ class Client(Callbacks, SocketHandler):
             "objectType": objectType,
             "timestamp": int(timestamp() * 1000)
         })
-        sig = signature(data)
-        if comId: response = requests.post(f"{self.api}/g/s-x{comId}/link-resolution", headers=self.parse_headers(data=data, sig=sig), data=data, proxies=self.proxies, verify=self.certificatePath)
-        else: response = requests.post(f"{self.api}/g/s/link-resolution", headers=self.parse_headers(data=data, sig=sig), data=data, proxies=self.proxies, verify=self.certificatePath)
+        
+        if comId: response = requests.post(f"{self.api}/g/s-x{comId}/link-resolution", headers=self.parse_headers(data=data, sig=signature(data)), data=data, proxies=self.proxies, verify=self.certificatePath)
+        else: response = requests.post(f"{self.api}/g/s/link-resolution", headers=self.parse_headers(data=data, sig=signature(data)), data=data, proxies=self.proxies, verify=self.certificatePath)
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return objects.FromCode(json.loads(response.text)["linkInfoV2"]).FromCode
 
@@ -2066,8 +2065,8 @@ class Client(Callbacks, SocketHandler):
 
     def accept_host(self, chatId: str, requestId: str):
         data = json.dumps({})
-        sig = signature(data)
-        response = requests.post(f"{self.api}/g/s/chat/thread/{chatId}/transfer-organizer/{requestId}/accept", headers=self.parse_headers(data=data), data=data, proxies=self.proxies, verify=self.certificatePath)
+        
+        response = requests.post(f"{self.api}/g/s/chat/thread/{chatId}/transfer-organizer/{requestId}/accept", headers=self.parse_headers(data=data, sig=signature(data)), data=data, proxies=self.proxies, verify=self.certificatePath)
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
 
@@ -2096,8 +2095,8 @@ class Client(Callbacks, SocketHandler):
         data = json.dumps({
             "uid": userId
         })
-        sig = signature(data)
-        response = requests.post(f"{self.api}/g/s/chat/thread/{chatId}/vvchat-presenter/invite", headers=self.parse_headers(data=data, sig=sig), data=data, proxies=self.proxies, verify=self.certificatePath)
+        
+        response = requests.post(f"{self.api}/g/s/chat/thread/{chatId}/vvchat-presenter/invite", headers=self.parse_headers(data=data, sig=signature(data)), data=data, proxies=self.proxies, verify=self.certificatePath)
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
 
@@ -2119,8 +2118,8 @@ class Client(Callbacks, SocketHandler):
             "adsLevel": level,
             "timestamp": int(timestamp() * 1000)
         })
-        sig = signature(data)
-        response = requests.post(f"{self.api}/g/s/wallet/ads/config", headers=self.parse_headers(data=data, sig=sig), data=data, proxies=self.proxies, verify=self.certificatePath)
+        
+        response = requests.post(f"{self.api}/g/s/wallet/ads/config", headers=self.parse_headers(data=data, sig=signature(data)), data=data, proxies=self.proxies, verify=self.certificatePath)
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
 
@@ -2136,7 +2135,7 @@ class Client(Callbacks, SocketHandler):
             },
             "timestamp": timestamp()
         })
-        sig = signature(data)
-        response = requests.post(f"{self.api}/g/s/store/purchase", headers=self.parse_headers(data=data, sig=sig), data=data)
+        
+        response = requests.post(f"{self.api}/g/s/store/purchase", headers=self.parse_headers(data=data, sig=signature(data)), data=data)
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text()))
         else: return response.status_code
