@@ -6,21 +6,23 @@ from hashlib import sha1
 from functools import reduce
 from base64 import b64decode
 from typing import Union
-
+import requests
 
 def generate_device_info() -> dict:
     return {
-        "device_id": "221EAE9F9C08B08EA4F632F4C397847FC606A4BCD2E449B175997630041414E121C54063A5EC0E02C8",
-        "user_agent": "Dalvik/2.1.0 (Linux; U; Android 7.1.2; SM-G977N Build/beyond1qlteue-user 7; com.narvii.amino.master/3.4.33578)"
+        "device_id": "32E3DDD1C3607790DE1D2F4AECD1C6E81D3F49EB2B93DC1203984EE5B83EAEA89B80A2D32978ABFD1A",
+        "user_agent": "Dalvik/2.1.0 (Linux; U; Android 7.1.2; SM-G965N Build/star2ltexx-user 7.1.; com.narvii.amino.master/3.4.33592)"
     }
 
 # okok says: please use return annotations :(( https://www.python.org/dev/peps/pep-3107/#return-values
 
 def signature(data: Union[str, dict]) -> str:
     if isinstance(data, dict): data = json.dumps(data)
-    mac = hmac.new(bytes.fromhex("307c3c8cd389e69dc298d951341f88419a8377f4"), str(data).encode("utf-8"), sha1)
-    digest = bytes.fromhex("22") + mac.digest()
-    return base64.b64encode(digest).decode("utf-8")
+    response = requests.get(f"https://emerald-dream.herokuapp.com/signature/{data}").json()
+    if response["status"] == "correct":
+        return response["signature"]
+    else:
+        return -1
 
 def decode_sid(sid: str) -> dict:
     return json.loads(b64decode(reduce(lambda a, e: a.replace(*e), ("-+", "_/"), sid + "=" * (-len(sid) % 4)).encode())[1:-20].decode())

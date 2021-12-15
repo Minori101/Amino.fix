@@ -450,7 +450,7 @@ class SubClient(client.Client):
         if timers: data["userActiveTimeChunkList"] = timers 
         data = json_minify(json.dumps(data))  
         
-        response = requests.post(f"{self.api}/x{self.comId}/s/community/stats/user-active-time", headers=headers.ApisHeaders(data=data, sig=sig, deviceId=self.device_id).headers, data=data, proxies=self.proxies, verify=self.certificatePath) 
+        response = requests.post(f"{self.api}/x{self.comId}/s/community/stats/user-active-time", headers=headers.ApisHeaders(data=data, sig=signature(data), deviceId=self.device_id).headers, data=data, proxies=self.proxies, verify=self.certificatePath) 
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text)) 
         else: return response.status_code
 
