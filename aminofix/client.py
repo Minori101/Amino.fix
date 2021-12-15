@@ -201,8 +201,6 @@ class Client(Callbacks, SocketHandler):
             "timestamp": int(timestamp() * 1000)
         })
 
-        
-
         response = requests.post(f"{self.api}/g/s/auth/login", headers=self.parse_headers(data=data, sig=signature(data)), data=data, proxies=self.proxies, verify=self.certificatePath)
         self.run_socket()
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))

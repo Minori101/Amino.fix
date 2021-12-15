@@ -209,7 +209,7 @@ class Client(Callbacks, SocketHandler):
             "timestamp": int(timestamp() * 1000)
         })
 
-        async with self.session.post(f"{self.api}/g/s/auth/login", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/g/s/auth/login", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else:
                 self.authenticated = True
@@ -219,7 +219,7 @@ class Client(Callbacks, SocketHandler):
                 self.account: objects.UserProfile = objects.UserProfile(self.json["account"]).UserProfile
                 self.profile: objects.UserProfile = objects.UserProfile(self.json["userProfile"]).UserProfile
                 headers.sid = self.sid
-                self.start()
+                await self.start()
                 self.run_socket()
                 return response.status
 
@@ -262,7 +262,7 @@ class Client(Callbacks, SocketHandler):
             "timestamp": int(timestamp() * 1000)
         })
 
-        async with self.session.post(f"{self.api}/g/s/auth/register", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/g/s/auth/register", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -286,7 +286,7 @@ class Client(Callbacks, SocketHandler):
             "timestamp": int(timestamp() * 1000)
         })
 
-        async with self.session.post(f"{self.api}/g/s/account/delete-request/cancel", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/g/s/account/delete-request/cancel", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -308,7 +308,7 @@ class Client(Callbacks, SocketHandler):
             "timestamp": int(timestamp() * 1000)
         })
 
-        async with self.session.post(f"{self.api}/g/s/auth/logout", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/g/s/auth/logout", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else:
                 self.authenticated = False
@@ -349,7 +349,7 @@ class Client(Callbacks, SocketHandler):
             "timestamp": int(timestamp() * 1000)
         })
 
-        async with self.session.post(f"{self.api}/g/s/persona/profile/basic", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/g/s/persona/profile/basic", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -375,7 +375,7 @@ class Client(Callbacks, SocketHandler):
             "timestamp": int(timestamp() * 1000)
         })
 
-        async with self.session.post(f"{self.api}/g/s/auth/check-security-validation", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/g/s/auth/check-security-validation", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -403,7 +403,7 @@ class Client(Callbacks, SocketHandler):
             data["purpose"] = "reset-password"
 
         data = json.dumps(data)
-        async with self.session.post(f"{self.api}/g/s/auth/request-security-validation", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/g/s/auth/request-security-validation", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -428,7 +428,7 @@ class Client(Callbacks, SocketHandler):
             "deviceID": device.device_id
         })
 
-        async with self.session.post(f"{self.api}/g/s/auth/activate-email", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/g/s/auth/activate-email", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -451,7 +451,7 @@ class Client(Callbacks, SocketHandler):
             "secret": f"0 {password}"
         })
 
-        async with self.session.post(f"{self.api}/g/s/account/delete-request", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/g/s/account/delete-request", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -485,7 +485,7 @@ class Client(Callbacks, SocketHandler):
             "deviceID": device.device_id
         })
 
-        async with self.session.post(f"{self.api}/g/s/auth/reset-password", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/g/s/auth/reset-password", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -511,7 +511,7 @@ class Client(Callbacks, SocketHandler):
             "timestamp": int(timestamp() * 1000)
         })
 
-        async with self.session.post(f"{self.api}/g/s/device", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/g/s/device", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -701,7 +701,7 @@ class Client(Callbacks, SocketHandler):
 
         data = json.dumps(data)
 
-        async with self.session.post(f"{self.api}/g/s/chat/thread", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/g/s/chat/thread", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -727,7 +727,7 @@ class Client(Callbacks, SocketHandler):
             "timestamp": int(timestamp() * 1000)
         })
 
-        async with self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/member/invite", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/member/invite", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -1008,7 +1008,7 @@ class Client(Callbacks, SocketHandler):
 
         data = json.dumps(data)
 
-        async with self.session.post(f"{self.api}/g/s/{flg}", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/g/s/{flg}", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -1094,7 +1094,7 @@ class Client(Callbacks, SocketHandler):
 
         data = json.dumps(data)
 
-        async with self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/message", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/message", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -1126,7 +1126,7 @@ class Client(Callbacks, SocketHandler):
                 if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
                 else: return response.status
         else:
-            async with self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/message/{messageId}/admin", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+            async with self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/message/{messageId}/admin", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
                 if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
                 else: return response.status
 
@@ -1148,7 +1148,7 @@ class Client(Callbacks, SocketHandler):
             "timestamp": int(timestamp() * 1000)
         })
 
-        async with self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/mark-as-read", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/mark-as-read", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -1197,75 +1197,75 @@ class Client(Callbacks, SocketHandler):
         if doNotDisturb is not None:
             if doNotDisturb:
                 data = json.dumps({"alertOption": 2, "timestamp": int(timestamp() * 1000)})
-                async with self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/member/{self.userId}/alert", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+                async with self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/member/{self.userId}/alert", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
                     if response.status != 200: res.append(exceptions.CheckException(json.loads(await response.text())))
                     else: res.append(response.status)
 
             if not doNotDisturb:
                 data = json.dumps({"alertOption": 1, "timestamp": int(timestamp() * 1000)})
-                async with self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/member/{self.userId}/alert", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+                async with self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/member/{self.userId}/alert", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
                     if response.status != 200: res.append(exceptions.CheckException(json.loads(await response.text())))
                     else: res.append(response.status)
 
         if pinChat is not None:
             if pinChat:
-                async with self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/pin", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+                async with self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/pin", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
                     if response.status != 200: res.append(exceptions.CheckException(json.loads(await response.text())))
                     else: res.append(response.status)
 
             if not pinChat:
-                async with self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/unpin", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+                async with self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/unpin", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
                     if response.status != 200: res.append(exceptions.CheckException(json.loads(await response.text())))
                     else: res.append(response.status)
 
         if backgroundImage is not None:
             data = json.dumps({"media": [100, await self.upload_media(backgroundImage, "image"), None], "timestamp": int(timestamp() * 1000)})
-            async with self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/member/{self.userId}/background", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+            async with self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/member/{self.userId}/background", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
                 if response.status != 200: res.append(exceptions.CheckException(json.loads(await response.text())))
                 else: res.append(response.status)
 
         if coHosts is not None:
             data = json.dumps({"uidList": coHosts, "timestamp": int(timestamp() * 1000)})
-            async with self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/co-host", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+            async with self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/co-host", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
                 if response.status != 200: res.append(exceptions.CheckException(json.loads(await response.text())))
                 else: res.append(response.status)
 
         if viewOnly is not None:
             if viewOnly:
-                async with self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/view-only/enable", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+                async with self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/view-only/enable", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
                     if response.status != 200: res.append(exceptions.CheckException(json.loads(await response.text())))
                     else: res.append(response.status)
 
             if not viewOnly:
-                async with self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/view-only/disable", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+                async with self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/view-only/disable", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
                     if response.status != 200: res.append(exceptions.CheckException(json.loads(await response.text())))
                     else: res.append(response.status)
 
         if canInvite is not None:
             if canInvite:
-                async with self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/members-can-invite/enable", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+                async with self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/members-can-invite/enable", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
                     if response.status != 200: res.append(exceptions.CheckException(json.loads(await response.text())))
                     else: res.append(response.status)
 
             if not canInvite:
-                async with self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/members-can-invite/disable", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+                async with self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/members-can-invite/disable", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
                     if response.status != 200: res.append(exceptions.CheckException(json.loads(await response.text())))
                     else: res.append(response.status)
 
         if canTip is not None:
             if canTip:
-                async with self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/tipping-perm-status/enable", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+                async with self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/tipping-perm-status/enable", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
                     if response.status != 200: res.append(exceptions.CheckException(json.loads(await response.text())))
                     else: res.append(response.status)
 
             if not canTip:
-                async with self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/tipping-perm-status/disable", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+                async with self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/tipping-perm-status/disable", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
                     if response.status != 200: res.append(exceptions.CheckException(json.loads(await response.text())))
                     else: res.append(response.status)
 
         data = json.dumps(data)
 
-        async with self.session.post(f"{self.api}/g/s/chat/thread/{chatId}", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/g/s/chat/thread/{chatId}", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: res.append(exceptions.CheckException(json.loads(await response.text())))
             else: res.append(response.status)
 
@@ -1308,7 +1308,7 @@ class Client(Callbacks, SocketHandler):
 
         data = json.dumps(data)
 
-        async with self.session.post(url, headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(url, headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -1332,7 +1332,7 @@ class Client(Callbacks, SocketHandler):
         elif isinstance(userId, list):
             data = json.dumps({"targetUidList": userId, "timestamp": int(timestamp() * 1000)})
 
-            async with self.session.post(f"{self.api}/g/s/user-profile/{self.userId}/joined", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+            async with self.session.post(f"{self.api}/g/s/user-profile/{self.userId}/joined", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
                 if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
                 else: return response.status
 
@@ -1404,7 +1404,7 @@ class Client(Callbacks, SocketHandler):
 
         data = json.dumps(data)
 
-        async with self.session.post(f"{self.api}/x{comId}/s/community/join", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/x{comId}/s/community/join", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -1423,7 +1423,7 @@ class Client(Callbacks, SocketHandler):
         """
         data = json.dumps({"message": message, "timestamp": int(timestamp() * 1000)})
 
-        async with self.session.post(f"{self.api}/x{comId}/s/community/membership-request", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/x{comId}/s/community/membership-request", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -1471,7 +1471,7 @@ class Client(Callbacks, SocketHandler):
         if isGuest: flg = "g-flag"
         else: flg = "flag"
 
-        async with self.session.post(f"{self.api}/x{comId}/s/{flg}", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/x{comId}/s/{flg}", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -1510,7 +1510,7 @@ class Client(Callbacks, SocketHandler):
 
         data = json.dumps(data)
 
-        async with self.session.post(f"{self.api}/g/s/user-profile/{self.userId}", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/g/s/user-profile/{self.userId}", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -1537,7 +1537,7 @@ class Client(Callbacks, SocketHandler):
 
         data = json.dumps(data)
 
-        async with self.session.post(f"{self.api}/g/s/account/visit-settings", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/g/s/account/visit-settings", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -1555,7 +1555,7 @@ class Client(Callbacks, SocketHandler):
         """
         data = json.dumps({"aminoId": aminoId, "timestamp": int(timestamp() * 1000)})
 
-        async with self.session.post(f"{self.api}/g/s/account/change-amino-id", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/g/s/account/change-amino-id", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -1605,7 +1605,7 @@ class Client(Callbacks, SocketHandler):
         """
         data = json.dumps({"ndcIds": comIds, "timestamp": int(timestamp() * 1000)})
 
-        async with self.session.post(f"{self.api}/g/s/user-profile/{self.userId}/linked-community/reorder", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/g/s/user-profile/{self.userId}/linked-community/reorder", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -1672,7 +1672,7 @@ class Client(Callbacks, SocketHandler):
             data["eventSource"] = "UserProfileView"
             data = json.dumps(data)
 
-            async with self.session.post(f"{self.api}/g/s/user-profile/{userId}/g-comment", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+            async with self.session.post(f"{self.api}/g/s/user-profile/{userId}/g-comment", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
                 if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
                 else: return response.status
 
@@ -1680,7 +1680,7 @@ class Client(Callbacks, SocketHandler):
             data["eventSource"] = "PostDetailView"
             data = json.dumps(data)
 
-            async with self.session.post(f"{self.api}/g/s/blog/{blogId}/g-comment", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+            async with self.session.post(f"{self.api}/g/s/blog/{blogId}/g-comment", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
                 if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
                 else: return response.status
 
@@ -1688,7 +1688,7 @@ class Client(Callbacks, SocketHandler):
             data["eventSource"] = "PostDetailView"
             data = json.dumps(data)
 
-            async with self.session.post(f"{self.api}/g/s/item/{wikiId}/g-comment", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+            async with self.session.post(f"{self.api}/g/s/item/{wikiId}/g-comment", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
                 if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
                 else: return response.status
 
@@ -1741,7 +1741,7 @@ class Client(Callbacks, SocketHandler):
                 data["eventSource"] = "UserProfileView"
                 data = json.dumps(data)
 
-                async with self.session.post(f"{self.api}/g/s/blog/{blogId}/g-vote?cv=1.2", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+                async with self.session.post(f"{self.api}/g/s/blog/{blogId}/g-vote?cv=1.2", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
                     if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
                     else: return response.status
 
@@ -1749,7 +1749,7 @@ class Client(Callbacks, SocketHandler):
                 data["targetIdList"] = blogId
                 data = json.dumps(data)
 
-                async with self.session.post(f"{self.api}/g/s/feed/g-vote", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+                async with self.session.post(f"{self.api}/g/s/feed/g-vote", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
                     if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
                     else: return response.status
 
@@ -1759,7 +1759,7 @@ class Client(Callbacks, SocketHandler):
             data["eventSource"] = "PostDetailView"
             data = json.dumps(data)
 
-            async with self.session.post(f"{self.api}/g/s/item/{wikiId}/g-vote?cv=1.2", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+            async with self.session.post(f"{self.api}/g/s/item/{wikiId}/g-vote?cv=1.2", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
                 if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
                 else: return response.status
 
@@ -1810,7 +1810,7 @@ class Client(Callbacks, SocketHandler):
             data["eventSource"] = "UserProfileView"
             data = json.dumps(data)
 
-            async with self.session.post(f"{self.api}/g/s/user-profile/{userId}/comment/{commentId}/g-vote?cv=1.2&value=1", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+            async with self.session.post(f"{self.api}/g/s/user-profile/{userId}/comment/{commentId}/g-vote?cv=1.2&value=1", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
                 if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
                 else: return response.status
 
@@ -1818,7 +1818,7 @@ class Client(Callbacks, SocketHandler):
             data["eventSource"] = "PostDetailView"
             data = json.dumps(data)
 
-            async with self.session.post(f"{self.api}/g/s/blog/{blogId}/comment/{commentId}/g-vote?cv=1.2&value=1", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+            async with self.session.post(f"{self.api}/g/s/blog/{blogId}/comment/{commentId}/g-vote?cv=1.2&value=1", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
                 if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
                 else: return response.status
 
@@ -1826,7 +1826,7 @@ class Client(Callbacks, SocketHandler):
             data["eventSource"] = "PostDetailView"
             data = json.dumps(data)
 
-            async with self.session.post(f"{self.api}/g/s/item/{wikiId}/comment/{commentId}/g-vote?cv=1.2&value=1", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+            async with self.session.post(f"{self.api}/g/s/item/{wikiId}/comment/{commentId}/g-vote?cv=1.2&value=1", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
                 if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
                 else: return response.status
 
@@ -1982,7 +1982,7 @@ class Client(Callbacks, SocketHandler):
         if comId: url = f"{self.api}/g/s-x{comId}/link-resolution"
         else: url = f"{self.api}/g/s/link-resolution"
 
-        async with self.session.post(url, headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(url, headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return objects.FromCode(json.loads(await response.text())["linkInfoV2"]).FromCode
 
@@ -2084,7 +2084,7 @@ class Client(Callbacks, SocketHandler):
             "uid": userId
         })
 
-        async with self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/vvchat-presenter/invite", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/vvchat-presenter/invite", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -2106,7 +2106,7 @@ class Client(Callbacks, SocketHandler):
             "timestamp": int(timestamp() * 1000)
         })
 
-        async with self.session.post(f"{self.api}/g/s/wallet/ads/config", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/g/s/wallet/ads/config", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -2139,7 +2139,7 @@ class Client(Callbacks, SocketHandler):
                 "timestamp": timestamp()
             }
         })
-        async with self.session.post(f"{self.api}/g/s/membership/product/subscribe", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/g/s/membership/product/subscribe", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -2161,6 +2161,6 @@ class Client(Callbacks, SocketHandler):
             },
             "timestamp": timestamp()
         })
-        async with self.session.post(f"{self.api}/g/s/store/purchase", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/g/s/store/purchase", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status

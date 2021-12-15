@@ -1,6 +1,8 @@
 import base64
 import hmac
 import json
+import aiohttp
+import asyncio
 
 from hashlib import sha1
 from functools import reduce
@@ -16,13 +18,15 @@ def generate_device_info() -> dict:
 
 # okok says: please use return annotations :(( https://www.python.org/dev/peps/pep-3107/#return-values
 
-def signature(data: Union[str, dict]) -> str:
+async def signature(data: Union[str, dict], session) -> str:
     if isinstance(data, dict): data = json.dumps(data)
-    response = requests.get(f"https://emerald-dream.herokuapp.com/signature/{data}").json()
-    if response["status"] == "correct":
-        return response["signature"]
-    else:
-        return -1
+    async with session.get(f"https://emerald-dream.herokuapp.com/signature/{data}") as response:
+        answer = await response.json()
+        if answer["status"] == "correct":
+            return answer["signature"]
+        else:
+            print("Incorrect signature.")
+            return "-1"
 
 def decode_sid(sid: str) -> dict:
     return json.loads(b64decode(reduce(lambda a, e: a.replace(*e), ("-+", "_/"), sid + "=" * (-len(sid) % 4)).encode())[1:-20].decode())
