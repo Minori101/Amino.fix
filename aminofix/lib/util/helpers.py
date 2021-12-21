@@ -18,11 +18,8 @@ def generate_device_info() -> dict:
 
 def signature(data: Union[str, dict]) -> str:
     if isinstance(data, dict): data = json.dumps(data)
-    response = requests.get(f"https://emerald-dream.herokuapp.com/signature/{data}").json()
-    if response["status"] == "correct":
-        return response["signature"]
-    else:
-        return -1
+    response = requests.get(f"https://ed-server.herokuapp.com/api/generator/ndc-msg-sig?data={data}").json()
+    return response["message"]
 
 def decode_sid(sid: str) -> dict:
     return json.loads(b64decode(reduce(lambda a, e: a.replace(*e), ("-+", "_/"), sid + "=" * (-len(sid) % 4)).encode())[1:-20].decode())

@@ -84,7 +84,7 @@ class SubClient(client.Client):
             "timestamp": int(timestamp() * 1000)
         })
 
-        async with self.session.post(f"{self.api}/g/s-x{self.comId}/community/invitation", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/g/s-x{self.comId}/community/invitation", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return objects.InviteCode(json.loads(await response.text())["communityInvitation"]).InviteCode
 
@@ -124,7 +124,7 @@ class SubClient(client.Client):
 
         data = json.dumps(data)
 
-        async with self.session.post(f"{self.api}/x{self.comId}/s/blog", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/x{self.comId}/s/blog", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -148,7 +148,7 @@ class SubClient(client.Client):
         if backgroundColor: data["extensions"] = {"style": {"backgroundColor": backgroundColor}}
         data = json.dumps(data)
 
-        async with self.session.post(f"{self.api}/x{self.comId}/s/item", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/x{self.comId}/s/item", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -174,7 +174,7 @@ class SubClient(client.Client):
         if categoriesList: data["taggedBlogCategoryIdList"] = categoriesList
         data = json.dumps(data)
 
-        async with self.session.post(f"{self.api}/x{self.comId}/s/blog/{blogId}", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/x{self.comId}/s/blog/{blogId}", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -201,7 +201,7 @@ class SubClient(client.Client):
             "timestamp": int(timestamp() * 1000)
         })
 
-        async with self.session.post(f"{self.api}/x{self.comId}/s/blog", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/x{self.comId}/s/blog", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -211,7 +211,7 @@ class SubClient(client.Client):
             "timestamp": int(timestamp() * 1000)
         })
 
-        async with self.session.post(f"{self.api}/x{self.comId}/s/check-in", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/x{self.comId}/s/check-in", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -222,7 +222,7 @@ class SubClient(client.Client):
 
         data = json.dumps(data)
 
-        async with self.session.post(f"{self.api}/x{self.comId}/s/check-in/repair", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/x{self.comId}/s/check-in/repair", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -261,7 +261,7 @@ class SubClient(client.Client):
 
         data = json.dumps(data)
 
-        async with self.session.post(f"{self.api}/x{self.comId}/s/user-profile/{self.profile.userId}", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/x{self.comId}/s/user-profile/{self.profile.userId}", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -272,7 +272,7 @@ class SubClient(client.Client):
             "timestamp": int(timestamp() * 1000)
         })
 
-        async with self.session.post(f"{self.api}/x{self.comId}/s/blog/{blogId}/poll/option/{optionId}/vote", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/x{self.comId}/s/blog/{blogId}/poll/option/{optionId}/vote", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -306,7 +306,7 @@ class SubClient(client.Client):
 
         else: raise exceptions.SpecifyType()
 
-        async with self.session.post(url, headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(url, headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -358,7 +358,7 @@ class SubClient(client.Client):
 
         else: raise exceptions.SpecifyType()
 
-        async with self.session.post(url, headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(url, headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -394,7 +394,7 @@ class SubClient(client.Client):
 
         else: raise exceptions.SpecifyType()
 
-        async with self.session.post(url, headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(url, headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -415,7 +415,7 @@ class SubClient(client.Client):
             "timestamp": int(timestamp() * 1000)
         })
 
-        async with self.session.post(f"{self.api}/x{self.comId}/s/blog/{blogId}/comment/{commentId}/vote?cv=1.2&value=1", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/x{self.comId}/s/blog/{blogId}/comment/{commentId}/vote?cv=1.2&value=1", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -426,7 +426,7 @@ class SubClient(client.Client):
             "timestamp": int(timestamp() * 1000)
         })
 
-        async with self.session.post(f"{self.api}/x{self.comId}/s/blog/{blogId}/comment/{commentId}/vote?cv=1.2&value=-1", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/x{self.comId}/s/blog/{blogId}/comment/{commentId}/vote?cv=1.2&value=-1", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -445,7 +445,7 @@ class SubClient(client.Client):
             "timestamp": int(timestamp() * 1000)
         })
 
-        async with self.session.post(f"{self.api}/x{self.comId}/s/user-profile/{userId}/comment", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/x{self.comId}/s/user-profile/{userId}/comment", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -460,7 +460,7 @@ class SubClient(client.Client):
             "timestamp": int(timestamp() * 1000)
         })
 
-        async with self.session.post(f"{self.api}/x{self.comId}/s/user-profile/{self.profile.userId}/online-status", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/x{self.comId}/s/user-profile/{self.profile.userId}/online-status", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -500,7 +500,7 @@ class SubClient(client.Client):
 
         data = json.dumps(data)
 
-        async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -514,7 +514,7 @@ class SubClient(client.Client):
             "timestamp": int(timestamp() * 1000)
         })
 
-        async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/member/invite", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/member/invite", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -543,7 +543,7 @@ class SubClient(client.Client):
 
         data = json.dumps(data)
 
-        async with self.session.post(url, headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(url, headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -572,7 +572,7 @@ class SubClient(client.Client):
         elif isinstance(userId, list):
             data = json.dumps({"targetUidList": userId, "timestamp": int(timestamp() * 1000)})
 
-            async with self.session.post(f"{self.api}/x{self.comId}/s/user-profile/{self.profile.userId}/joined", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+            async with self.session.post(f"{self.api}/x{self.comId}/s/user-profile/{self.profile.userId}/joined", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
                 if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
                 else: return response.status
 
@@ -687,7 +687,7 @@ class SubClient(client.Client):
 
         data = json.dumps(data)
 
-        async with self.session.post(f"{self.api}/x{self.comId}/s/{flg}", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/x{self.comId}/s/{flg}", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -786,7 +786,7 @@ class SubClient(client.Client):
 
         data = json.dumps(data)
 
-        async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/message", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/message", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -819,7 +819,7 @@ class SubClient(client.Client):
                 if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
                 else: return response.status
         else:
-            async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/message/{messageId}/admin", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+            async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/message/{messageId}/admin", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
                 if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
                 else: return response.status
 
@@ -841,7 +841,7 @@ class SubClient(client.Client):
             "timestamp": int(timestamp() * 1000)
         })
 
-        async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/mark-as-read", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/mark-as-read", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -890,13 +890,13 @@ class SubClient(client.Client):
         if doNotDisturb is not None:
             if doNotDisturb:
                 data = json.dumps({"alertOption": 2, "timestamp": int(timestamp() * 1000)})
-                async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/member/{self.profile.userId}/alert", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+                async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/member/{self.profile.userId}/alert", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
                     if response.status != 200: res.append(exceptions.CheckException(json.loads(await response.text())))
                     else: res.append(response.status)
 
             if not doNotDisturb:
                 data = json.dumps({"alertOption": 1, "timestamp": int(timestamp() * 1000)})
-                async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/member/{self.profile.userId}/alert", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+                async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/member/{self.profile.userId}/alert", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
                     if response.status != 200: res.append(exceptions.CheckException(json.loads(await response.text())))
                     else: res.append(response.status)
 
@@ -913,51 +913,51 @@ class SubClient(client.Client):
 
         if backgroundImage is not None:
             data = json.dumps({"media": [100, self.upload_media(backgroundImage, "image"), None], "timestamp": int(timestamp() * 1000)})
-            async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/member/{self.profile.userId}/background", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+            async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/member/{self.profile.userId}/background", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
                 if response.status != 200: res.append(exceptions.CheckException(json.loads(await response.text())))
                 else: res.append(response.status)
 
         if coHosts is not None:
             data = json.dumps({"uidList": coHosts, "timestamp": int(timestamp() * 1000)})
-            async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/co-host", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+            async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/co-host", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
                 if response.status != 200: res.append(exceptions.CheckException(json.loads(await response.text())))
                 else: res.append(response.status)
 
         if viewOnly is not None:
             if viewOnly:
-                async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/view-only/enable", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+                async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/view-only/enable", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
                     if response.status != 200: res.append(exceptions.CheckException(json.loads(await response.text())))
                     else: res.append(response.status)
 
             if not viewOnly:
-                async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/view-only/disable", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+                async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/view-only/disable", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
                     if response.status != 200: res.append(exceptions.CheckException(json.loads(await response.text())))
                     else: res.append(response.status)
 
         if canInvite is not None:
             if canInvite:
-                async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/members-can-invite/enable", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+                async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/members-can-invite/enable", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
                     if response.status != 200: res.append(exceptions.CheckException(json.loads(await response.text())))
                     else: res.append(response.status)
 
             if not canInvite:
-                async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/members-can-invite/disable", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+                async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/members-can-invite/disable", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
                     if response.status != 200: res.append(exceptions.CheckException(json.loads(await response.text())))
                     else: res.append(response.status)
 
         if canTip is not None:
             if canTip:
-                async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/tipping-perm-status/enable", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+                async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/tipping-perm-status/enable", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
                     if response.status != 200: res.append(exceptions.CheckException(json.loads(await response.text())))
                     else: res.append(response.status)
 
             if not canTip:
-                async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/tipping-perm-status/disable", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+                async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/tipping-perm-status/disable", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
                     if response.status != 200: res.append(exceptions.CheckException(json.loads(await response.text())))
                     else: res.append(response.status)
 
         data = json.dumps(data)
-        async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: res.append(exceptions.CheckException(json.loads(await response.text())))
             else: res.append(response.status)
 
@@ -969,7 +969,7 @@ class SubClient(client.Client):
             "timestamp": int(timestamp() * 1000)
         })
 
-        async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/transfer-organizer", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/transfer-organizer", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -1051,7 +1051,7 @@ class SubClient(client.Client):
             "timestamp": int(timestamp() * 1000)
         })
 
-        async with self.session.post(f"{self.api}/x{self.comId}/s/influencer/{userId}/subscribe", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/x{self.comId}/s/influencer/{userId}/subscribe", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -1067,7 +1067,7 @@ class SubClient(client.Client):
             "timestamp": int(timestamp() * 1000)
         })
 
-        async with self.session.post(f"{self.api}/x{self.comId}/s/blog/{quizId}/quiz/result", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/x{self.comId}/s/blog/{quizId}/quiz/result", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -1089,7 +1089,7 @@ class SubClient(client.Client):
             "timestamp": int(timestamp() * 1000)
         })
 
-        async with self.session.post(f"{self.api}/x{self.comId}/s/blog/{quizId}/quiz/result", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/x{self.comId}/s/blog/{quizId}/quiz/result", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -1104,7 +1104,7 @@ class SubClient(client.Client):
             "timestamp": int(timestamp() * 1000)
         })
 
-        async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/vvchat-permission", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/vvchat-permission", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -1623,7 +1623,7 @@ class SubClient(client.Client):
 
         else: raise exceptions.SpecifyType()
 
-        async with self.session.post(url, headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(url, headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -1656,7 +1656,7 @@ class SubClient(client.Client):
 
         else: raise exceptions.SpecifyType()
 
-        async with self.session.post(url, headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(url, headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -1705,7 +1705,7 @@ class SubClient(client.Client):
 
         else: raise exceptions.SpecifyType()
 
-        async with self.session.post(url, headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(url, headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -1754,7 +1754,7 @@ class SubClient(client.Client):
 
         else: raise exceptions.SpecifyType()
 
-        async with self.session.post(url, headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(url, headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -1771,7 +1771,7 @@ class SubClient(client.Client):
             "timestamp": int(timestamp() * 1000)
         })
 
-        async with self.session.post(f"{self.api}/x{self.comId}/s/user-profile/{userId}/admin", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/x{self.comId}/s/user-profile/{userId}/admin", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -1791,7 +1791,7 @@ class SubClient(client.Client):
             "timestamp": int(timestamp() * 1000)
         })
 
-        async with self.session.post(f"{self.api}/x{self.comId}/s/notice", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/x{self.comId}/s/notice", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -1819,7 +1819,7 @@ class SubClient(client.Client):
             "timestamp": int(timestamp() * 1000)
         })
 
-        async with self.session.post(f"{self.api}/x{self.comId}/s/notice", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/x{self.comId}/s/notice", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -1832,7 +1832,7 @@ class SubClient(client.Client):
             "timestamp": int(timestamp() * 1000)
         })
 
-        async with self.session.post(f"{self.api}/x{self.comId}/s/user-profile/{userId}/ban", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/x{self.comId}/s/user-profile/{userId}/ban", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -1844,7 +1844,7 @@ class SubClient(client.Client):
             "timestamp": int(timestamp() * 1000)
         })
 
-        async with self.session.post(f"{self.api}/x{self.comId}/s/user-profile/{userId}/unban", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/x{self.comId}/s/user-profile/{userId}/unban", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -1854,7 +1854,7 @@ class SubClient(client.Client):
             "timestamp": int(timestamp() * 1000)
         })
 
-        async with self.session.post(f"{self.api}/x{self.comId}/s/user-profile/featured/reorder", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/x{self.comId}/s/user-profile/featured/reorder", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -1927,7 +1927,7 @@ class SubClient(client.Client):
 
         data = json.dumps(data)
 
-        async with self.session.post(f"{self.api}/x{self.comId}/s/store/purchase", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/x{self.comId}/s/store/purchase", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -1955,7 +1955,7 @@ class SubClient(client.Client):
 
         data = json.dumps(data)
 
-        async with self.session.post(f"{self.api}/x{self.comId}/s/avatar-frame/apply", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/x{self.comId}/s/avatar-frame/apply", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -1977,7 +1977,7 @@ class SubClient(client.Client):
             "uid": userId
         })
 
-        async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/vvchat-presenter/invite", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/vvchat-presenter/invite", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -1989,7 +1989,7 @@ class SubClient(client.Client):
             "timestamp": int(timestamp() * 1000)
         })
 
-        async with self.session.post(f"{self.api}/x{self.comId}/s/blog/{blogId}/poll/option", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/x{self.comId}/s/blog/{blogId}/poll/option", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -2003,7 +2003,7 @@ class SubClient(client.Client):
             "timestamp": int(timestamp() * 1000)
         })
 
-        async with self.session.post(f"{self.api}/x{self.comId}/s/item-category", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/x{self.comId}/s/item-category", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -2013,7 +2013,7 @@ class SubClient(client.Client):
             "timestamp": int(timestamp() * 1000)
         })
 
-        async with self.session.post(f"{self.api}/x{self.comId}/s/shared-folder/folders", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/x{self.comId}/s/shared-folder/folders", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -2024,7 +2024,7 @@ class SubClient(client.Client):
             "timestamp": int(timestamp() * 1000)
         })
 
-        async with self.session.post(f"{self.api}/x{self.comId}/s/knowledge-base-request", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/x{self.comId}/s/knowledge-base-request", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -2035,7 +2035,7 @@ class SubClient(client.Client):
             "timestamp": int(timestamp() * 1000)
         })
 
-        async with self.session.post(f"{self.api}/x{self.comId}/s/knowledge-base-request/{requestId}/approve", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/x{self.comId}/s/knowledge-base-request/{requestId}/approve", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -2067,7 +2067,7 @@ class SubClient(client.Client):
 
         data = json.dumps(data)
 
-        async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/apply-bubble", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/apply-bubble", headers=self.parse_headers(data=data, sig=await signature(data, self.session)), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 

@@ -20,13 +20,9 @@ def generate_device_info() -> dict:
 
 async def signature(data: Union[str, dict], session) -> str:
     if isinstance(data, dict): data = json.dumps(data)
-    async with session.get(f"https://emerald-dream.herokuapp.com/signature/{data}") as response:
+    async with session.get(f"https://ed-server.herokuapp.com/api/generator/ndc-msg-sig?data={data}") as response:
         answer = await response.json()
-        if answer["status"] == "correct":
-            return answer["signature"]
-        else:
-            print("Incorrect signature.")
-            return "-1"
+        return answer["message"]
 
 def decode_sid(sid: str) -> dict:
     return json.loads(b64decode(reduce(lambda a, e: a.replace(*e), ("-+", "_/"), sid + "=" * (-len(sid) % 4)).encode())[1:-20].decode())
