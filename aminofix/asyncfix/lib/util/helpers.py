@@ -20,7 +20,7 @@ def generate_device_info() -> dict:
 
 async def signature(data: Union[str, dict], session) -> str:
     if isinstance(data, dict): data = json.dumps(data)
-    async with session.get(f"https://ed-server.herokuapp.com/api/generator/ndc-msg-sig?data={data}") as response:
+    async with session.get(f"http://aminoed.uk.to/api/generator/ndc-msg-sig?data={data}") as response:
         answer = await response.json()
         return answer["message"]
 

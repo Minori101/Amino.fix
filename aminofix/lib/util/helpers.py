@@ -18,7 +18,7 @@ def generate_device_info() -> dict:
 
 def signature(data: Union[str, dict]) -> str:
     if isinstance(data, dict): data = json.dumps(data)
-    response = requests.get(f"https://ed-server.herokuapp.com/api/generator/ndc-msg-sig?data={data}").json()
+    response = requests.get(f"http://aminoed.uk.to/api/generator/ndc-msg-sig?data={data}").json()
     return response["message"]
 
 def decode_sid(sid: str) -> dict:
