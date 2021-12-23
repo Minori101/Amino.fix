@@ -2,7 +2,7 @@ __title__ = 'Amino.fix'
 __author__ = 'Minori'
 __license__ = 'MIT'
 __copyright__ = 'Copyright 2021-2022 Minori'
-__version__ = '2.1.4'
+__version__ = '2.1.5'
 
 from .acm import ACM
 from .client import Client
@@ -17,4 +17,4 @@ __newest__ = loads(get("https://pypi.org/pypi/amino.fix/json").text)["info"]["ve
 
 if __version__ != __newest__:
     print(f"New version of {__title__} available: {__newest__} (Using {__version__})")
-    print("Discord link - https://discord.gg/Bf3dpBRJHj")
+    print("Visit our discord - https://discord.gg/Bf3dpBRJHj")
