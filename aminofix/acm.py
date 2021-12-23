@@ -36,7 +36,7 @@ class ACM(client.Client):
             "timestamp": int(timestamp() * 1000)
         })
 
-        response = requests.post(f"{self.api}/g/s/community", headers=self.parse_headers(data=data, sig=signature(data)), data=data)
+        response = requests.post(f"{self.api}/g/s/community", headers=self.parse_headers(data=data), data=data)
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
 
@@ -54,7 +54,7 @@ class ACM(client.Client):
         })
 
         if self.comId is None: raise exceptions.CommunityNeeded()
-        response = requests.post(f"{self.api}/g/s-x{self.comId}/community/delete-request", headers=self.parse_headers(data=data, sig=signature(data)), data=data)
+        response = requests.post(f"{self.api}/g/s-x{self.comId}/community/delete-request", headers=self.parse_headers(data=data), data=data)
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
 
@@ -77,7 +77,7 @@ class ACM(client.Client):
         })
 
         if self.comId is None: raise exceptions.CommunityNeeded()
-        response = requests.post(f"{self.api}/x{self.comId}/s/community/configuration", headers=self.parse_headers(data=data, sig=signature(data)), data=data)
+        response = requests.post(f"{self.api}/x{self.comId}/s/community/configuration", headers=self.parse_headers(data=data), data=data)
         if response.status_code != 200: return response.status_code
         else: return json.loads(response.text)
 
@@ -96,7 +96,7 @@ class ACM(client.Client):
         data = json.dumps({})
 
         if self.comId is None: raise exceptions.CommunityNeeded()
-        response = requests.post(f"{self.api}/x{self.comId}/s/user-profile/{userId}/{rank}", headers=self.parse_headers(data=data, sig=signature(data)), data=data)
+        response = requests.post(f"{self.api}/x{self.comId}/s/user-profile/{userId}/{rank}", headers=self.parse_headers(data=data), data=data)
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
 
@@ -111,7 +111,7 @@ class ACM(client.Client):
         data = json.dumps({})
 
         if self.comId is None: raise exceptions.CommunityNeeded()
-        response = requests.post(f"{self.api}/x{self.comId}/s/community/membership-request/{userId}/accept", headers=self.parse_headers(data=data, sig=signature(data)), data=data)
+        response = requests.post(f"{self.api}/x{self.comId}/s/community/membership-request/{userId}/accept", headers=self.parse_headers(data=data), data=data)
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
 
@@ -119,7 +119,7 @@ class ACM(client.Client):
         data = json.dumps({})
 
         if self.comId is None: raise exceptions.CommunityNeeded()
-        response = requests.post(f"{self.api}/x{self.comId}/s/community/membership-request/{userId}/reject", headers=self.parse_headers(data=data, sig=signature(data)), data=data)
+        response = requests.post(f"{self.api}/x{self.comId}/s/community/membership-request/{userId}/reject", headers=self.parse_headers(data=data), data=data)
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
 
@@ -152,7 +152,7 @@ class ACM(client.Client):
         })
 
         if self.comId is None: raise exceptions.CommunityNeeded()
-        response = requests.post(f"{self.api}/x{self.comId}/s/community/configuration", headers=self.parse_headers(data=data, sig=signature(data)), data=data)
+        response = requests.post(f"{self.api}/x{self.comId}/s/community/configuration", headers=self.parse_headers(data=data), data=data)
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
 
@@ -163,7 +163,7 @@ class ACM(client.Client):
         })
 
         if self.comId is None: raise exceptions.CommunityNeeded()
-        response = requests.post(f"{self.api}/x{self.comId}/s/community/guideline", headers=self.parse_headers(data=data, sig=signature(data)), data=data)
+        response = requests.post(f"{self.api}/x{self.comId}/s/community/guideline", headers=self.parse_headers(data=data), data=data)
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
 
@@ -179,7 +179,7 @@ class ACM(client.Client):
         data = json.dumps(data)
 
         if self.comId is None: raise exceptions.CommunityNeeded()
-        response = requests.post(f"{self.api}/x{self.comId}/s/community/settings", data=data, headers=self.parse_headers(data=data, sig=signature(data)))
+        response = requests.post(f"{self.api}/x{self.comId}/s/community/settings", data=data, headers=self.parse_headers(data=data))
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
 
@@ -209,7 +209,7 @@ class ACM(client.Client):
         })
 
         if self.comId is None: raise exceptions.CommunityNeeded()
-        response = requests.post(f"{self.api}/x{self.comId}/s/community/configuration", headers=self.parse_headers(data=data, sig=signature(data)), data=data)
+        response = requests.post(f"{self.api}/x{self.comId}/s/community/configuration", headers=self.parse_headers(data=data), data=data)
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
 
@@ -220,7 +220,7 @@ class ACM(client.Client):
         })
 
         if self.comId is None: raise exceptions.CommunityNeeded()
-        response = requests.post(f"{self.api}/x{self.comId}/s/influencer/{userId}", headers=self.parse_headers(data=data, sig=signature(data)), data=data)
+        response = requests.post(f"{self.api}/x{self.comId}/s/influencer/{userId}", headers=self.parse_headers(data=data), data=data)
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
         else: return response.status_code
 

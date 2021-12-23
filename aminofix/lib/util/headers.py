@@ -1,4 +1,4 @@
-from aminofix.lib.util import device
+from aminofix.lib.util import device, signature
 
 from uuid import uuid4
 
@@ -34,7 +34,9 @@ class ApisHeaders:
             "Connection": "Upgrade"
         }
 
-        if data: headers["Content-Length"] = str(len(data))
+        if data:
+            headers["Content-Length"] = str(len(data))
+            headers["NDC-MSG-SIG"] = signature(data)
         if sid: headers["NDCAUTH"] = f"sid={sid}"
         if type: headers["Content-Type"] = type
         if sig: headers["NDC-MSG-SIG"] = sig

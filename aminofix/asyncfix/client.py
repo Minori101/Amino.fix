@@ -47,11 +47,11 @@ class Client(Callbacks, SocketHandler):
     async def _close_session(self):
         if not self.session.closed: await self.session.close()
 
-    def parse_headers(self, data = None, sig = None):
+    def parse_headers(self, data = None):
         if not data:
-            return headers.ApisHeaders(data=data, deviceId=self.device_id).headers
+            return headers.ApisHeaders(deviceId=self.device_id).headers
         else:
-            return headers.ApisHeaders(deviceId=self.device_id, sig=sig).headers
+            return headers.ApisHeaders(deviceId=self.device_id, data=data).headers
 
     async def join_voice_chat(self, comId: str, chatId: str, joinType: int = 1):
         """
