@@ -10,6 +10,8 @@ import requests
 import random
 import string
 
+from aminofix import client
+
 def generate_device_info() -> dict:
 
     data = "".join(random.choices(string.ascii_uppercase + string.ascii_lowercase + "_-", k=462)).replace("--", "-")
@@ -28,8 +30,9 @@ def deviceId(data):
 
 def signature(data: Union[str, dict]) -> str:
     if isinstance(data, dict): data = json.dumps(data)
-    response = requests.get(f"http://aminoed.uk.to/api/generator/ndc-msg-sig?data={data}").json()
-    return response["message"]
+    mac = hmac.new(b'\xfb\xf9\x8e\xb3\xa0z\x90B\xeeU\x93\xb1\x0c\xe9\xf3(ji\xd4\xe2', data.encode("utf-8"), sha1)
+    digest = bytes.fromhex("32") + mac.digest()
+    return base64.b64encode(digest).decode("utf-8")
 
 def decode_sid(sid: str) -> dict:
     return json.loads(b64decode(reduce(lambda a, e: a.replace(*e), ("-+", "_/"), sid + "=" * (-len(sid) % 4)).encode())[1:-20].decode())
