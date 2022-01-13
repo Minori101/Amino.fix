@@ -78,7 +78,7 @@ class SocketHandler:
         return
 
     async def send(self, data):
-        self.headers["NDC-MSG-SIG"] = await signature(data, self.client.session)
+        self.headers["NDC-MSG-SIG"] = await signature(data)
         if self.debug:
             print(f"[socket][send] Sending Data : {data}")
 
@@ -94,7 +94,7 @@ class SocketHandler:
         }
         milliseconds = int(time.time() * 1000)
         data = f"{self.client.device_id}|{milliseconds}"
-        self.headers["NDC-MSG-SIG"] = await signature(data, self.client.session)
+        self.headers["NDC-MSG-SIG"] = await signature(data)
 
         self.socket = websocket.WebSocketApp(
             f"{self.socket_url}/?signbody={self.client.device_id}%7C{milliseconds}",

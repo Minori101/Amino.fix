@@ -50,7 +50,7 @@ class ACM(client.Client):
             "timestamp": int(timestamp() * 1000)
         })
 
-        async with self.session.post(f"{self.api}/g/s/community", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/g/s/community", headers=self.parse_headers(data=data), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -69,7 +69,7 @@ class ACM(client.Client):
 
         if self.comId is None: raise exceptions.CommunityNeeded()
 
-        async with self.session.post(f"{self.api}/g/s-x{self.comId}/community/delete-request", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/g/s-x{self.comId}/community/delete-request", headers=self.parse_headers(data=data), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -94,7 +94,7 @@ class ACM(client.Client):
 
         if self.comId is None: raise exceptions.CommunityNeeded()
 
-        async with self.session.post(f"{self.api}/x{self.comId}/s/community/configuration", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/x{self.comId}/s/community/configuration", headers=self.parse_headers(data=data), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return json.loads(await response.text())
 
@@ -168,7 +168,7 @@ class ACM(client.Client):
 
         if self.comId is None: raise exceptions.CommunityNeeded()
 
-        async with self.session.post(f"{self.api}/x{self.comId}/s/community/configuration", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/x{self.comId}/s/community/configuration", headers=self.parse_headers(data=data), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -180,7 +180,7 @@ class ACM(client.Client):
 
         if self.comId is None: raise exceptions.CommunityNeeded()
 
-        async with self.session.post(f"{self.api}/x{self.comId}/s/community/guideline", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/x{self.comId}/s/community/guideline", headers=self.parse_headers(data=data), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -197,7 +197,7 @@ class ACM(client.Client):
 
         if self.comId is None: raise exceptions.CommunityNeeded()
 
-        async with self.session.post(f"{self.api}/x{self.comId}/s/community/settings", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/x{self.comId}/s/community/settings", headers=self.parse_headers(data=data), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -228,7 +228,7 @@ class ACM(client.Client):
 
         if self.comId is None: raise exceptions.CommunityNeeded()
 
-        async with self.session.post(f"{self.api}/x{self.comId}/s/community/configuration", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/x{self.comId}/s/community/configuration", headers=self.parse_headers(data=data), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -240,7 +240,7 @@ class ACM(client.Client):
 
         if self.comId is None: raise exceptions.CommunityNeeded()
 
-        async with self.session.post(f"{self.api}/x{self.comId}/s/influencer/{userId}", headers=self.parse_headers(data=data, sig=signature(data)), data=data) as response:
+        async with self.session.post(f"{self.api}/x{self.comId}/s/influencer/{userId}", headers=self.parse_headers(data=data), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
