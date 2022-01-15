@@ -73,17 +73,17 @@ class SocketHandler:
 
         contextlib.suppress(self.socket.sock.pong(data))
 
-    def handle_message(self, data):
+    def handle_message(self, ws, data):
         self.client.handle_socket_message(data)
         return
 
-    def send(self, data):
+    async def send(self, data):
         if self.debug:
             print(f"[socket][send] Sending Data : {data}")
 
         self.socket.send(data)
 
-    def start(self):
+    async def start(self):
         if self.debug:
             print(f"[socket][start] Starting Socket")
 
