@@ -1,74 +1,67 @@
 import time
 import json
 import websocket
-import threading
+import concurrent.futures
 import contextlib
+import ssl
 
+from random import randint
 from sys import _getframe as getframe
+
 from .lib.util import objects, signature
 
 class SocketHandler:
-    def __init__(self, client, socket_trace = False, debug = False):
-        if socket_trace: websocket.enableTrace(True)
+    def __init__(self, client, socket_trace = False, debug = False, security = True):
         self.socket_url = "wss://ws1.narvii.com"
         self.client = client
         self.debug = debug
-        self.active = True
+        self.active = False
         self.headers = None
+        self.security = security
         self.socket = None
         self.socket_thread = None
         self.reconnect = True
         self.socket_stop = False
         self.socketDelay = 0
-        self.socket_trace = socket_trace
-        self.socketDelayFetch = 120  # Reconnects every 120 seconds.
+        self.minReconnect = 480
+        self.maxReconnect = 540
 
-    def run_socket(self):
-        threading.Thread(target=self.reconnect_handler).start()
-        websocket.enableTrace(self.socket_trace)
+        self.background = concurrent.futures.ThreadPoolExecutor(max_workers=50)
+        self.socket_handler = self.background.submit(self.reconnect_handler)
+
+        websocket.enableTrace(socket_trace)
 
     def reconnect_handler(self):
         # Made by enchart#3410 thx
         # Fixed by The_Phoenix#3967
-        # Fixed by enchart again lmao
-        # Fixed by Phoenix one more time lol
         while True:
-            if self.debug:
-                print(f"[socket][reconnect_handler] socketDelay : {self.socketDelay}")
+            temp = randint(self.minReconnect, self.maxReconnect)
+            time.sleep(temp)
 
-            if self.socketDelay >= self.socketDelayFetch and self.active:
-                if self.debug:
-                    print(f"[socket][reconnect_handler] socketDelay >= {self.socketDelayFetch}, Reconnecting Socket")
-
+            if self.active:
+                if self.debug is True:
+                    print(f"[socket][reconnect_handler] Random refresh time = {temp} seconds, Reconnecting Socket")
                 self.close()
-                self.start()
-                self.socketDelay = 0
+                self.run_amino_socket()
 
-            self.socketDelay += 5
-
-            if not self.reconnect:
-                if self.debug:
-                    print(f"[socket][reconnect_handler] reconnect is False, breaking")
-                break
-
-            time.sleep(5)
-
-    def on_open(self, ws):
-        if self.debug:
+    def on_open(self):
+        if self.debug is True:
             print("[socket][on_open] Socket Opened")
 
-    def on_close(self, ws):
-        if self.debug:
+    def on_close(self):
+        if self.debug is True:
             print("[socket][on_close] Socket Closed")
 
-        self.active = False
+        #self.active = False
 
         if self.reconnect:
-            if self.debug:
+            if self.debug is True:
                 print("[socket][on_close] reconnect is True, Opening Socket")
 
-    def on_ping(self, ws, data):
-        if self.debug:
+            self.run_amino_socket()
+
+    def on_ping(self, data):
+        if self.debug is True:
             print("[socket][on_ping] Socket Pinged")
 
         contextlib.suppress(self.socket.sock.pong(data))
@@ -78,25 +71,28 @@ class SocketHandler:
         return
 
     def send(self, data):
-        if self.debug:
+        if self.debug is True:
             print(f"[socket][send] Sending Data : {data}")
 
         self.socket.send(data)
 
-    def start(self):
-        if self.debug:
+    def run_amino_socket(self):
+        if self.debug is True:
             print(f"[socket][start] Starting Socket")
+
+        if self.client.sid is None:
+            return
+
+        final = f"{self.client.device_id}|{int(time.time() * 1000)}"
 
         self.headers = {
             "NDCDEVICEID": self.client.device_id,
-            "NDCAUTH": f"sid={self.client.sid}"
+            "NDCAUTH": f"sid={self.client.sid}",
+            "NDC-MSG-SIG": signature(final)
         }
-        milliseconds = int(time.time() * 1000)
-        data = f"{self.client.device_id}|{milliseconds}"
-        self.headers["NDC-MSG-SIG"] = signature(data)
 
         self.socket = websocket.WebSocketApp(
-            f"{self.socket_url}/?signbody={self.client.device_id}%7C{milliseconds}",
+            f"{self.socket_url}/?signbody={final.replace('|', '%7C')}",
             on_message = self.handle_message,
             on_open = self.on_open,
             on_close = self.on_close,
@@ -104,15 +100,29 @@ class SocketHandler:
             header = self.headers
         )
 
-        threading.Thread(target = self.socket.run_forever, kwargs = {"ping_interval": 60}).start()
-        self.reconnect = True
+        socket_settings = {
+            "ping_interval": 60
+        }
+
+        if not self.security:
+            socket_settings.update({
+                'sslopt': {
+                    "cert_reqs": ssl.CERT_NONE,
+                    "check_hostname": False
+                }
+            })
+
+        self.socket_thread = self.background.submit(self.socket.run_forever)
+
+        #self.socket_thread = threading.Thread(target = self.socket.run_forever, kwargs = socket_settings)
+        #self.socket_thread.start()
         self.active = True
 
-        if self.debug:
+        if self.debug is True:
             print(f"[socket][start] Socket Started")
 
     def close(self):
-        if self.debug:
+        if self.debug is True:
             print(f"[socket][close] Closing Socket")
 
         self.reconnect = False
@@ -121,7 +131,7 @@ class SocketHandler:
         try:
             self.socket.close()
         except Exception as closeError:
-            if self.debug:
+            if self.debug is True:
                 print(f"[socket][close] Error while closing Socket : {closeError}")
 
         return
@@ -144,8 +154,6 @@ class Callbacks:
             "1:0": self.on_strike_message,
             "2:110": self.on_voice_message,
             "3:113": self.on_sticker_message,
-            "50:0": self.TYPE_USER_SHARE_EXURL,
-            "51:0": self.TYPE_USER_SHARE_USER,
             "52:0": self.on_voice_chat_not_answered,
             "53:0": self.on_voice_chat_not_cancelled,
             "54:0": self.on_voice_chat_not_declined,
@@ -235,8 +243,6 @@ class Callbacks:
     def on_strike_message(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
     def on_voice_message(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
     def on_sticker_message(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    def TYPE_USER_SHARE_EXURL(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    def TYPE_USER_SHARE_USER(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
     def on_voice_chat_not_answered(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
     def on_voice_chat_not_cancelled(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
     def on_voice_chat_not_declined(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)

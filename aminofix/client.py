@@ -175,8 +175,7 @@ class Client(Callbacks, SocketHandler):
         self.account: objects.UserProfile = self.get_user_info(uId)
         self.profile: objects.UserProfile = self.get_user_info(uId)
         headers.sid = self.sid
-        self.start()
-        self.run_socket()
+        self.run_amino_socket()
 
     def login(self, email: str, password: str):
         """
@@ -202,7 +201,7 @@ class Client(Callbacks, SocketHandler):
         })
 
         response = requests.post(f"{self.api}/g/s/auth/login", headers=self.parse_headers(data=data), data=data, proxies=self.proxies, verify=self.certificatePath)
-        self.run_socket()
+        self.run_amino_socket()
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
 
         else:
@@ -213,7 +212,7 @@ class Client(Callbacks, SocketHandler):
             self.account: objects.UserProfile = objects.UserProfile(self.json["account"]).UserProfile
             self.profile: objects.UserProfile = objects.UserProfile(self.json["userProfile"]).UserProfile
             headers.sid = self.sid
-            self.start()
+            self.run_amino_socket()
             return response.status_code
 
     def register(self, nickname: str, email: str, password: str, verificationCode: str, deviceId: str = device.device_id):

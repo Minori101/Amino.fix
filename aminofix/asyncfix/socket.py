@@ -3,7 +3,6 @@ import json
 import asyncio
 import threading
 import websockets
-import requests
 
 from sys import _getframe as getframe
 
@@ -29,16 +28,15 @@ class SocketHandler:
         await self.socket.send(data)
 
     async def run(self):
+        final = f"{self.client.device_id}|{int(time.time() * 1000)}"
 
         self.headers = {
             "NDCDEVICEID": self.client.device_id,
-            "NDCAUTH": f"sid={self.client.sid}"
+            "NDCAUTH": f"sid={self.client.sid}",
+            "NDC-MSG-SIG": signature(final)
         }
-        milliseconds = int(time.time() * 1000)
-        data = f"{self.client.device_id}|{milliseconds}"
-        self.headers["NDC-MSG-SIG"] = signature(data)
 
-        async with websockets.connect(f"{self.socket_url}/?signbody={self.client.device_id}%7C{milliseconds}", extra_headers=self.headers) as websocket:
+        async with websockets.connect(f"{self.socket_url}/?signbody={final.replace('|', '%7C')}", extra_headers=self.headers) as websocket:
             self.socket = websocket
             self.active = True
 

@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 requirements = [
     "requests", 
     "typing",
-    "websocket-client==0.58.0", 
+    "websocket-client==0.57.0", 
     "setuptools", 
     "json_minify", 
     "six"
@@ -16,7 +16,7 @@ setup(
     name="amino.fix",
     license='MIT',
     author="Minori",
-    version="2.2.0",
+    version="2.2.1",
     author_email="",
     description="Amino 1.2.17 fix lib. Discord - https://discord.gg/Bf3dpBRJHj",
     url="https://github.com/Minori100/Amino.fix",

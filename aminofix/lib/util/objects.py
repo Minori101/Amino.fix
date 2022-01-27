@@ -1599,7 +1599,19 @@ class FromCode:
         self.objectId = None
         self.shortUrl = None
         self.fullUrl = None
+        self.comIdPost = None
         self.comId = None
+        self.welcomeMessage = None
+        self.comContent = None
+        self.comTagLine = None
+        self.comName = None
+        self.comIcon = None
+        self.comAgentUid = None
+        self.comKeywords = None
+        self.comThemePackUrl = None
+        self.comThemeColor = None
+        self.comMembers = None
+        self.comLanguage = None
 
     @property
     def FromCode(self):
@@ -1619,7 +1631,31 @@ class FromCode:
         except (KeyError, TypeError): pass
         try: self.fullUrl = self.json["extensions"]["linkInfo"]["shareURLFullPath"]
         except (KeyError, TypeError): pass
-        try: self.comId = self.json["extensions"]["linkInfo"]["ndcId"]
+        try: self.comIdPost = self.json["extensions"]["linkInfo"]["ndcId"]
+        except (KeyError, TypeError): pass
+        try: self.comId = self.json["extensions"]["community"]["ndcId"]
+        except (KeyError, TypeError): pass
+        try: self.welcomeMessage = self.json["extensions"]["community"]["configuration"]["general"]["welcomeMessage"]["text"]
+        except (KeyError, TypeError): pass
+        try: self.comContent = self.json["extensions"]["community"]["content"]
+        except (KeyError, TypeError): pass
+        try: self.comTagLine = self.json["extensions"]["community"]["tagline"]
+        except (KeyError, TypeError): pass
+        try: self.comName = self.json["extensions"]["community"]["name"]
+        except (KeyError, TypeError): pass 
+        try: self.comIcon = self.json["extensions"]["community"]["icon"]
+        except (KeyError, TypeError): pass
+        try: self.comAgentUid = self.json["extensions"]["community"]["agent"]["uid"]
+        except (KeyError, TypeError): pass
+        try: self.comKeywords = self.json["extensions"]["community"]["keywords"]
+        except (KeyError, TypeError): pass
+        try: self.comThemePackUrl = self.json["extensions"]["community"]["themePack"]["themePackUrl"]
+        except (KeyError, TypeError): pass
+        try: self.comThemeColor = self.json["extensions"]["community"]["themePack"]["themeColor"]
+        except (KeyError, TypeError): pass 
+        try: self.comMembers = self.json["extensions"]["community"]["membersCount"]
+        except (KeyError, TypeError): pass
+        try: self.comLanguage = self.json["extensions"]["community"]["primaryLanguage"]
         except (KeyError, TypeError): pass
 
         return self
