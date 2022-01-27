@@ -5,7 +5,7 @@ from time import time as timestamp
 from typing import BinaryIO
 
 from . import client
-from .lib.util import exceptions, headers, device, objects, signature
+from .lib.util import exceptions, headers, objects
 
 class ACM(client.Client):
     def __init__(self, profile: objects.UserProfile, comId: str = None):
@@ -23,12 +23,6 @@ class ACM(client.Client):
 
     async def _close_session(self):
         if not self.session.closed: await self.session.close()
-
-    def parse_headers(self, data = None):
-        if not data:
-            return headers.Headers(data=data, deviceId=self.device_id).headers
-        else:
-            return headers.Headers(deviceId=self.device_id).headers
 
     # TODO : Finish the imaging sizing, might not work for every picture...
     async def create_community(self, name: str, tagline: str, icon: BinaryIO, themeColor: str, joinType: int = 0, primaryLanguage: str = "en"):
@@ -127,7 +121,7 @@ class ACM(client.Client):
     async def accept_join_request(self, userId: str):
         if self.comId is None: raise exceptions.CommunityNeeded()
 
-        async with self.session.post(f"{self.api}/x{self.comId}/s/community/membership-request/{userId}/accept", headers=self.parse_headers()) as response:
+        async with self.session.post(f"{self.api}/x{self.comId}/s/community/membership-request/{userId}/approve", headers=self.parse_headers()) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
@@ -246,7 +240,6 @@ class ACM(client.Client):
 
     async def remove_influencer(self, userId: str):
         if self.comId is None: raise exceptions.CommunityNeeded()
-
         async with self.session.delete(f"{self.api}/x{self.comId}/s/influencer/{userId}", headers=self.parse_headers()) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
