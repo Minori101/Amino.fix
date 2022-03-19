@@ -925,12 +925,12 @@ class SubClient(client.Client):
 
         if viewOnly is not None:
             if viewOnly:
-                async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/view-only/enable", headers=self.parse_headers(data=data), data=data) as response:
+                async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/view-only/enable", headers=self.parse_headers()) as response:
                     if response.status != 200: res.append(exceptions.CheckException(json.loads(await response.text())))
                     else: res.append(response.status)
 
             if not viewOnly:
-                async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/view-only/disable", headers=self.parse_headers(data=data), data=data) as response:
+                async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/view-only/disable", headers=self.parse_headers()) as response:
                     if response.status != 200: res.append(exceptions.CheckException(json.loads(await response.text())))
                     else: res.append(response.status)
 

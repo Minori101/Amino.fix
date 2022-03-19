@@ -8,7 +8,7 @@ import ssl
 from random import randint
 from sys import _getframe as getframe
 
-from .lib.util import objects, signature
+from .lib.util import objects, helpers
 
 class SocketHandler:
     def __init__(self, client, socket_trace = False, debug = False, security = True):
@@ -44,11 +44,11 @@ class SocketHandler:
                 self.close()
                 self.run_amino_socket()
 
-    def on_open(self):
+    def on_open(self, **kwargs):
         if self.debug is True:
             print("[socket][on_open] Socket Opened")
 
-    def on_close(self):
+    def on_close(self, **kwargs):
         if self.debug is True:
             print("[socket][on_close] Socket Closed")
 
@@ -58,7 +58,7 @@ class SocketHandler:
             if self.debug is True:
                 print("[socket][on_close] reconnect is True, Opening Socket")
 
-            self.run_amino_socket()
+            #self.run_amino_socket()
 
     def on_ping(self, data):
         if self.debug is True:
@@ -66,7 +66,7 @@ class SocketHandler:
 
         contextlib.suppress(self.socket.sock.pong(data))
 
-    def handle_message(self, data):
+    def handle_message(self, ws, data):
         self.client.handle_socket_message(data)
         return
 
@@ -88,7 +88,7 @@ class SocketHandler:
         self.headers = {
             "NDCDEVICEID": self.client.device_id,
             "NDCAUTH": f"sid={self.client.sid}",
-            "NDC-MSG-SIG": signature(final)
+            "NDC-MSG-SIG": helpers.signature(final)
         }
 
         self.socket = websocket.WebSocketApp(

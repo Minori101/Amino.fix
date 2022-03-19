@@ -6,7 +6,7 @@ import websockets
 
 from sys import _getframe as getframe
 
-from .lib.util import objects, signature
+from .lib.util import objects, helpers
 
 class SocketHandler:
     def __init__(self, client, debug = False):
@@ -33,7 +33,7 @@ class SocketHandler:
         self.headers = {
             "NDCDEVICEID": self.client.device_id,
             "NDCAUTH": f"sid={self.client.sid}",
-            "NDC-MSG-SIG": signature(final)
+            "NDC-MSG-SIG": helpers.signature(final)
         }
 
         async with websockets.connect(f"{self.socket_url}/?signbody={final.replace('|', '%7C')}", extra_headers=self.headers) as websocket:
