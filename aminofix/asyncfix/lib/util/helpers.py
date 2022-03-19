@@ -1,16 +1,18 @@
 import base64
 import hmac
 import json
-import aiohttp
-import asyncio
 
 from hashlib import sha1
 from functools import reduce
 from base64 import b64decode
 from typing import Union
 import requests
+import random
+import string
 
-async def generate_device_info() -> dict:
+from aminofix import client
+
+def generate_device_info() -> dict:
 
     data = "".join(random.choices(string.ascii_uppercase + string.ascii_lowercase + "_-", k=462)).replace("--", "-")
     device = deviceId(data)
@@ -21,15 +23,15 @@ async def generate_device_info() -> dict:
     }
 
 def deviceId(data: str) -> str:
-    response = requests.get(f"https://ed-generators.herokuapp.com/device?data={data}")
+    response = client.session.get(f"https://ed-generators.herokuapp.com/device?data={data}")
     return response.text
 
 def signature(data: Union[str, dict]) -> str:
-    response = requests.get(f"https://ed-generators.herokuapp.com/signature?data={data}")
+    response = client.session.get(f"https://ed-generators.herokuapp.com/signature?data={data}")
     return response.text
 
 def update_deviceId(deviceId: str) -> str:
-    response = requests.get(f"https://ed-generators.herokuapp.com/update-device?device={deviceId}")
+    response = client.session.get(f"https://ed-generators.herokuapp.com/update-device?device={deviceId}")
     return response.text
 
 def decode_sid(sid: str) -> dict:
