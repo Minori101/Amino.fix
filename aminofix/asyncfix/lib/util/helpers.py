@@ -28,6 +28,10 @@ def signature(data: Union[str, dict]) -> str:
     response = requests.get(f"https://ed-generators.herokuapp.com/signature?data={data}")
     return response.text
 
+def update_deviceId(deviceId: str) -> str:
+    response = requests.get(f"https://ed-generators.herokuapp.com/update-device?device={deviceId}")
+    return response.text
+
 def decode_sid(sid: str) -> dict:
     return json.loads(b64decode(reduce(lambda a, e: a.replace(*e), ("-+", "_/"), sid + "=" * (-len(sid) % 4)).encode())[1:-20].decode())
 
