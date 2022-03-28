@@ -15,6 +15,8 @@ from .socket import Callbacks, SocketHandler
 
 device = device.DeviceGenerator()
 
+#@dorthegra/IDörthe#8835 thanks for support!
+
 class Client(Callbacks, SocketHandler):
     def __init__(self, deviceId: str = None, socketDebugging = False):
         self.api = "https://service.narvii.com/api/v1"
@@ -2162,3 +2164,20 @@ class Client(Callbacks, SocketHandler):
         async with self.session.post(f"{self.api}/g/s/store/purchase", headers=self.parse_headers(data=data), data=data) as response:
             if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
+
+    async def get_public_communities(self, language: str = "en", size: int = 25):
+        """
+        Get public communites
+
+        **Parameters**
+            - **language** - Set up language
+
+        **Returns**
+            - **Success** : :meth:`Community List <amino.lib.util.objects.CommunityList>`
+
+            - **Fail** : :meth:`Exceptions <aminofix.lib.util.exceptions>`
+        """
+
+        async with self.session.get(f"{self.api}/g/s/topic/0/feed/community?language={language}&type=web-explore&categoryKey=recommendation&size={size}&pagingType=t", headers=self.parse_headers()) as response:
+            if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
+            else: return objects.CommunityList(json.loads(await response.text())["communityList"]).CommunityList

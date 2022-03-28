@@ -17,6 +17,7 @@ from .socket import Callbacks, SocketHandler
 
 device = device.DeviceGenerator()
 
+#@dorthegra/IDörthe#8835 thanks for support!
 
 class Client(Callbacks, SocketHandler):
     def __init__(self, deviceId: str = None, proxies: dict = None, certificatePath = None, socket_trace = False, socketDebugging = False):
@@ -2137,3 +2138,20 @@ class Client(Callbacks, SocketHandler):
         response = self.session.post(f"{self.api}/g/s/store/purchase", headers=self.parse_headers(data=data), data=data)
         if response.status_code != 200: return exceptions.CheckException(json.loads(response.text()))
         else: return response.status_code
+
+    def get_public_communities(self, language: str = "en", size: int = 25):
+        """
+        Get public communites
+
+        **Parameters**
+            - **language** - Set up language
+
+        **Returns**
+            - **Success** : :meth:`Community List <amino.lib.util.objects.CommunityList>`
+
+            - **Fail** : :meth:`Exceptions <aminofix.lib.util.exceptions>`
+        """
+
+        response = requests.get(f"{self.api}/g/s/topic/0/feed/community?language={language}&type=web-explore&categoryKey=recommendation&size={size}&pagingType=t", headers=self.headers)
+        if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
+        else: return objects.CommunityList(json.loads(response.text)["communityList"]).CommunityList

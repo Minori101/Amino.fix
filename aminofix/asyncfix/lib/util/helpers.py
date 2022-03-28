@@ -28,8 +28,9 @@ def deviceId(data: str) -> str:
     response = session.get(f"https://ed-generators.herokuapp.com/device?data={data}")
     return response.text
 
+#@dorthegra/IDörthe#8835 the server was bought with his money :p you can write to him to thank you 
 def signature(data: Union[str, dict]) -> str:
-    response = session.post("https://ed-generators.herokuapp.com/signature", data=data)
+    response = session.post("http://134.0.115.139/signature", json=data)
     return response.text
 
 def update_deviceId(deviceId: str) -> str:
