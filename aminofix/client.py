@@ -217,6 +217,44 @@ class Client(Callbacks, SocketHandler):
             self.run_amino_socket()
             return response.status_code
 
+    def login_phone(self, phoneNumber: str, password: str):
+        """
+        Login into an account.
+
+        **Parameters**
+            - **phoneNumber** : Phone number of the account.
+            - **password** : Password of the account.
+
+        **Returns**
+            - **Success** : 200 (int)
+
+            - **Fail** : :meth:`Exceptions <aminofix.lib.util.exceptions>`
+        """
+        data = json.dumps({
+            "phoneNumber": phoneNumber,
+            "v": 2,
+            "secret": f"0 {password}",
+            "deviceID": self.device_id,
+            "clientType": 100,
+            "action": "normal",
+            "timestamp": int(timestamp() * 1000)
+        })
+
+        response = self.session.post(f"{self.api}/g/s/auth/login", headers=self.parse_headers(data=data), data=data, proxies=self.proxies, verify=self.certificatePath)
+        self.run_amino_socket()
+        if response.status_code != 200: return exceptions.CheckException(json.loads(response.text))
+
+        else:
+            self.authenticated = True
+            self.json = json.loads(response.text)
+            self.sid = self.json["sid"]
+            self.userId = self.json["account"]["uid"]
+            self.account: objects.UserProfile = objects.UserProfile(self.json["account"]).UserProfile
+            self.profile: objects.UserProfile = objects.UserProfile(self.json["userProfile"]).UserProfile
+            headers.sid = self.sid
+            self.run_amino_socket()
+            return response.status_code
+
     def register(self, nickname: str, email: str, password: str, verificationCode: str, deviceId: str = device.device_id):
         """
         Register an account.

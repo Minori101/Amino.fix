@@ -26,7 +26,7 @@ def generate_device_info() -> dict:
 
 def deviceId(data: str) -> str:
     response = session.get(f"https://ed-generators.herokuapp.com/device?data={data}")
-    return response.text
+    return response.text.upper()
 
 #@dorthegra/IDörthe#8835 the server was bought with his money :p you can write to him to thank you 
 def signature(data: Union[str, dict]) -> str:

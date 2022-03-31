@@ -11,7 +11,7 @@ class ApisHeaders:
         headers = {
             "NDCDEVICEID": dev.device_id,
             "Accept-Language": "en-US",
-            "Content-Type": "text/javascript; charset=UTF-8",
+            "Content-Type": "application/json; charset=utf-8",
             "User-Agent": dev.user_agent,
             "Host": "service.narvii.com",
             "Accept-Encoding": "gzip",
