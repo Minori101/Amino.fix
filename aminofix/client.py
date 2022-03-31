@@ -27,7 +27,8 @@ class Client(Callbacks, SocketHandler):
         self.user_agent = device.user_agent
         self.session = requests.Session()
 
-        if deviceId is not None: self.device_id = deviceId
+        self.device_id = None
+        if deviceId: self.device_id = deviceId
         else: self.device_id = device.device_id
 
         SocketHandler.__init__(self, self, socket_trace=socket_trace, debug=socketDebugging)

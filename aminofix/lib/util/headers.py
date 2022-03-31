@@ -6,7 +6,10 @@ sid = None
 
 class ApisHeaders:
     def __init__(self, data = None, type = None, deviceId: str = None, sig: str = None):
-        dev = device.DeviceGenerator(deviceId=deviceId if deviceId else None)
+        if deviceId:
+            dev = device.DeviceGenerator(deviceId=deviceId)
+        else:
+            dev = device.DeviceGenerator()
 
         headers = {
             "NDCDEVICEID": dev.device_id,
@@ -24,7 +27,7 @@ class ApisHeaders:
         if sid: headers["NDCAUTH"] = f"sid={sid}"
         if type: headers["Content-Type"] = type
         if sig: headers["NDC-MSG-SIG"] = sig
-
+        print(headers)
         self.headers = headers
 
 class Tapjoy:

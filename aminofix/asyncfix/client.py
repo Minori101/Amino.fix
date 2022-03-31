@@ -23,7 +23,7 @@ class Client(Callbacks, SocketHandler):
         self.authenticated = False
         self.configured = False
         self.user_agent = device.user_agent
-        if deviceId is not None: self.device_id = deviceId
+        if deviceId: self.device_id = deviceId
         else: self.device_id = device.device_id
 
         SocketHandler.__init__(self, self, debug=socketDebugging)
@@ -202,6 +202,42 @@ class Client(Callbacks, SocketHandler):
         """
         data = json.dumps({
             "email": email,
+            "v": 2,
+            "secret": f"0 {password}",
+            "deviceID": self.device_id,
+            "clientType": 100,
+            "action": "normal",
+            "timestamp": int(timestamp() * 1000)
+        })
+
+        async with self.session.post(f"{self.api}/g/s/auth/login", headers=self.parse_headers(data=data), data=data) as response:
+            if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
+            else:
+                self.authenticated = True
+                self.json = json.loads(await response.text())
+                self.sid = self.json["sid"]
+                self.userId = self.json["account"]["uid"]
+                self.account: objects.UserProfile = objects.UserProfile(self.json["account"]).UserProfile
+                self.profile: objects.UserProfile = objects.UserProfile(self.json["userProfile"]).UserProfile
+                headers.sid = self.sid
+                await self.startup()
+                return response.status
+
+    async def login_phone(self, phoneNumber: str, password: str):
+        """
+        Login into an account.
+
+        **Parameters**
+            - **phoneNumber** : Phone number of the account.
+            - **password** : Password of the account.
+
+        **Returns**
+            - **Success** : 200 (int)
+
+            - **Fail** : :meth:`Exceptions <aminofixasync.lib.util.exceptions>`
+        """
+        data = json.dumps({
+            "phoneNumber": email,
             "v": 2,
             "secret": f"0 {password}",
             "deviceID": self.device_id,
