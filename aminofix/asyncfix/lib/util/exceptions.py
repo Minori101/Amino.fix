@@ -241,15 +241,6 @@ class ReachedTitleLength(Exception):
     def __init__(*args, **kwargs):
         Exception.__init__(*args, **kwargs)
 
-class EmailFlaggedAsSpam(Exception):
-    """
-    - **API Code** : 241
-    - **API Message** : This email provider has been flagged for use in spamming.
-    - **API String** : ``Unknown String``
-    """
-    def __init__(*args, **kwargs):
-        Exception.__init__(*args, **kwargs)
-
 class AccountDeleted(Exception):
     """
     - **API Code** : 246
@@ -434,15 +425,6 @@ class CommunityDeleted(Exception):
     """
     - **API Code** : 833
     - **API Message** : This Community has been deleted.
-    - **API String** : ``Unknown String``
-    """
-    def __init__(*args, **kwargs):
-        Exception.__init__(*args, **kwargs)
-
-class ReachedMaxCategories(Exception):
-    """
-    - **API Code** : 1002
-    - **API Message** : Sorry, you can create up to 100 categories.
     - **API String** : ``Unknown String``
     """
     def __init__(*args, **kwargs):
@@ -848,7 +830,10 @@ class LibraryUpdateAvailable(Exception):
 
 
 def CheckException(data):
-    api_code = data["api:statuscode"]
+    try:
+        api_code = data["api:statuscode"]
+    except:
+        raise Exception(data)
 
     if api_code == 100: raise UnsupportedService(data)
     elif api_code == 102: raise FileTooLarge(data)
@@ -861,7 +846,6 @@ def CheckException(data):
     elif api_code == 113: raise MessageNeeded(data)
     elif api_code == 200: raise InvalidAccountOrPassword(data)
     elif api_code == 201: raise AccountDisabled(data)
-    elif api_code == 210: raise AccountDisabled(data)
     elif api_code == 213: raise InvalidEmail(data)
     elif api_code == 214: raise InvalidPassword(data)
     elif api_code == 215: raise EmailAlreadyTaken(data) and UnsupportedEmail(data)
@@ -876,7 +860,6 @@ def CheckException(data):
     elif api_code == 238: raise ActivateAccount(data)
     elif api_code == 239: raise CantLeaveCommunity(data)
     elif api_code == 240: raise ReachedTitleLength(data)
-    elif api_code == 241: raise EmailFlaggedAsSpam(data)
     elif api_code == 246: raise AccountDeleted(data)
     elif api_code == 251: raise API_ERR_EMAIL_NO_PASSWORD(data)
     elif api_code == 257: raise API_ERR_COMMUNITY_USER_CREATED_COMMUNITIES_VERIFY(data)
@@ -898,7 +881,6 @@ def CheckException(data):
     elif api_code == 806: raise CommunityCreateLimitReached(data)
     elif api_code == 814: raise CommunityDisabled(data)
     elif api_code == 833: raise CommunityDeleted(data)
-    elif api_code == 1002: raise ReachedMaxCategories(data)
     elif api_code == 1501: raise DuplicatePollOption(data)
     elif api_code == 1507: raise ReachedMaxPollOptions(data)
     elif api_code == 1602: raise TooManyChats(data)
@@ -925,8 +907,7 @@ def CheckException(data):
     elif api_code == 3905: raise NotOwnerOfChatBubble(data)
     elif api_code == 4300: raise NotEnoughCoins(data)
     elif api_code == 4400: raise AlreadyPlayedLottery(data)
-    elif api_code == 4500: raise CannotSendCoins(data)
-    elif api_code == 4501: raise CannotSendCoins(data)
+    elif api_code == 4500 or api_code == 4501: raise CannotSendCoins(data)
     elif api_code == 6001: raise AminoIDAlreadyChanged(data)
     elif api_code == 6002: raise InvalidAminoID(data)
     elif api_code == 9901: raise InvalidName(data)

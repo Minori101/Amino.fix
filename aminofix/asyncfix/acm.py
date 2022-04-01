@@ -45,7 +45,9 @@ class ACM(client.Client):
         })
 
         async with self.session.post(f"{self.api}/g/s/community", headers=self.parse_headers(data=data), data=data) as response:
-            if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: 
+                    if response.status == 403: return exceptions.CheckException(await response.text()) 
+                    else: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
     async def delete_community(self, email: str, password: str, verificationCode: str):
@@ -64,19 +66,25 @@ class ACM(client.Client):
         if self.comId is None: raise exceptions.CommunityNeeded()
 
         async with self.session.post(f"{self.api}/g/s-x{self.comId}/community/delete-request", headers=self.parse_headers(data=data), data=data) as response:
-            if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: 
+                    if response.status == 403: return exceptions.CheckException(await response.text()) 
+                    else: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
     async def list_communities(self, start: int = 0, size: int = 25):
         async with self.session.get(f"{self.api}/g/s/community/managed?start={start}&size={size}", headers=self.parse_headers()) as response:
-            if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: 
+                    if response.status == 403: return exceptions.CheckException(await response.text()) 
+                    else: return exceptions.CheckException(json.loads(await response.text()))
             else: return objects.CommunityList(json.loads(await response.text())["communityList"]).CommunityList
 
     async def get_categories(self, start: int = 0, size: int = 25):
         if self.comId is None: raise exceptions.CommunityNeeded()
 
         async with self.session.get(f"{self.api}/x{self.comId}/s/blog-category?start={start}&size={size}", headers=self.parse_headers()) as response:
-            if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: 
+                    if response.status == 403: return exceptions.CheckException(await response.text()) 
+                    else: return exceptions.CheckException(json.loads(await response.text()))
             else: return json.loads(await response.text())
 
     async def change_sidepanel_color(self, color: str):
@@ -89,14 +97,18 @@ class ACM(client.Client):
         if self.comId is None: raise exceptions.CommunityNeeded()
 
         async with self.session.post(f"{self.api}/x{self.comId}/s/community/configuration", headers=self.parse_headers(data=data), data=data) as response:
-            if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: 
+                    if response.status == 403: return exceptions.CheckException(await response.text()) 
+                    else: return exceptions.CheckException(json.loads(await response.text()))
             else: return json.loads(await response.text())
 
     async def upload_themepack_raw(self, file: BinaryIO):
         if self.comId is None: raise exceptions.CommunityNeeded()
 
         async with self.session.post(f"{self.api}/x{self.comId}/s/media/upload/target/community-theme-pack", headers=headers.Headers(data=file.read()).headers, data=file.read()) as response:
-            if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: 
+                    if response.status == 403: return exceptions.CheckException(await response.text()) 
+                    else: return exceptions.CheckException(json.loads(await response.text()))
             else: return json.loads(await response.text())
 
     async def promote(self, userId: str, rank: str):
@@ -108,35 +120,45 @@ class ACM(client.Client):
         if self.comId is None: raise exceptions.CommunityNeeded()
 
         async with self.session.post(f"{self.api}/x{self.comId}/s/user-profile/{userId}/{rank}", headers=self.parse_headers()) as response:
-            if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: 
+                    if response.status == 403: return exceptions.CheckException(await response.text()) 
+                    else: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
     async def get_join_requests(self, start: int = 0, size: int = 25):
         if self.comId is None: raise exceptions.CommunityNeeded()
 
         async with self.session.get(f"{self.api}/x{self.comId}/s/community/membership-request?status=pending&start={start}&size={size}", headers=self.parse_headers()) as response:
-            if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: 
+                    if response.status == 403: return exceptions.CheckException(await response.text()) 
+                    else: return exceptions.CheckException(json.loads(await response.text()))
             else: return objects.JoinRequest(json.loads(await response.text())).JoinRequest
 
     async def accept_join_request(self, userId: str):
         if self.comId is None: raise exceptions.CommunityNeeded()
 
         async with self.session.post(f"{self.api}/x{self.comId}/s/community/membership-request/{userId}/approve", headers=self.parse_headers()) as response:
-            if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: 
+                    if response.status == 403: return exceptions.CheckException(await response.text()) 
+                    else: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
     async def reject_join_request(self, userId: str):
         if self.comId is None: raise exceptions.CommunityNeeded()
 
         async with self.session.post(f"{self.api}/x{self.comId}/s/community/membership-request/{userId}/reject", headers=self.parse_headers()) as response:
-            if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: 
+                    if response.status == 403: return exceptions.CheckException(await response.text()) 
+                    else: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
     async def get_community_stats(self):
         if self.comId is None: raise exceptions.CommunityNeeded()
 
         async with self.session.get(f"{self.api}/x{self.comId}/s/community/stats", headers=self.parse_headers()) as response:
-            if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: 
+                    if response.status == 403: return exceptions.CheckException(await response.text()) 
+                    else: return exceptions.CheckException(json.loads(await response.text()))
             else: return objects.CommunityStats(json.loads(await response.text())["communityStats"]).CommunityStats
 
     async def get_community_user_stats(self, type: str, start: int = 0, size: int = 25):
@@ -147,7 +169,9 @@ class ACM(client.Client):
         else: raise exceptions.WrongType(type)
 
         async with self.session.get(f"{self.api}/x{self.comId}/s/community/stats/moderation?type={target}&start={start}&size={size}", headers=self.parse_headers()) as response:
-            if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: 
+                    if response.status == 403: return exceptions.CheckException(await response.text()) 
+                    else: return exceptions.CheckException(json.loads(await response.text()))
             else: return objects.UserProfileList(json.loads(await response.text())["userProfileList"]).UserProfileList
 
     async def change_welcome_message(self, message: str, isEnabled: bool = True):
@@ -163,7 +187,9 @@ class ACM(client.Client):
         if self.comId is None: raise exceptions.CommunityNeeded()
 
         async with self.session.post(f"{self.api}/x{self.comId}/s/community/configuration", headers=self.parse_headers(data=data), data=data) as response:
-            if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: 
+                    if response.status == 403: return exceptions.CheckException(await response.text()) 
+                    else: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
     async def change_guidelines(self, message: str):
@@ -175,7 +201,9 @@ class ACM(client.Client):
         if self.comId is None: raise exceptions.CommunityNeeded()
 
         async with self.session.post(f"{self.api}/x{self.comId}/s/community/guideline", headers=self.parse_headers(data=data), data=data) as response:
-            if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: 
+                    if response.status == 403: return exceptions.CheckException(await response.text()) 
+                    else: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
     async def edit_community(self, name: str = None, description: str = None, aminoId: str = None, primaryLanguage: str = None, themePackUrl: str = None):
@@ -192,7 +220,9 @@ class ACM(client.Client):
         if self.comId is None: raise exceptions.CommunityNeeded()
 
         async with self.session.post(f"{self.api}/x{self.comId}/s/community/settings", headers=self.parse_headers(data=data), data=data) as response:
-            if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: 
+                    if response.status == 403: return exceptions.CheckException(await response.text()) 
+                    else: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
     async def change_module(self, module: str, isEnabled: bool):
@@ -223,7 +253,9 @@ class ACM(client.Client):
         if self.comId is None: raise exceptions.CommunityNeeded()
 
         async with self.session.post(f"{self.api}/x{self.comId}/s/community/configuration", headers=self.parse_headers(data=data), data=data) as response:
-            if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: 
+                    if response.status == 403: return exceptions.CheckException(await response.text()) 
+                    else: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
     async def add_influencer(self, userId: str, monthlyFee: int):
@@ -235,25 +267,33 @@ class ACM(client.Client):
         if self.comId is None: raise exceptions.CommunityNeeded()
 
         async with self.session.post(f"{self.api}/x{self.comId}/s/influencer/{userId}", headers=self.parse_headers(data=data), data=data) as response:
-            if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: 
+                    if response.status == 403: return exceptions.CheckException(await response.text()) 
+                    else: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
     async def remove_influencer(self, userId: str):
         if self.comId is None: raise exceptions.CommunityNeeded()
         async with self.session.delete(f"{self.api}/x{self.comId}/s/influencer/{userId}", headers=self.parse_headers()) as response:
-            if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: 
+                    if response.status == 403: return exceptions.CheckException(await response.text()) 
+                    else: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status
 
     async def get_notice_list(self, start: int = 0, size: int = 25):
         if self.comId is None: raise exceptions.CommunityNeeded()
 
         async with self.session.get(f"{self.api}/x{self.comId}/s/notice?type=management&status=1&start={start}&size={size}", headers=self.parse_headers()) as response:
-            if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: 
+                    if response.status == 403: return exceptions.CheckException(await response.text()) 
+                    else: return exceptions.CheckException(json.loads(await response.text()))
             else: return objects.NoticeList(json.loads(await response.text())["noticeList"]).NoticeList
 
     async def delete_pending_role(self, noticeId: str):
         if self.comId is None: raise exceptions.CommunityNeeded()
 
         async with self.session.delete(f"{self.api}/x{self.comId}/s/notice/{noticeId}", headers=self.parse_headers()) as response:
-            if response.status != 200: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: 
+                    if response.status == 403: return exceptions.CheckException(await response.text()) 
+                    else: return exceptions.CheckException(json.loads(await response.text()))
             else: return response.status

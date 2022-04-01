@@ -830,7 +830,10 @@ class LibraryUpdateAvailable(Exception):
 
 
 def CheckException(data):
-    api_code = data["api:statuscode"]
+    try:
+        api_code = data["api:statuscode"]
+    except:
+        raise Exception(data)
 
     if api_code == 100: raise UnsupportedService(data)
     elif api_code == 102: raise FileTooLarge(data)
