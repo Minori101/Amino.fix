@@ -32,8 +32,8 @@ class VCHeaders:
 
 
 class SubClient(client.Client):
-    def __init__(self, comId: str = None, aminoId: str = None, *, profile: objects.UserProfile):
-        client.Client.__init__(self)
+    def __init__(self, comId: str = None, aminoId: str = None, *, profile: objects.UserProfile, deviceId: str = None):
+        client.Client.__init__(self, deviceId=deviceId)
         self.vc_connect = False
         self.comId = comId
         self.aminoId = aminoId

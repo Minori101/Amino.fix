@@ -12,6 +12,8 @@ import string
 
 from aminofix import client
 
+link = 1
+
 session = requests.Session()
 
 def generate_device_info() -> dict:
@@ -30,10 +32,16 @@ def deviceId(data: str) -> str:
 
 #@dorthegra/IDörthe#8835 the server was bought with his money :p you can write to him to thank you 
 def signature(data: Union[str, dict]) -> str:
-    try:
-        response = session.post("http://134.0.115.139/signature", json=data)
-        return response.text
-    except:
+    global link
+    if link == 1:
+        try:
+            response = session.post("http://134.0.115.139/signature", json=data)
+            return response.text
+        except:
+            link = 2
+            response = session.post("https://ed-generators.herokuapp.com/signature", data=data)
+            return response.text
+    else:
         response = session.post("https://ed-generators.herokuapp.com/signature", data=data)
         return response.text
 

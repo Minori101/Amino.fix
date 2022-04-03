@@ -828,12 +828,25 @@ class LibraryUpdateAvailable(Exception):
     def __init__(*args, **kwargs):
         Exception.__init__(*args, **kwargs)
 
+class UserHasBeenDeleted(Exception):
+    """
+    - **API Code** : 245
+    - **API Message** : Sorry, this user has been deleted.
+    - **API String** : ``Unknown String``
+    """
+
+    def __init__(*args, **kwargs):
+        Exception.__init__(*args, **kwargs)
+
+class UnknownError(Exception):
+    def __init__(*args, **kwargs):
+        Exception.__init__(*args, **kwargs)
 
 def CheckException(data):
     try:
         api_code = data["api:statuscode"]
     except:
-        raise Exception(data)
+        raise UnknownError(data)
 
     if api_code == 100: raise UnsupportedService(data)
     elif api_code == 102: raise FileTooLarge(data)
@@ -860,6 +873,7 @@ def CheckException(data):
     elif api_code == 238: raise ActivateAccount(data)
     elif api_code == 239: raise CantLeaveCommunity(data)
     elif api_code == 240: raise ReachedTitleLength(data)
+    elif api_code == 245: raise UserHasBeenDeleted(data)
     elif api_code == 246: raise AccountDeleted(data)
     elif api_code == 251: raise API_ERR_EMAIL_NO_PASSWORD(data)
     elif api_code == 257: raise API_ERR_COMMUNITY_USER_CREATED_COMMUNITIES_VERIFY(data)
