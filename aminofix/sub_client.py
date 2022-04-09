@@ -56,6 +56,9 @@ class SubClient(client.Client):
                     self.profile = objects.UserProfile = self.get_user_info(userId=headers.userId)
             except AttributeError: raise exceptions.FailedLogin()
             except exceptions.UserUnavailable: pass
+            except exceptions.UnsupportedService:
+                print("[WARN] I couldn't get your profile, there was an error: UnsupportedService.")
+                self.profile: objects.UserProfile = objects.UserProfile({"uid": headers.userId})
         else:
             self.community: objects.Community = objects.Community({})
             self.profile: objects.UserProfile = objects.UserProfile({"uid": headers.userId})
@@ -549,7 +552,7 @@ class SubClient(client.Client):
         response = self.session.post(f"{self.api}/x{self.comId}/s/chat/thread", data=data, headers=self.parse_headers(data=data), proxies=self.proxies, verify=self.certificatePath)
         if response.status_code != 200: 
             return exceptions.CheckException(response.text)
-        else: return response.status_code
+        else: return objects.objects.Thread(json.loads(response.text)["thread"]).Thread
 
     def invite_to_chat(self, userId: Union[str, list], chatId: str):
         if isinstance(userId, str): userIds = [userId]

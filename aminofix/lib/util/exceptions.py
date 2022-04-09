@@ -841,6 +841,26 @@ class UserHasBeenDeleted(Exception):
     def __init__(*args, **kwargs):
         Exception.__init__(*args, **kwargs)
 
+class IpTomporaryBan(Exception):
+    """
+    - **API Code** : 403
+    - **API Message** : 403 Forbidden.
+    - **API String** : ``Unknown String``
+    """
+
+    def __init__(*args, **kwargs):
+        Exception.__init__(*args, **kwargs)
+
+class FailedSubscribeFanClub(Exception):
+    """
+    - **API Code** : 4805
+    - **API Message** : Failed to subscribe to this fan club.
+    - **API String** : ``Unknown String``
+    """
+
+    def __init__(*args, **kwargs):
+        Exception.__init__(*args, **kwargs)
+
 class UnknownError(Exception):
     def __init__(*args, **kwargs):
         Exception.__init__(*args, **kwargs)
@@ -848,13 +868,12 @@ class UnknownError(Exception):
 def CheckException(data):
     try:
         data = json.loads(data)
+        try:
+            api_code = data["api:statuscode"]
+        except:
+            raise UnknownError(data)
     except json.decoder.JSONDecodeError:
-        raise Exception("403 Forbidden (IP temporary ban)")
-        
-    try:
-        api_code = data["api:statuscode"]
-    except:
-        raise UnknownError(data)
+        api_code = 403
 
     if api_code == 100: raise UnsupportedService(data)
     elif api_code == 102: raise FileTooLarge(data)
@@ -893,6 +912,7 @@ def CheckException(data):
     elif api_code == 300: raise BadImage(data)
     elif api_code == 313: raise InvalidThemepack(data)
     elif api_code == 314: raise InvalidVoiceNote(data)
+    elif api_code == 403: raise IpTomporaryBan(data)
     elif api_code == 500 or api_code == 700 or api_code == 1600: raise RequestedNoLongerExists(data)
     elif api_code == 503: raise PageRepostedTooRecently(data)
     elif api_code == 551: raise InsufficientLevel(data)
@@ -930,6 +950,7 @@ def CheckException(data):
     elif api_code == 4300: raise NotEnoughCoins(data)
     elif api_code == 4400: raise AlreadyPlayedLottery(data)
     elif api_code == 4500 or api_code == 4501: raise CannotSendCoins(data)
+    elif api_code == 4805: raise FailedSubscribeFanClub(data)
     elif api_code == 6001: raise AminoIDAlreadyChanged(data)
     elif api_code == 6002: raise InvalidAminoID(data)
     elif api_code == 9901: raise InvalidName(data)
