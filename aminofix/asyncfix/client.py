@@ -10,10 +10,8 @@ from typing import BinaryIO, Union
 from time import time as timestamp
 from locale import getdefaultlocale as locale
 
-from .lib.util import exceptions, headers, device, objects, helpers, signature
+from ..lib.util import exceptions, headers, objects, helpers, signature
 from .socket import Callbacks, SocketHandler
-
-device = device.DeviceGenerator()
 
 #@dorthegra/IDörthe#8835 thanks for support!
 
@@ -22,9 +20,8 @@ class Client(Callbacks, SocketHandler):
         self.api = "https://service.narvii.com/api/v1"
         self.authenticated = False
         self.configured = False
-        self.user_agent = device.user_agent
-        if deviceId: self.device_id = deviceId
-        else: self.device_id = device.device_id
+
+        self.device_id = deviceId
 
         SocketHandler.__init__(self, self, debug=socketDebugging)
         Callbacks.__init__(self, self)
@@ -185,6 +182,7 @@ class Client(Callbacks, SocketHandler):
         self.account: objects.UserProfile = await self.get_user_info(uId)
         self.profile: objects.UserProfile = await self.get_user_info(uId)
         headers.sid = self.sid
+        headers.userId = self.userId
         await self.startup()
 
     async def login(self, email: str, password: str):
@@ -222,6 +220,7 @@ class Client(Callbacks, SocketHandler):
                 self.account: objects.UserProfile = objects.UserProfile(self.json["account"]).UserProfile
                 self.profile: objects.UserProfile = objects.UserProfile(self.json["userProfile"]).UserProfile
                 headers.sid = self.sid
+                headers.userId = self.userId
                 await self.startup()
                 return response.status
 
@@ -260,10 +259,11 @@ class Client(Callbacks, SocketHandler):
                 self.account: objects.UserProfile = objects.UserProfile(self.json["account"]).UserProfile
                 self.profile: objects.UserProfile = objects.UserProfile(self.json["userProfile"]).UserProfile
                 headers.sid = self.sid
+                headers.userId = self.userId
                 await self.startup()
                 return response.status
 
-    async def register(self, nickname: str, email: str, password: str, verificationCode: str, deviceId: str = device.device_id):
+    async def register(self, nickname: str, email: str, password: str, verificationCode: str, deviceId: str = headers.device):
         """
         Register an account.
 
@@ -323,7 +323,7 @@ class Client(Callbacks, SocketHandler):
         """
         data = json.dumps({
             "secret": f"0 {password}",
-            "deviceID": device.device_id,
+            "deviceID": self.device_id,
             "email": email,
             "timestamp": int(timestamp() * 1000)
         })
@@ -419,7 +419,7 @@ class Client(Callbacks, SocketHandler):
                 "type": 1,
                 "identity": email,
                 "data": {"code": code}},
-            "deviceID": device.device_id,
+            "deviceID": self.device_id,
             "timestamp": int(timestamp() * 1000)
         })
 
@@ -445,7 +445,7 @@ class Client(Callbacks, SocketHandler):
         data = {
             "identity": email,
             "type": 1,
-            "deviceID": device.device_id
+            "deviceID": self.device_id
         }
 
         if resetPassword is True:
@@ -477,7 +477,7 @@ class Client(Callbacks, SocketHandler):
             "type": 1,
             "identity": email,
             "data": {"code": code},
-            "deviceID": device.device_id
+            "deviceID": self.device_id
         })
 
         async with self.session.post(f"{self.api}/g/s/auth/activate-email", headers=self.parse_headers(data=data), data=data) as response:
@@ -501,7 +501,7 @@ class Client(Callbacks, SocketHandler):
         """
 
         data = json.dumps({
-            "deviceID": device.device_id,
+            "deviceID": self.device_id,
             "secret": f"0 {password}"
         })
 
@@ -535,10 +535,10 @@ class Client(Callbacks, SocketHandler):
                 "type": 1,
                 "identity": email,
                 "level": 2,
-                "deviceID": device.device_id
+                "deviceID": self.device_id
             },
             "phoneNumberValidationContext": None,
-            "deviceID": device.device_id
+            "deviceID": self.device_id
         })
 
         async with self.session.post(f"{self.api}/g/s/auth/reset-password", headers=self.parse_headers(data=data), data=data) as response:

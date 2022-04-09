@@ -1,3 +1,8 @@
+import json
+
+from requests import JSONDecodeError
+
+
 class UnsupportedService(Exception):
     """
     - **API Code** : 100
@@ -843,6 +848,11 @@ class UnknownError(Exception):
         Exception.__init__(*args, **kwargs)
 
 def CheckException(data):
+    try:
+        data = json.loads(data)
+    except JSONDecodeError:
+        raise Exception("403 Forbidden (IP temporary ban)")
+        
     try:
         api_code = data["api:statuscode"]
     except:

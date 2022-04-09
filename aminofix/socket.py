@@ -1,33 +1,26 @@
 import time
 import json
 import websocket
-import concurrent.futures
 import contextlib
-import ssl
 
-from random import randint
+from threading import Thread
 from sys import _getframe as getframe
 
 from .lib.util import objects, helpers
 
 class SocketHandler:
-    def __init__(self, client, socket_trace = False, debug = False, security = True):
+    def __init__(self, client, socket_trace = False, debug = False):
         self.socket_url = "wss://ws1.narvii.com"
         self.client = client
         self.debug = debug
         self.active = False
         self.headers = None
-        self.security = security
         self.socket = None
         self.socket_thread = None
-        self.reconnect = True
-        self.socket_stop = False
-        self.socketDelay = 0
-        self.minReconnect = 480
-        self.maxReconnect = 540
+        self.reconnectTime = 180
 
-        self.background = concurrent.futures.ThreadPoolExecutor(max_workers=50)
-        self.socket_handler = self.background.submit(self.reconnect_handler)
+        self.reconnect_thread = Thread(target=self.reconnect_handler)
+        self.reconnect_thread.start()
 
         websocket.enableTrace(socket_trace)
 
@@ -35,12 +28,12 @@ class SocketHandler:
         # Made by enchart#3410 thx
         # Fixed by The_Phoenix#3967
         while True:
-            temp = randint(self.minReconnect, self.maxReconnect)
-            time.sleep(temp)
+            time.sleep(self.reconnectTime)
 
             if self.active:
                 if self.debug is True:
-                    print(f"[socket][reconnect_handler] Random refresh time = {temp} seconds, Reconnecting Socket")
+                    print(f"[socket][reconnect_handler] Reconnecting Socket")
+
                 self.close()
                 self.run_amino_socket()
 
@@ -52,13 +45,11 @@ class SocketHandler:
         if self.debug is True:
             print("[socket][on_close] Socket Closed")
 
-        #self.active = False
-
-        if self.reconnect:
+        if self.active:
             if self.debug is True:
-                print("[socket][on_close] reconnect is True, Opening Socket")
+                print("[socket][on_close] Reconnect is True, Opening Socket")
 
-            #self.run_amino_socket()
+            self.run_amino_socket()
 
     def on_ping(self, data):
         if self.debug is True:
@@ -77,57 +68,44 @@ class SocketHandler:
         self.socket.send(data)
 
     def run_amino_socket(self):
-        if self.debug is True:
-            print(f"[socket][start] Starting Socket")
+        try:
+            if self.debug is True:
+                print(f"[socket][start] Starting Socket")
 
-        if self.client.sid is None:
-            return
+            if self.client.sid is None:
+                return
 
-        final = f"{self.client.device_id}|{int(time.time() * 1000)}"
+            final = f"{self.client.device_id}|{int(time.time() * 1000)}"
 
-        self.headers = {
-            "NDCDEVICEID": self.client.device_id,
-            "NDCAUTH": f"sid={self.client.sid}",
-            "NDC-MSG-SIG": helpers.signature(final)
-        }
+            self.headers = {
+                "NDCDEVICEID": self.client.device_id,
+                "NDCAUTH": f"sid={self.client.sid}",
+                "NDC-MSG-SIG": helpers.signature(final)
+            }
 
-        self.socket = websocket.WebSocketApp(
-            f"{self.socket_url}/?signbody={final.replace('|', '%7C')}",
-            on_message = self.handle_message,
-            on_open = self.on_open,
-            on_close = self.on_close,
-            on_ping = self.on_ping,
-            header = self.headers
-        )
+            self.socket = websocket.WebSocketApp(
+                f"{self.socket_url}/?signbody={final.replace('|', '%7C')}",
+                on_message = self.handle_message,
+                on_open = self.on_open,
+                on_close = self.on_close,
+                on_ping = self.on_ping,
+                header = self.headers
+            )
 
-        socket_settings = {
-            "ping_interval": 60
-        }
-
-        if not self.security:
-            socket_settings.update({
-                'sslopt': {
-                    "cert_reqs": ssl.CERT_NONE,
-                    "check_hostname": False
-                }
-            })
-
-        self.socket_thread = self.background.submit(self.socket.run_forever)
-
-        #self.socket_thread = threading.Thread(target = self.socket.run_forever, kwargs = socket_settings)
-        #self.socket_thread.start()
-        self.active = True
-
-        if self.debug is True:
-            print(f"[socket][start] Socket Started")
+            self.active = True
+            self.socket_thread = Thread(target=self.socket.run_forever)
+            self.socket_thread.start()
+            
+            if self.debug is True:
+                print(f"[socket][start] Socket Started")
+        except Exception as e:
+            print(e)
 
     def close(self):
         if self.debug is True:
             print(f"[socket][close] Closing Socket")
 
-        self.reconnect = False
         self.active = False
-        self.socket_stop = True
         try:
             self.socket.close()
         except Exception as closeError:

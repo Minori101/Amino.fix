@@ -6,7 +6,7 @@ import websockets
 
 from sys import _getframe as getframe
 
-from .lib.util import objects, helpers
+from ..lib.util import objects, helpers
 
 class SocketHandler:
     def __init__(self, client, debug = False):

@@ -17,7 +17,7 @@ setup(
     name="amino.fix",
     license='MIT',
     author="Minori",
-    version="2.2.11",
+    version="2.3.0",
     author_email="minorigithub@gmail.com",
     description="Library for Amino. Discord - https://discord.gg/Bf3dpBRJHj",
     url="https://github.com/Minori100/Amino.fix",

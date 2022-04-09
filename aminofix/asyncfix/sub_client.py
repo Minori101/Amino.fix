@@ -11,9 +11,7 @@ from time import time as timestamp
 import requests
 
 from . import client
-from .lib.util import exceptions, headers, device, objects, signature
-
-device = device.DeviceGenerator()
+from ..lib.util import exceptions, headers, objects, signature
 
 class VCHeaders:
     def __init__(self, data = None):

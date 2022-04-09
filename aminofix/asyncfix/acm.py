@@ -5,10 +5,10 @@ from time import time as timestamp
 from typing import BinaryIO
 
 from . import client
-from .lib.util import exceptions, headers, objects
+from ..lib.util import exceptions, headers, objects
 
 class ACM(client.Client):
-    def __init__(self, profile: objects.UserProfile, comId: str = None):
+    def __init__(self, profile: objects.UserProfile = None, comId: str = None):
         client.Client.__init__(self)
         self.profile = profile
         self.comId = comId
