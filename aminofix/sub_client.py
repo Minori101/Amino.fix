@@ -41,7 +41,8 @@ class SubClient(client.Client):
             self.comId = comId
 
         if aminoId is not None:
-            self.comId = client.Client().search_community(aminoId).comId[0]
+            link = "http://aminoapps.com/c/"
+            self.comId = self.get_from_code(link + aminoId).comId
 
         if comId is None and aminoId is None: raise exceptions.NoCommunity()
 
@@ -52,12 +53,12 @@ class SubClient(client.Client):
                 if profile is not None:
                     self.profile: objects.UserProfile = self.get_user_info(userId=profile.userId)
                 else:
-                    self.profile = objects.UserProfile({})
+                    self.profile = objects.UserProfile = self.get_user_info(userId=headers.userId)
             except AttributeError: raise exceptions.FailedLogin()
             except exceptions.UserUnavailable: pass
         else:
-            self.community: objects.Community = None
-            self.profile: objects.UserProfile = None
+            self.community: objects.Community = objects.Community({})
+            self.profile: objects.UserProfile = objects.UserProfile({"uid": headers.userId})
 
     def parse_headers(self, data: str = None):
         return headers.ApisHeaders(deviceId=self.device_id, data=data).headers

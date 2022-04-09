@@ -18,9 +18,11 @@ class SocketHandler:
         self.socket = None
         self.socket_thread = None
         self.reconnectTime = 180
+        self.socket_thread = None
 
-        self.reconnect_thread = Thread(target=self.reconnect_handler)
-        self.reconnect_thread.start()
+        if self.socket_enabled:
+            self.reconnect_thread = Thread(target=self.reconnect_handler)
+            self.reconnect_thread.start()
 
         websocket.enableTrace(socket_trace)
 
@@ -64,6 +66,10 @@ class SocketHandler:
     def send(self, data):
         if self.debug is True:
             print(f"[socket][send] Sending Data : {data}")
+        
+        if not self.socket_thread:
+            self.run_amino_socket()
+            time.sleep(5)
 
         self.socket.send(data)
 
@@ -95,6 +101,10 @@ class SocketHandler:
             self.active = True
             self.socket_thread = Thread(target=self.socket.run_forever)
             self.socket_thread.start()
+
+            if self.reconnect_thread is None:
+                self.reconnect_thread = Thread(target=self.reconnect_handler)
+                self.reconnect_thread.start()
             
             if self.debug is True:
                 print(f"[socket][start] Socket Started")

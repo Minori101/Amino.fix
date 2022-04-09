@@ -1,5 +1,6 @@
 import json
 import base64
+import time
 import requests
 import threading
 import base64
@@ -18,7 +19,7 @@ from .socket import Callbacks, SocketHandler
 #@dorthegra/IDörthe#8835 thanks for support!
 
 class Client(Callbacks, SocketHandler):
-    def __init__(self, deviceId: str = headers.device, proxies: dict = None, certificatePath = None, socket_trace = False, socketDebugging = False, lite_mode = False, socket = True):
+    def __init__(self, deviceId: str = headers.device, proxies: dict = None, certificatePath = None, socket_trace = False, socketDebugging = False, lite_mode = False, socket_enabled = True):
         self.api = "https://service.narvii.com/api/v1"
         self.authenticated = False
         self.configured = False
@@ -26,7 +27,7 @@ class Client(Callbacks, SocketHandler):
         self.session = requests.Session()
 
         self.device_id = deviceId
-        self.socket_enabled = socket
+        self.socket_enabled = socket_enabled
 
         SocketHandler.__init__(self, self, socket_trace=socket_trace, debug=socketDebugging)
         Callbacks.__init__(self, self)
@@ -39,10 +40,13 @@ class Client(Callbacks, SocketHandler):
         self.account: objects.UserProfile = objects.UserProfile(None)
         self.profile: objects.UserProfile = objects.UserProfile(None)
 
+        self.active_live_chats = []
+
     def parse_headers(self, data: str = None):
         return headers.ApisHeaders(deviceId=self.device_id, data=data).headers
 
-    def join_voice_chat(self, comId: str, chatId: str, joinType: int = 1):
+
+    def join_voice_chat(self, comId: str, chatId: str, joinType: int = 1, keep_alive: bool = True):
         """
         Joins a Voice Chat
 
@@ -62,10 +66,21 @@ class Client(Callbacks, SocketHandler):
             },
             "t": 112
         }
+        
         data = json.dumps(data)
-        self.send(data)
 
-    def join_video_chat(self, comId: str, chatId: str, joinType: int = 1):
+        def send_data_loop(data: str):
+            while chatId in self.active_live_chats:
+                self.send(data)
+                time.sleep(60)
+        
+        if keep_alive and chatId not in self.active_live_chats:
+            threading.Thread(target=lambda: send_data_loop(data)).start()
+            self.active_live_chats.append(chatId)
+        else:
+            self.send(data)
+
+    def join_video_chat(self, comId: str, chatId: str, joinType: int = 1, keep_alive: bool = True):
         """
         Joins a Video Chat
 
@@ -86,10 +101,21 @@ class Client(Callbacks, SocketHandler):
             },
             "t": 108
         }
-        data = json.dumps(data)
-        self.send(data)
 
-    def join_video_chat_as_viewer(self, comId: str, chatId: str):
+        data = json.dumps(data)
+
+        def send_data_loop(data: str):
+            while chatId in self.active_live_chats:
+                self.send(data)
+                time.sleep(60)
+        
+        if keep_alive and chatId not in self.active_live_chats:
+            threading.Thread(target=lambda: send_data_loop(data)).start()
+            self.active_live_chats.append(chatId)
+        else:
+            self.send(data)
+
+    def join_video_chat_as_viewer(self, comId: str, chatId: str, keep_alive: bool = True):
         data = {
             "o":
                 {
@@ -101,13 +127,28 @@ class Client(Callbacks, SocketHandler):
             "t": 112
         }
         data = json.dumps(data)
-        self.send(data)
+
+        def send_data_loop(data: str):
+            while chatId in self.active_live_chats:
+                self.send(data)
+                time.sleep(60)
+        
+        if keep_alive and chatId not in self.active_live_chats:
+            threading.Thread(target=lambda: send_data_loop(data)).start()
+            self.active_live_chats.append(chatId)
+        else:
+            self.send(data)
+    
+    # I finish this in future
+    def leave_from_live_chat(self, chatId: str):
+        if chatId in self.active_live_chats:
+            self.active_live_chats.remove(chatId)
 
     def run_vc(self, comId: str, chatId: str, joinType: str):
-        while self.active:
+        while chatId in self.active_live_chat:
             data = {
                 "o": {
-                    "ndcId": comId,
+                    "ndcId": int(comId),
                     "threadId": chatId,
                     "joinRole": joinType,
                     "id": "2154531"  # Need to change?
@@ -116,12 +157,12 @@ class Client(Callbacks, SocketHandler):
             }
             data = json.dumps(data)
             self.send(data)
-            sleep(1)
+            sleep(60)
 
     def start_vc(self, comId: str, chatId: str, joinType: int = 1):
         data = {
             "o": {
-                "ndcId": comId,
+                "ndcId": int(comId),
                 "threadId": chatId,
                 "joinRole": joinType,
                 "id": "2154531"  # Need to change?
@@ -132,7 +173,7 @@ class Client(Callbacks, SocketHandler):
         self.send(data)
         data = {
             "o": {
-                "ndcId": comId,
+                "ndcId": int(comId),
                 "threadId": chatId,
                 "channelType": 1,
                 "id": "2154531"  # Need to change?
@@ -141,14 +182,14 @@ class Client(Callbacks, SocketHandler):
         }
         data = json.dumps(data)
         self.send(data)
-        self.active = True
-        threading.Thread(target=self.run_vc, args=[comId, chatId, joinType])
+        self.active_live_chats.append(chatId)
+        threading.Thread(target=lambda: self.run_vc(comId, chatId, joinType)).start()
 
     def end_vc(self, comId: str, chatId: str, joinType: int = 2):
-        self.active = False
+        self.leave_from_live_chat(chatId)
         data = {
             "o": {
-                "ndcId": comId,
+                "ndcId": int(comId),
                 "threadId": chatId,
                 "joinRole": joinType,
                 "id": "2154531"  # Need to change?
@@ -204,7 +245,6 @@ class Client(Callbacks, SocketHandler):
         })
 
         response = self.session.post(f"{self.api}/g/s/auth/login", headers=self.parse_headers(data=data), data=data, proxies=self.proxies, verify=self.certificatePath)
-        self.run_amino_socket()
         if response.status_code != 200: exceptions.CheckException(response.text)
 
         else:

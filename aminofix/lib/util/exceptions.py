@@ -1,7 +1,5 @@
 import json
 
-from requests import JSONDecodeError
-
 
 class UnsupportedService(Exception):
     """
@@ -850,7 +848,7 @@ class UnknownError(Exception):
 def CheckException(data):
     try:
         data = json.loads(data)
-    except JSONDecodeError:
+    except json.decoder.JSONDecodeError:
         raise Exception("403 Forbidden (IP temporary ban)")
         
     try:
