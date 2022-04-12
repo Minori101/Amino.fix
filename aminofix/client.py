@@ -13,32 +13,35 @@ from binascii import hexlify
 from time import time as timestamp
 from locale import getdefaultlocale as locale
 
-from .lib.util import exceptions, headers, objects, helpers
+from .lib.util import exceptions, headers, objects, helpers, device
 from .socket import Callbacks, SocketHandler
 
 #@dorthegra/IDörthe#8835 thanks for support!
+device = device.DeviceGenerator()
 
 class Client(Callbacks, SocketHandler):
-    def __init__(self, deviceId: str = headers.device, proxies: dict = None, certificatePath = None, socket_trace = False, socketDebugging = False, lite_mode = False, socket_enabled = True):
+    def __init__(self, deviceId: str = None, proxies: dict = None, certificatePath = None, socket_trace = False, socketDebugging = False, socket_enabled = True):
         self.api = "https://service.narvii.com/api/v1"
         self.authenticated = False
         self.configured = False
-        self.lite_mode = lite_mode
+        self.user_agent = device.user_agent
         self.session = requests.Session()
 
-        self.device_id = deviceId
+        if deviceId: self.device_id = deviceId
+        else: self.device_id = device.device_id
+
         self.socket_enabled = socket_enabled
 
         SocketHandler.__init__(self, self, socket_trace=socket_trace, debug=socketDebugging)
         Callbacks.__init__(self, self)
         self.proxies = proxies
         self.certificatePath = certificatePath
-
         self.json = None
         self.sid = None
         self.userId = None
         self.account: objects.UserProfile = objects.UserProfile(None)
         self.profile: objects.UserProfile = objects.UserProfile(None)
+
 
         self.active_live_chats = []
 
@@ -211,9 +214,8 @@ class Client(Callbacks, SocketHandler):
         self.sid = SID
         self.userId = uId
 
-        if not self.lite_mode:
-            self.account: objects.UserProfile = self.get_user_info(uId)
-            self.profile: objects.UserProfile = self.get_user_info(uId)
+        self.account: objects.UserProfile = self.get_user_info(uId)
+        self.profile: objects.UserProfile = self.get_user_info(uId)
 
         headers.sid = self.sid
         headers.userId = self.userId
@@ -251,10 +253,8 @@ class Client(Callbacks, SocketHandler):
             self.json = json.loads(response.text)
             self.sid = self.json["sid"]
             self.userId = self.json["account"]["uid"]
-
-            if self.lite_mode:
-                self.account: objects.UserProfile = objects.UserProfile(self.json["account"]).UserProfile
-                self.profile: objects.UserProfile = objects.UserProfile(self.json["userProfile"]).UserProfile
+            self.account: objects.UserProfile = objects.UserProfile(self.json["account"]).UserProfile
+            self.profile: objects.UserProfile = objects.UserProfile(self.json["userProfile"]).UserProfile
                 
             headers.sid = self.sid
             headers.userId = self.userId
@@ -297,9 +297,8 @@ class Client(Callbacks, SocketHandler):
             self.sid = self.json["sid"]
             self.userId = self.json["account"]["uid"]
 
-            if self.lite_mode:
-                self.account: objects.UserProfile = objects.UserProfile(self.json["account"]).UserProfile
-                self.profile: objects.UserProfile = objects.UserProfile(self.json["userProfile"]).UserProfile
+            self.account: objects.UserProfile = objects.UserProfile(self.json["account"]).UserProfile
+            self.profile: objects.UserProfile = objects.UserProfile(self.json["userProfile"]).UserProfile
 
             headers.sid = self.sid
             headers.userId = self.userId
