@@ -148,7 +148,7 @@ class Client(Callbacks, SocketHandler):
             self.active_live_chats.remove(chatId)
 
     def run_vc(self, comId: str, chatId: str, joinType: str):
-        while chatId in self.active_live_chat:
+        while chatId in self.active_live_chats:
             data = {
                 "o": {
                     "ndcId": int(comId),
