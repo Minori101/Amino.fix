@@ -1,81 +1,128 @@
 import time
 import json
-import asyncio
-import threading
-import websockets
+import websocket
+import contextlib
 
+from threading import Thread
 from sys import _getframe as getframe
 
 from ..lib.util import objects, helpers
 
 class SocketHandler:
-    def __init__(self, client, debug = False):
+    def __init__(self, client, socket_trace = False, debug = False):
         self.socket_url = "wss://ws1.narvii.com"
         self.client = client
         self.debug = debug
         self.active = False
         self.headers = None
-        self.socket: websockets.client.WebSocketClientProtocol
+        self.socket = None
+        self.socket_thread = None
+        self.reconnectTime = 180
+        self.socket_thread = None
 
-    async def handle_message(self, data):
+        if self.socket_enabled:
+            self.reconnect_thread = Thread(target=self.reconnect_handler)
+            self.reconnect_thread.start()
+
+        websocket.enableTrace(socket_trace)
+
+    def reconnect_handler(self):
+        # Made by enchart#3410 thx
+        # Fixed by The_Phoenix#3967
+        while True:
+            time.sleep(self.reconnectTime)
+
+            if self.active:
+                if self.debug is True:
+                    print(f"[socket][reconnect_handler] Reconnecting Socket")
+
+                self.close()
+                self.run_amino_socket()
+
+    def on_open(self, **kwargs):
         if self.debug is True:
-            print(f"[socket][handle_message] Got Data : {data}")
-        await self.client.handle_socket_message(data)
+            print("[socket][on_open] Socket Opened")
 
-    async def send(self, data):
+    def on_close(self, **kwargs):
+        if self.debug is True:
+            print("[socket][on_close] Socket Closed")
+
+        if self.active:
+            if self.debug is True:
+                print("[socket][on_close] Reconnect is True, Opening Socket")
+
+            self.run_amino_socket()
+
+    def on_ping(self, data):
+        if self.debug is True:
+            print("[socket][on_ping] Socket Pinged")
+
+        contextlib.suppress(self.socket.sock.pong(data))
+
+    def handle_message(self, ws, data):
+        self.client.handle_socket_message(data)
+        return
+
+    def send(self, data):
         if self.debug is True:
             print(f"[socket][send] Sending Data : {data}")
-        await self.socket.send(data)
+        
+        if not self.socket_thread:
+            self.run_amino_socket()
+            time.sleep(5)
 
-    async def run(self):
-        final = f"{self.client.device_id}|{int(time.time() * 1000)}"
+        self.socket.send(data)
 
-        self.headers = {
-            "NDCDEVICEID": self.client.device_id,
-            "NDCAUTH": f"sid={self.client.sid}",
-            "NDC-MSG-SIG": helpers.signature(final)
-        }
+    def run_amino_socket(self):
+        try:
+            if self.debug is True:
+                print(f"[socket][start] Starting Socket")
 
-        async with websockets.connect(f"{self.socket_url}/?signbody={final.replace('|', '%7C')}", extra_headers=self.headers) as websocket:
-            self.socket = websocket
+            if self.client.sid is None:
+                return
+
+            final = f"{self.client.device_id}|{int(time.time() * 1000)}"
+
+            self.headers = {
+                "NDCDEVICEID": self.client.device_id,
+                "NDCAUTH": f"sid={self.client.sid}",
+                "NDC-MSG-SIG": helpers.signature(final)
+            }
+
+            self.socket = websocket.WebSocketApp(
+                f"{self.socket_url}/?signbody={final.replace('|', '%7C')}",
+                on_message = self.handle_message,
+                on_open = self.on_open,
+                on_close = self.on_close,
+                on_ping = self.on_ping,
+                header = self.headers
+            )
+
             self.active = True
+            self.socket_thread = Thread(target=self.socket.run_forever)
+            self.socket_thread.start()
 
+            if self.reconnect_thread is None:
+                self.reconnect_thread = Thread(target=self.reconnect_handler)
+                self.reconnect_thread.start()
+            
             if self.debug is True:
                 print(f"[socket][start] Socket Started")
+        except Exception as e:
+            print(e)
 
-            while self.active:
-                try: msg = await websocket.recv()
-                except websockets.exceptions.ConnectionClosedOK: continue
-                await self.handle_message(msg)
-    
-    async def run_amino_socket(self):
-        # uwu hi okok here, this is a stupid way to do this,
-        # but i can't think of another one lmao this is a
-        # workaround for amino sockets dying after a few
-        # minutes.
-        # Feel free to modify, if you can ;)
-        asyncio.create_task(self.run())
-        while True:
-            await asyncio.sleep(360)
-            if self.socket.closed: return
-            await self.close()
-            asyncio.create_task(self.run())
-
-    async def startup(self):
-        if self.debug is True:
-            print(f"[socket][startup] Starting Socket")
-
-        threading.Thread(target = asyncio.run, args = (self.run_amino_socket(), )).start()
-
-    async def close(self):
+    def close(self):
         if self.debug is True:
             print(f"[socket][close] Closing Socket")
+
         self.active = False
         try:
-            await self.socket.close()
+            self.socket.close()
         except Exception as closeError:
             if self.debug is True:
                 print(f"[socket][close] Error while closing Socket : {closeError}")
+
+        return
 
 class Callbacks:
     def __init__(self, client):
@@ -147,84 +194,87 @@ class Callbacks:
             "Typing": self.on_user_typing_end,
         }
 
-    async def _resolve_chat_message(self, data):
+    def _resolve_chat_message(self, data):
         key = f"{data['o']['chatMessage']['type']}:{data['o']['chatMessage'].get('mediaType', 0)}"
-        return await self.chat_methods.get(key, self.default)(data)
+        return self.chat_methods.get(key, self.default)(data)
 
-    async def _resolve_chat_action_start(self, data):
+    def _resolve_chat_action_start(self, data):
         key = data['o'].get('actions', 0)
-        return await self.chat_actions_start.get(key, self.default)(data)
+        return self.chat_actions_start.get(key, self.default)(data)
 
-    async def _resolve_chat_action_end(self, data):
+    def _resolve_chat_action_end(self, data):
         key = data['o'].get('actions', 0)
-        return await self.chat_actions_end.get(key, self.default)(data)
+        return self.chat_actions_end.get(key, self.default)(data)
 
     def resolve(self, data):
         data = json.loads(data)
-        return asyncio.create_task(self.methods.get(data["t"], self.default)(data))
+        return self.methods.get(data["t"], self.default)(data)
 
-    async def call(self, type, data):
+    def call(self, type, data):
         if type in self.handlers:
             for handler in self.handlers[type]:
-                await handler(data)
+                handler(data)
 
     def event(self, type):
-        def register_handler(handler):
+        def registerHandler(handler):
             if type in self.handlers:
                 self.handlers[type].append(handler)
             else:
                 self.handlers[type] = [handler]
             return handler
-        return register_handler
 
-    async def on_text_message(self, data): await self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    async def on_image_message(self, data): await self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    async def on_youtube_message(self, data): await self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    async def on_strike_message(self, data): await self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    async def on_voice_message(self, data): await self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    async def on_sticker_message(self, data): await self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    async def on_voice_chat_not_answered(self, data): await self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    async def on_voice_chat_not_cancelled(self, data): await self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    async def on_voice_chat_not_declined(self, data): await self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    async def on_video_chat_not_answered(self, data): await self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    async def on_video_chat_not_cancelled(self, data): await self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    async def on_video_chat_not_declined(self, data): await self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    async def on_avatar_chat_not_answered(self, data): await self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    async def on_avatar_chat_not_cancelled(self, data): await self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    async def on_avatar_chat_not_declined(self, data): await self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    async def on_delete_message(self, data): await self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    async def on_group_member_join(self, data): await self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    async def on_group_member_leave(self, data): await self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    async def on_chat_invite(self, data): await self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    async def on_chat_background_changed(self, data): await self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    async def on_chat_title_changed(self, data): await self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    async def on_chat_icon_changed(self, data): await self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    async def on_voice_chat_start(self, data): await self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    async def on_video_chat_start(self, data): await self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    async def on_avatar_chat_start(self, data): await self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    async def on_voice_chat_end(self, data): await self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    async def on_video_chat_end(self, data): await self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    async def on_avatar_chat_end(self, data): await self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    async def on_chat_content_changed(self, data): await self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    async def on_screen_room_start(self, data): await self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    async def on_screen_room_end(self, data): await self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    async def on_chat_host_transfered(self, data): await self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    async def on_text_message_force_removed(self, data): await self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    async def on_chat_removed_message(self, data): await self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    async def on_text_message_removed_by_admin(self, data): await self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    async def on_chat_tip(self, data): await self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    async def on_chat_pin_announcement(self, data): await self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    async def on_voice_chat_permission_open_to_everyone(self, data): await self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    async def on_voice_chat_permission_invited_and_requested(self, data): await self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    async def on_voice_chat_permission_invite_only(self, data): await self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    async def on_chat_view_only_enabled(self, data): await self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    async def on_chat_view_only_disabled(self, data): await self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    async def on_chat_unpin_announcement(self, data): await self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    async def on_chat_tipping_enabled(self, data): await self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    async def on_chat_tipping_disabled(self, data): await self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    async def on_timestamp_message(self, data): await self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    async def on_welcome_message(self, data): await self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    async def on_invite_message(self, data): await self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    async def on_user_typing_start(self, data): await self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    async def on_user_typing_end(self, data): await self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    async def default(self, data): await self.call(getframe(0).f_code.co_name, data)
+        return registerHandler
+
+    def on_text_message(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
+    def on_image_message(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
+    def on_youtube_message(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
+    def on_strike_message(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
+    def on_voice_message(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
+    def on_sticker_message(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
+    def on_voice_chat_not_answered(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
+    def on_voice_chat_not_cancelled(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
+    def on_voice_chat_not_declined(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
+    def on_video_chat_not_answered(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
+    def on_video_chat_not_cancelled(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
+    def on_video_chat_not_declined(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
+    def on_avatar_chat_not_answered(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
+    def on_avatar_chat_not_cancelled(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
+    def on_avatar_chat_not_declined(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
+    def on_delete_message(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
+    def on_group_member_join(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
+    def on_group_member_leave(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
+    def on_chat_invite(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
+    def on_chat_background_changed(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
+    def on_chat_title_changed(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
+    def on_chat_icon_changed(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
+    def on_voice_chat_start(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
+    def on_video_chat_start(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
+    def on_avatar_chat_start(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
+    def on_voice_chat_end(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
+    def on_video_chat_end(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
+    def on_avatar_chat_end(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
+    def on_chat_content_changed(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
+    def on_screen_room_start(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
+    def on_screen_room_end(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
+    def on_chat_host_transfered(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
+    def on_text_message_force_removed(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
+    def on_chat_removed_message(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
+    def on_text_message_removed_by_admin(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
+    def on_chat_tip(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
+    def on_chat_pin_announcement(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
+    def on_voice_chat_permission_open_to_everyone(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
+    def on_voice_chat_permission_invited_and_requested(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
+    def on_voice_chat_permission_invite_only(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
+    def on_chat_view_only_enabled(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
+    def on_chat_view_only_disabled(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
+    def on_chat_unpin_announcement(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
+    def on_chat_tipping_enabled(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
+    def on_chat_tipping_disabled(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
+    def on_timestamp_message(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
+    def on_welcome_message(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
+    def on_invite_message(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
+
+    def on_user_typing_start(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
+    def on_user_typing_end(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
+
+    def default(self, data): self.call(getframe(0).f_code.co_name, data)

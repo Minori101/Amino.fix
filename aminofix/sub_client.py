@@ -10,10 +10,10 @@ from time import time as timestamp
 from json_minify import json_minify
 
 from . import client
-from .lib.util import exceptions, headers, objects
+from .lib.util import exceptions, headers, device, objects, signature
 
+device = device.DeviceGenerator()
 headers.sid = client.Client().sid
-headers.userId = client.Client().userId
 
 class VCHeaders:
     def __init__(self, data = None):
@@ -32,36 +32,23 @@ class VCHeaders:
 
 
 class SubClient(client.Client):
-    def __init__(self, comId: str = None, aminoId: str = None, *, profile: objects.UserProfile = None, deviceId: str = headers.device, lite_mode: bool = False):
-        client.Client.__init__(self, deviceId=deviceId, lite_mode=lite_mode)
+    def __init__(self, comId: str = None, aminoId: str = None, *, profile: objects.UserProfile, deviceId: str = None):
+        client.Client.__init__(self, deviceId=deviceId)
         self.vc_connect = False
-        self.lite_mode = lite_mode
 
         if comId is not None:
             self.comId = comId
+            self.community: objects.Community = self.get_community_info(comId)
 
         if aminoId is not None:
-            link = "http://aminoapps.com/c/"
-            self.comId = self.get_from_code(link + aminoId).comId
+            self.comId = client.Client().search_community(aminoId).comId[0]
+            self.community: objects.Community = client.Client().get_community_info(self.comId)
 
         if comId is None and aminoId is None: raise exceptions.NoCommunity()
 
-        if not self.lite_mode:
-            self.community: objects.Community = self.get_community_info(self.comId)
-
-            try:
-                if profile is not None:
-                    self.profile: objects.UserProfile = self.get_user_info(userId=profile.userId)
-                else:
-                    self.profile = objects.UserProfile = self.get_user_info(userId=headers.userId)
-            except AttributeError: raise exceptions.FailedLogin()
-            except exceptions.UserUnavailable: pass
-            except exceptions.UnsupportedService:
-                print("[WARN] I couldn't get your profile, there was an error: UnsupportedService.")
-                self.profile: objects.UserProfile = objects.UserProfile({"uid": headers.userId})
-        else:
-            self.community: objects.Community = objects.Community({})
-            self.profile: objects.UserProfile = objects.UserProfile({"uid": headers.userId})
+        try: self.profile: objects.UserProfile = self.get_user_info(userId=profile.userId)
+        except AttributeError: raise exceptions.FailedLogin()
+        except exceptions.UserUnavailable: pass
 
     def parse_headers(self, data: str = None):
         return headers.ApisHeaders(deviceId=self.device_id, data=data).headers

@@ -7,9 +7,18 @@ import requests
 
 session = requests.Session()
 
+def generate_device_info() -> dict:
+
+    return {
+        "device_id": deviceId(),
+        "user_agent": "Dalvik/2.1.0 (Linux; U; Android 7.1.2; SM-G965N Build/star2ltexx-user 7.1.; com.narvii.amino.master/3.4.33602)"
+    }
 
 def deviceId(data: str = None) -> str:
-    response = session.get(f"https://ed-generators.herokuapp.com/device" + "?data={data}" if data else "")
+    if data == None:
+        response = session.get(f"https://ed-generators.herokuapp.com/device")
+    else:
+        response = session.get(f"https://ed-generators.herokuapp.com/device?data={data}")
     return response.text.upper()
 
 #@dorthegra/IDörthe#8835 the server was bought with his money :p you can write to him to thank you 

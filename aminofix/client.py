@@ -246,7 +246,6 @@ class Client(Callbacks, SocketHandler):
 
         response = self.session.post(f"{self.api}/g/s/auth/login", headers=self.parse_headers(data=data), data=data, proxies=self.proxies, verify=self.certificatePath)
         if response.status_code != 200: exceptions.CheckException(response.text)
-
         else:
             self.authenticated = True
             self.json = json.loads(response.text)
@@ -652,7 +651,7 @@ class Client(Callbacks, SocketHandler):
 
         data = file.read()
 
-        response = self.session.post(f"{self.api}/g/s/media/upload", data=data, headers=headers.Headers(type=t, data=data, deviceId=self.device_id).headers, proxies=self.proxies, verify=self.certificatePath)
+        response = self.session.post(f"{self.api}/g/s/media/upload", data=data, headers=headers.ApisHeaders(type=t, data=data, deviceId=self.device_id).headers, proxies=self.proxies, verify=self.certificatePath)
         if response.status_code != 200: 
             return exceptions.CheckException(response.text)
         else:

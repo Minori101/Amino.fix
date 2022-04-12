@@ -2624,6 +2624,7 @@ class Message:
         self.createdTime = None
         self.chatBubbleVersion = None
         self.type = None
+        self.replyMessage = None
         self.extensions = None
         self.duration = None
         self.originalStickerId = None
@@ -2634,6 +2635,7 @@ class Message:
         self.videoWidth = None
         self.mentionUserIds = None
         self.tippingCoins = None
+
 
     @property
     def Message(self):
@@ -2660,6 +2662,8 @@ class Message:
         try: self.chatBubbleVersion = self.json["chatBubbleVersion"]
         except (KeyError, TypeError): pass
         try: self.type = self.json["type"]
+        except (KeyError, TypeError): pass
+        try: self.replyMessage = self.json["extensions"]["replyMessage"]
         except (KeyError, TypeError): pass
         try: self.mediaValue = self.json["mediaValue"]
         except (KeyError, TypeError): pass

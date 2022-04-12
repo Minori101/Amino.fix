@@ -1,19 +1,21 @@
-from aminofix.lib.util import signature
+from aminofix.lib.util import device, signature
 
 from uuid import uuid4
 
 sid = None
-userId = None
-device = "42a27164639ded97f7b49dd9663ea384f90019abf7f17aa2393adc8811ef3d55afd55af98868d8be49"
 
 class ApisHeaders:
     def __init__(self, data = None, type = None, deviceId: str = None, sig: str = None):
+        if deviceId:
+            dev = device.DeviceGenerator(deviceId=deviceId)
+        else:
+            dev = device.DeviceGenerator()
 
         headers = {
-            "NDCDEVICEID": deviceId or device,
+            "NDCDEVICEID": dev.device_id,
             "Accept-Language": "en-US",
             "Content-Type": "application/json; charset=utf-8",
-            "User-Agent": "Dalvik/2.1.0 (Linux; U; Android 7.1.2; SM-G965N Build/star2ltexx-user 7.1.; com.narvii.amino.master/3.4.33592)",
+            "User-Agent": dev.user_agent,
             "Host": "service.narvii.com",
             "Accept-Encoding": "gzip",
             "Connection": "Upgrade"
@@ -21,16 +23,10 @@ class ApisHeaders:
 
         if data:
             headers["Content-Length"] = str(len(data))
-            headers["NDC-MSG-SIG"] = sig or signature(data)
-
-        if sid:
-            headers["NDCAUTH"] = f"sid={sid}"
-            
-        if type:
-            headers["Content-Type"] = type
-
-        if userId:
-            headers["AUID"] = userId
+            headers["NDC-MSG-SIG"] = signature(data)
+        if sid: headers["NDCAUTH"] = f"sid={sid}"
+        if type: headers["Content-Type"] = type
+        if sig: headers["NDC-MSG-SIG"] = sig
 
         self.headers = headers
 

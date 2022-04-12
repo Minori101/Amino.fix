@@ -10,20 +10,24 @@ from typing import BinaryIO, Union
 from time import time as timestamp
 from locale import getdefaultlocale as locale
 
-from ..lib.util import exceptions, headers, objects, helpers, signature
+from ..lib.util import exceptions, headers, device, objects, helpers, signature
 from .socket import Callbacks, SocketHandler
+
+device = device.DeviceGenerator()
 
 #@dorthegra/IDörthe#8835 thanks for support!
 
 class Client(Callbacks, SocketHandler):
-    def __init__(self, deviceId: str = None, socketDebugging = False):
+    def __init__(self, deviceId: str = None, socket_trace = False, socketDebugging = False, socket_enabled = True):
         self.api = "https://service.narvii.com/api/v1"
         self.authenticated = False
         self.configured = False
+        self.user_agent = device.user_agent
+        self.socket_enabled = socket_enabled
+        if deviceId: self.device_id = deviceId
+        else: self.device_id = device.device_id
 
-        self.device_id = deviceId
-
-        SocketHandler.__init__(self, self, debug=socketDebugging)
+        SocketHandler.__init__(self, self, socket_trace=socket_trace, debug=socketDebugging)
         Callbacks.__init__(self, self)
 
         self.tapjoy_headers = headers.Tapjoy().headers
@@ -182,7 +186,6 @@ class Client(Callbacks, SocketHandler):
         self.account: objects.UserProfile = await self.get_user_info(uId)
         self.profile: objects.UserProfile = await self.get_user_info(uId)
         headers.sid = self.sid
-        headers.userId = self.userId
         await self.startup()
 
     async def login(self, email: str, password: str):
@@ -209,9 +212,7 @@ class Client(Callbacks, SocketHandler):
         })
 
         async with self.session.post(f"{self.api}/g/s/auth/login", headers=self.parse_headers(data=data), data=data) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else:
                 self.authenticated = True
                 self.json = json.loads(await response.text())
@@ -220,8 +221,8 @@ class Client(Callbacks, SocketHandler):
                 self.account: objects.UserProfile = objects.UserProfile(self.json["account"]).UserProfile
                 self.profile: objects.UserProfile = objects.UserProfile(self.json["userProfile"]).UserProfile
                 headers.sid = self.sid
-                headers.userId = self.userId
-                await self.startup()
+                if self.socket_enabled:
+                    self.run_amino_socket()
                 return response.status
 
     async def login_phone(self, phoneNumber: str, password: str):
@@ -248,9 +249,7 @@ class Client(Callbacks, SocketHandler):
         })
 
         async with self.session.post(f"{self.api}/g/s/auth/login", headers=self.parse_headers(data=data), data=data) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else:
                 self.authenticated = True
                 self.json = json.loads(await response.text())
@@ -259,11 +258,11 @@ class Client(Callbacks, SocketHandler):
                 self.account: objects.UserProfile = objects.UserProfile(self.json["account"]).UserProfile
                 self.profile: objects.UserProfile = objects.UserProfile(self.json["userProfile"]).UserProfile
                 headers.sid = self.sid
-                headers.userId = self.userId
-                await self.startup()
+                if self.socket_enabled:
+                    self.run_amino_socket()
                 return response.status
 
-    async def register(self, nickname: str, email: str, password: str, verificationCode: str, deviceId: str = headers.device):
+    async def register(self, nickname: str, email: str, password: str, verificationCode: str, deviceId: str = device.device_id):
         """
         Register an account.
 
@@ -303,9 +302,7 @@ class Client(Callbacks, SocketHandler):
         })
 
         async with self.session.post(f"{self.api}/g/s/auth/register", headers=self.parse_headers(data=data), data=data) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return response.status
 
     async def restore(self, email: str, password: str):
@@ -323,15 +320,13 @@ class Client(Callbacks, SocketHandler):
         """
         data = json.dumps({
             "secret": f"0 {password}",
-            "deviceID": self.device_id,
+            "deviceID": device.device_id,
             "email": email,
             "timestamp": int(timestamp() * 1000)
         })
 
         async with self.session.post(f"{self.api}/g/s/account/delete-request/cancel", headers=self.parse_headers(data=data), data=data) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return response.status
 
     async def logout(self):
@@ -353,9 +348,7 @@ class Client(Callbacks, SocketHandler):
         })
 
         async with self.session.post(f"{self.api}/g/s/auth/logout", headers=self.parse_headers(data=data), data=data) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else:
                 self.authenticated = False
                 self.json = None
@@ -396,9 +389,7 @@ class Client(Callbacks, SocketHandler):
         })
 
         async with self.session.post(f"{self.api}/g/s/persona/profile/basic", headers=self.parse_headers(data=data), data=data) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return response.status
 
     async def verify(self, email: str, code: str):
@@ -419,14 +410,12 @@ class Client(Callbacks, SocketHandler):
                 "type": 1,
                 "identity": email,
                 "data": {"code": code}},
-            "deviceID": self.device_id,
+            "deviceID": device.device_id,
             "timestamp": int(timestamp() * 1000)
         })
 
         async with self.session.post(f"{self.api}/g/s/auth/check-security-validation", headers=self.parse_headers(data=data), data=data) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return response.status
 
     async def request_verify_code(self, email: str, resetPassword: bool = False):
@@ -445,7 +434,7 @@ class Client(Callbacks, SocketHandler):
         data = {
             "identity": email,
             "type": 1,
-            "deviceID": self.device_id
+            "deviceID": device.device_id
         }
 
         if resetPassword is True:
@@ -454,9 +443,7 @@ class Client(Callbacks, SocketHandler):
 
         data = json.dumps(data)
         async with self.session.post(f"{self.api}/g/s/auth/request-security-validation", headers=self.parse_headers(data=data), data=data) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return response.status
 
     async def activate_account(self, email: str, code: str):
@@ -477,13 +464,11 @@ class Client(Callbacks, SocketHandler):
             "type": 1,
             "identity": email,
             "data": {"code": code},
-            "deviceID": self.device_id
+            "deviceID": device.device_id
         })
 
         async with self.session.post(f"{self.api}/g/s/auth/activate-email", headers=self.parse_headers(data=data), data=data) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return response.status
 
     # Provided by "𝑰 𝑵 𝑻 𝑬 𝑹 𝑳 𝑼 𝑫 𝑬#4082"
@@ -501,14 +486,12 @@ class Client(Callbacks, SocketHandler):
         """
 
         data = json.dumps({
-            "deviceID": self.device_id,
+            "deviceID": device.device_id,
             "secret": f"0 {password}"
         })
 
         async with self.session.post(f"{self.api}/g/s/account/delete-request", headers=self.parse_headers(data=data), data=data) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return response.status
 
     async def change_password(self, email: str, password: str, code: str):
@@ -535,16 +518,14 @@ class Client(Callbacks, SocketHandler):
                 "type": 1,
                 "identity": email,
                 "level": 2,
-                "deviceID": self.device_id
+                "deviceID": device.device_id
             },
             "phoneNumberValidationContext": None,
-            "deviceID": self.device_id
+            "deviceID": device.device_id
         })
 
         async with self.session.post(f"{self.api}/g/s/auth/reset-password", headers=self.parse_headers(data=data), data=data) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return response.status
 
     async def check_device(self, deviceId: str):
@@ -570,16 +551,12 @@ class Client(Callbacks, SocketHandler):
         })
 
         async with self.session.post(f"{self.api}/g/s/device", headers=self.parse_headers(data=data), data=data) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return response.status
 
     async def get_account_info(self):
         async with self.session.get(f"{self.api}/g/s/account", headers=self.parse_headers()) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return objects.UserProfile(json.loads(await response.text())["account"]).UserProfile
 
     async def upload_media(self, file: BinaryIO, fileType: str):
@@ -602,10 +579,8 @@ class Client(Callbacks, SocketHandler):
 
         data = file.read()
 
-        async with self.session.post(f"{self.api}/g/s/media/upload", headers=headers.Headers(type=t, data=data, deviceId=self.device_id).headers, data=data) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+        async with self.session.post(f"{self.api}/g/s/media/upload", headers=headers.ApisHeaders(type=t, data=data, deviceId=self.device_id).headers, data=data) as response:
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return json.loads(await response.text())["mediaValue"]
 
     def handle_socket_message(self, data):
@@ -613,9 +588,7 @@ class Client(Callbacks, SocketHandler):
 
     async def get_eventlog(self, language: str = "en"):
         async with self.session.get(f"{self.api}/g/s/eventlog/profile?language={language}", headers=self.parse_headers()) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return json.loads(await response.text())
 
     async def sub_clients(self, start: int = 0, size: int = 25):
@@ -634,18 +607,14 @@ class Client(Callbacks, SocketHandler):
         if not self.authenticated: raise exceptions.NotLoggedIn()
 
         async with self.session.get(f"{self.api}/g/s/community/joined?v=1&start={start}&size={size}", headers=self.parse_headers()) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return objects.CommunityList(json.loads(await response.text())["communityList"]).CommunityList
 
     async def sub_clients_profile(self, start: int = 0, size: int = 25):
         if not self.authenticated: raise exceptions.NotLoggedIn()
 
         async with self.session.get(f"{self.api}/g/s/community/joined?v=1&start={start}&size={size}", headers=self.parse_headers()) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return json.loads(await response.text())["communityList"]
 
     async def get_user_info(self, userId: str):
@@ -661,9 +630,7 @@ class Client(Callbacks, SocketHandler):
             - **Fail** : :meth:`Exceptions <aminofixasync.lib.util.exceptions>`
         """
         async with self.session.get(f"{self.api}/g/s/user-profile/{userId}", headers=self.parse_headers()) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return objects.UserProfile(json.loads(await response.text())["userProfile"]).UserProfile
 
     async def get_chat_threads(self, start: int = 0, size: int = 25):
@@ -680,9 +647,7 @@ class Client(Callbacks, SocketHandler):
             - **Fail** : :meth:`Exceptions <aminofixasync.lib.util.exceptions>`
         """
         async with self.session.get(f"{self.api}/g/s/chat/thread?type=joined-me&start={start}&size={size}", headers=self.parse_headers()) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return objects.ThreadList(json.loads(await response.text())["threadList"]).ThreadList
 
     async def get_chat_thread(self, chatId: str):
@@ -698,16 +663,12 @@ class Client(Callbacks, SocketHandler):
             - **Fail** : :meth:`Exceptions <aminofixasync.lib.util.exceptions>`
         """
         async with self.session.get(f"{self.api}/g/s/chat/thread/{chatId}", headers=self.parse_headers()) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return objects.Thread(json.loads(await response.text())["thread"]).Thread
 
     async def get_chat_users(self, chatId: str, start: int = 0, size: int = 25):
         async with self.session.get(f"{self.api}/g/s/chat/thread/{chatId}/member?start={start}&size={size}&type=default&cv=1.2", headers=self.parse_headers()) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return objects.UserProfileList(json.loads(await response.text())["memberList"]).UserProfileList
 
     async def join_chat(self, chatId: str):
@@ -723,9 +684,7 @@ class Client(Callbacks, SocketHandler):
             - **Fail** : :meth:`Exceptions <aminofixasync.lib.util.exceptions>`
         """
         async with self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/member/{self.userId}", headers=self.parse_headers()) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return response.status
 
     async def leave_chat(self, chatId: str):
@@ -741,9 +700,7 @@ class Client(Callbacks, SocketHandler):
             - **Fail** : :meth:`Exceptions <aminofixasync.lib.util.exceptions>`
         """
         async with self.session.delete(f"{self.api}/g/s/chat/thread/{chatId}/member/{self.userId}", headers=self.parse_headers()) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return response.status
 
     async def start_chat(self, userId: Union[str, list], message: str, title: str = None, content: str = None, isGlobal: bool = False, publishToGlobal: bool = False):
@@ -784,9 +741,7 @@ class Client(Callbacks, SocketHandler):
         data = json.dumps(data)
 
         async with self.session.post(f"{self.api}/g/s/chat/thread", headers=self.parse_headers(data=data), data=data) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return response.status
 
     async def invite_to_chat(self, userId: Union[str, list], chatId: str):
@@ -812,9 +767,7 @@ class Client(Callbacks, SocketHandler):
         })
 
         async with self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/member/invite", headers=self.parse_headers(data=data), data=data) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return response.status
 
     async def kick(self, userId: str, chatId: str, allowRejoin: bool = True):
@@ -822,9 +775,7 @@ class Client(Callbacks, SocketHandler):
         if not allowRejoin: allowRejoin = 0
 
         async with self.session.delete(f"{self.api}/g/s/chat/thread/{chatId}/member/{userId}?allowRejoin={allowRejoin}", headers=self.parse_headers()) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return response.status
 
     async def get_chat_messages(self, chatId: str, size: int = 25, pageToken: str = None):
@@ -846,9 +797,7 @@ class Client(Callbacks, SocketHandler):
         else: url = f"{self.api}/g/s/chat/thread/{chatId}/message?v=2&pagingType=t&size={size}"
 
         async with self.session.get(url, headers=self.parse_headers()) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return objects.GetMessages(json.loads(await response.text())).GetMessages
 
     async def get_message_info(self, chatId: str, messageId: str):
@@ -865,9 +814,7 @@ class Client(Callbacks, SocketHandler):
             - **Fail** : :meth:`Exceptions <aminofixasync.lib.util.exceptions>`
         """
         async with self.session.get(f"{self.api}/g/s/chat/thread/{chatId}/message/{messageId}", headers=self.parse_headers()) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return objects.Message(json.loads(await response.text())["message"]).Message
 
     async def get_community_info(self, comId: str):
@@ -883,9 +830,7 @@ class Client(Callbacks, SocketHandler):
             - **Fail** : :meth:`Exceptions <aminofixasync.lib.util.exceptions>`
         """
         async with self.session.get(f"{self.api}/g/s-x{comId}/community/info?withInfluencerList=1&withTopicList=true&influencerListOrderStrategy=fansCount", headers=self.parse_headers()) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return objects.Community(json.loads(await response.text())["community"]).Community
 
     async def search_community(self, aminoId: str):
@@ -901,9 +846,7 @@ class Client(Callbacks, SocketHandler):
             - **Fail** : :meth:`Exceptions <aminofixasync.lib.util.exceptions>`
         """
         async with self.session.get(f"{self.api}/g/s/search/amino-id-and-link?q={aminoId}", headers=self.parse_headers()) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else:
                 response = json.loads(await response.text())["resultList"]
                 if len(response) == 0: raise exceptions.CommunityNotFound(aminoId)
@@ -924,9 +867,7 @@ class Client(Callbacks, SocketHandler):
             - **Fail** : :meth:`Exceptions <aminofixasync.lib.util.exceptions>`
         """
         async with self.session.get(f"{self.api}/g/s/user-profile/{userId}/joined?start={start}&size={size}", headers=self.parse_headers()) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return objects.UserProfileList(json.loads(await response.text())["userProfileList"]).UserProfileList
 
     async def get_user_followers(self, userId: str, start: int = 0, size: int = 25):
@@ -944,9 +885,7 @@ class Client(Callbacks, SocketHandler):
             - **Fail** : :meth:`Exceptions <aminofixasync.lib.util.exceptions>`
         """
         async with self.session.get(f"{self.api}/g/s/user-profile/{userId}/member?start={start}&size={size}", headers=self.parse_headers()) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return objects.UserProfileList(json.loads(await response.text())["userProfileList"]).UserProfileList
 
     async def get_user_visitors(self, userId: str, start: int = 0, size: int = 25):
@@ -964,9 +903,7 @@ class Client(Callbacks, SocketHandler):
             - **Fail** : :meth:`Exceptions <aminofixasync.lib.util.exceptions>`
         """
         async with self.session.get(f"{self.api}/g/s/user-profile/{userId}/visitors?start={start}&size={size}", headers=self.parse_headers()) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return objects.VisitorsList(json.loads(await response.text())).VisitorsList
 
     async def get_blocked_users(self, start: int = 0, size: int = 25):
@@ -983,9 +920,7 @@ class Client(Callbacks, SocketHandler):
             - **Fail** : :meth:`Exceptions <aminofixasync.lib.util.exceptions>`
         """
         async with self.session.get(f"{self.api}/g/s/block?start={start}&size={size}", headers=self.parse_headers()) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return objects.UserProfileList(json.loads(await response.text())["userProfileList"]).UserProfileList
 
     async def get_blog_info(self, blogId: str = None, wikiId: str = None, quizId: str = None, fileId: str = None):
@@ -993,23 +928,17 @@ class Client(Callbacks, SocketHandler):
             if quizId is not None: blogId = quizId
 
             async with self.session.get(f"{self.api}/g/s/blog/{blogId}", headers=self.parse_headers()) as response:
-                if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+                if response.status != 200: return exceptions.CheckException(await response.text())
                 else: return objects.GetBlogInfo(json.loads(await response.text())).GetBlogInfo
 
         elif wikiId:
             async with self.session.get(f"{self.api}/g/s/item/{wikiId}", headers=self.parse_headers()) as response:
-                if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+                if response.status != 200: return exceptions.CheckException(await response.text())
                 else: return objects.GetWikiInfo(json.loads(await response.text())).GetWikiInfo
 
         elif fileId:
             async with self.session.get(f"{self.api}/g/s/shared-folder/files/{fileId}", headers=self.parse_headers()) as response:
-                if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+                if response.status != 200: return exceptions.CheckException(await response.text())
                 else: return objects.SharedFolderFile(json.loads(await response.text())["file"]).SharedFolderFile
 
         else: raise exceptions.SpecifyType()
@@ -1028,9 +957,7 @@ class Client(Callbacks, SocketHandler):
         else: raise exceptions.SpecifyType()
 
         async with self.session.get(url, headers=self.parse_headers()) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return objects.CommentList(json.loads(await response.text())["commentList"]).CommentList
 
     async def get_blocker_users(self, start: int = 0, size: int = 25):
@@ -1047,9 +974,7 @@ class Client(Callbacks, SocketHandler):
             - **Fail** : :meth:`Exceptions <aminofixasync.lib.util.exceptions>`
         """
         async with self.session.get(f"{self.api}/g/s/block/full-list?start={start}&size={size}", headers=self.parse_headers()) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return json.loads(await response.text())["blockerUidList"]
 
     async def get_wall_comments(self, userId: str, sorting: str, start: int = 0, size: int = 25):
@@ -1074,9 +999,7 @@ class Client(Callbacks, SocketHandler):
         else: raise exceptions.WrongType(sorting)
 
         async with self.session.get(f"{self.api}/g/s/user-profile/{userId}/g-comment?sort={sorting}&start={start}&size={size}", headers=self.parse_headers()) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return objects.CommentList(json.loads(await response.text())["commentList"]).CommentList
 
     async def flag(self, reason: str, flagType: int, userId: str = None, blogId: str = None, wikiId: str = None, asGuest: bool = False):
@@ -1125,9 +1048,7 @@ class Client(Callbacks, SocketHandler):
         data = json.dumps(data)
 
         async with self.session.post(f"{self.api}/g/s/{flg}", headers=self.parse_headers(data=data), data=data) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return response.status
 
     async def send_message(self, chatId: str, message: str = None, messageType: int = 0, file: BinaryIO = None, fileType: str = None, replyTo: str = None, mentionUserIds: list = None, stickerId: str = None, embedId: str = None, embedType: int = None, embedLink: str = None, embedTitle: str = None, embedContent: str = None, embedImage: BinaryIO = None):
@@ -1213,9 +1134,7 @@ class Client(Callbacks, SocketHandler):
         data = json.dumps(data)
 
         async with self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/message", headers=self.parse_headers(data=data), data=data) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return response.status
 
     async def delete_message(self, chatId: str, messageId: str, asStaff: bool = False, reason: str = None):
@@ -1243,15 +1162,11 @@ class Client(Callbacks, SocketHandler):
 
         if not asStaff:
             async with self.session.delete(f"{self.api}/g/s/chat/thread/{chatId}/message/{messageId}", headers=self.parse_headers()) as response:
-                if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+                if response.status != 200: return exceptions.CheckException(await response.text())
                 else: return response.status
         else:
             async with self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/message/{messageId}/admin", headers=self.parse_headers(data=data), data=data) as response:
-                if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+                if response.status != 200: return exceptions.CheckException(await response.text())
                 else: return response.status
 
     async def mark_as_read(self, chatId: str, messageId: str):
@@ -1273,9 +1188,7 @@ class Client(Callbacks, SocketHandler):
         })
 
         async with self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/mark-as-read", headers=self.parse_headers(data=data), data=data) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return response.status
 
     async def edit_chat(self, chatId: str, doNotDisturb: bool = None, pinChat: bool = None, title: str = None, icon: str = None, backgroundImage: BinaryIO = None, content: str = None, announcement: str = None, coHosts: list = None, keywords: list = None, pinAnnouncement: bool = None, publishToGlobal: bool = None, canTip: bool = None, viewOnly: bool = None, canInvite: bool = None, fansOnly: bool = None):
@@ -1410,9 +1323,7 @@ class Client(Callbacks, SocketHandler):
             - **Fail** : :meth:`Exceptions <aminofixasync.lib.util.exceptions>`
         """
         async with self.session.get(f"{self.api}/g/s/user-profile/{userId}?action=visit", headers=self.parse_headers()) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return response.status
 
     async def send_coins(self, coins: int, blogId: str = None, chatId: str = None, objectId: str = None, transactionId: str = None):
@@ -1437,9 +1348,7 @@ class Client(Callbacks, SocketHandler):
         data = json.dumps(data)
 
         async with self.session.post(url, headers=self.parse_headers(data=data), data=data) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return response.status
 
     async def follow(self, userId: Union[str, list]):
@@ -1456,18 +1365,14 @@ class Client(Callbacks, SocketHandler):
         """
         if isinstance(userId, str):
             async with self.session.post(f"{self.api}/g/s/user-profile/{userId}/member", headers=self.parse_headers()) as response:
-                if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+                if response.status != 200: return exceptions.CheckException(await response.text())
                 else: return response.status
 
         elif isinstance(userId, list):
             data = json.dumps({"targetUidList": userId, "timestamp": int(timestamp() * 1000)})
 
             async with self.session.post(f"{self.api}/g/s/user-profile/{self.userId}/joined", headers=self.parse_headers(data=data), data=data) as response:
-                if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+                if response.status != 200: return exceptions.CheckException(await response.text())
                 else: return response.status
 
         else: raise exceptions.WrongType(type(userId))
@@ -1485,9 +1390,7 @@ class Client(Callbacks, SocketHandler):
             - **Fail** : :meth:`Exceptions <aminofixasync.lib.util.exceptions>`
         """
         async with self.session.delete(f"{self.api}/g/s/user-profile/{userId}/member/{self.userId}", headers=self.parse_headers()) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return response.status
 
     async def block(self, userId: str):
@@ -1503,9 +1406,7 @@ class Client(Callbacks, SocketHandler):
             - **Fail** : :meth:`Exceptions <aminofixasync.lib.util.exceptions>`
         """
         async with self.session.post(f"{self.api}/g/s/block/{userId}", headers=self.parse_headers()) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return response.status
 
     async def unblock(self, userId: str):
@@ -1521,9 +1422,7 @@ class Client(Callbacks, SocketHandler):
             - **Fail** : :meth:`Exceptions <aminofixasync.lib.util.exceptions>`
         """
         async with self.session.delete(f"{self.api}/g/s/block/{userId}", headers=self.parse_headers()) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return response.status
 
     async def join_community(self, comId: str, invitationCode: str = None):
@@ -1545,9 +1444,7 @@ class Client(Callbacks, SocketHandler):
         data = json.dumps(data)
 
         async with self.session.post(f"{self.api}/x{comId}/s/community/join", headers=self.parse_headers(data=data), data=data) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return response.status
 
     async def request_join_community(self, comId: str, message: str = None):
@@ -1566,9 +1463,7 @@ class Client(Callbacks, SocketHandler):
         data = json.dumps({"message": message, "timestamp": int(timestamp() * 1000)})
 
         async with self.session.post(f"{self.api}/x{comId}/s/community/membership-request", headers=self.parse_headers(data=data), data=data) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return response.status
 
     async def leave_community(self, comId: str):
@@ -1584,9 +1479,7 @@ class Client(Callbacks, SocketHandler):
             - **Fail** : :meth:`Exceptions <aminofixasync.lib.util.exceptions>`
         """
         async with self.session.post(f"{self.api}/x{comId}/s/community/leave", headers=self.parse_headers()) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return response.status
 
     async def flag_community(self, comId: str, reason: str, flagType: int, isGuest: bool = False):
@@ -1618,9 +1511,7 @@ class Client(Callbacks, SocketHandler):
         else: flg = "flag"
 
         async with self.session.post(f"{self.api}/x{comId}/s/{flg}", headers=self.parse_headers(data=data), data=data) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return response.status
 
     async def edit_profile(self, nickname: str = None, content: str = None, icon: BinaryIO = None, backgroundColor: str = None, backgroundImage: str = None, defaultBubbleId: str = None):
@@ -1659,9 +1550,7 @@ class Client(Callbacks, SocketHandler):
         data = json.dumps(data)
 
         async with self.session.post(f"{self.api}/g/s/user-profile/{self.userId}", headers=self.parse_headers(data=data), data=data) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return response.status
 
     async def set_privacy_status(self, isAnonymous: bool = False, getNotifications: bool = False):
@@ -1688,9 +1577,7 @@ class Client(Callbacks, SocketHandler):
         data = json.dumps(data)
 
         async with self.session.post(f"{self.api}/g/s/account/visit-settings", headers=self.parse_headers(data=data), data=data) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return response.status
 
     async def set_amino_id(self, aminoId: str):
@@ -1708,9 +1595,7 @@ class Client(Callbacks, SocketHandler):
         data = json.dumps({"aminoId": aminoId, "timestamp": int(timestamp() * 1000)})
 
         async with self.session.post(f"{self.api}/g/s/account/change-amino-id", headers=self.parse_headers(data=data), data=data) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return response.status
 
     async def get_linked_communities(self, userId: str):
@@ -1726,9 +1611,7 @@ class Client(Callbacks, SocketHandler):
             - **Fail** : :meth:`Exceptions <aminofixasync.lib.util.exceptions>`
         """
         async with self.session.get(f"{self.api}/g/s/user-profile/{userId}/linked-community", headers=self.parse_headers()) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return objects.CommunityList(json.loads(await response.text())["linkedCommunityList"]).CommunityList
 
     async def get_unlinked_communities(self, userId: str):
@@ -1744,9 +1627,7 @@ class Client(Callbacks, SocketHandler):
             - **Fail** : :meth:`Exceptions <aminofixasync.lib.util.exceptions>`
         """
         async with self.session.get(f"{self.api}/g/s/user-profile/{userId}/linked-community", headers=self.parse_headers()) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return objects.CommunityList(json.loads(await response.text())["unlinkedCommunityList"]).CommunityList
 
     async def reorder_linked_communities(self, comIds: list):
@@ -1764,9 +1645,7 @@ class Client(Callbacks, SocketHandler):
         data = json.dumps({"ndcIds": comIds, "timestamp": int(timestamp() * 1000)})
 
         async with self.session.post(f"{self.api}/g/s/user-profile/{self.userId}/linked-community/reorder", headers=self.parse_headers(data=data), data=data) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return response.status
 
     async def add_linked_community(self, comId: str):
@@ -1782,9 +1661,7 @@ class Client(Callbacks, SocketHandler):
             - **Fail** : :meth:`Exceptions <aminofixasync.lib.util.exceptions>`
         """
         async with self.session.post(f"{self.api}/g/s/user-profile/{self.userId}/linked-community/{comId}", headers=self.parse_headers()) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return response.status
 
     async def remove_linked_community(self, comId: str):
@@ -1800,9 +1677,7 @@ class Client(Callbacks, SocketHandler):
             - **Fail** : :meth:`Exceptions <aminofixasync.lib.util.exceptions>`
         """
         async with self.session.delete(f"{self.api}/g/s/user-profile/{self.userId}/linked-community/{comId}", headers=self.parse_headers()) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return response.status
 
     async def comment(self, message: str, userId: str = None, blogId: str = None, wikiId: str = None, replyTo: str = None):
@@ -1837,9 +1712,7 @@ class Client(Callbacks, SocketHandler):
             data = json.dumps(data)
 
             async with self.session.post(f"{self.api}/g/s/user-profile/{userId}/g-comment", headers=self.parse_headers(data=data), data=data) as response:
-                if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+                if response.status != 200: return exceptions.CheckException(await response.text())
                 else: return response.status
 
         elif blogId:
@@ -1847,9 +1720,7 @@ class Client(Callbacks, SocketHandler):
             data = json.dumps(data)
 
             async with self.session.post(f"{self.api}/g/s/blog/{blogId}/g-comment", headers=self.parse_headers(data=data), data=data) as response:
-                if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+                if response.status != 200: return exceptions.CheckException(await response.text())
                 else: return response.status
 
         elif wikiId:
@@ -1857,9 +1728,7 @@ class Client(Callbacks, SocketHandler):
             data = json.dumps(data)
 
             async with self.session.post(f"{self.api}/g/s/item/{wikiId}/g-comment", headers=self.parse_headers(data=data), data=data) as response:
-                if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+                if response.status != 200: return exceptions.CheckException(await response.text())
                 else: return response.status
 
         else: raise exceptions.SpecifyType()
@@ -1885,9 +1754,7 @@ class Client(Callbacks, SocketHandler):
         else: raise exceptions.SpecifyType()
 
         async with self.session.delete(url, headers=self.parse_headers()) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return response.status
 
     async def like_blog(self, blogId: Union[str, list] = None, wikiId: str = None):
@@ -1936,9 +1803,7 @@ class Client(Callbacks, SocketHandler):
             data = json.dumps(data)
 
             async with self.session.post(f"{self.api}/g/s/item/{wikiId}/g-vote?cv=1.2", headers=self.parse_headers(data=data), data=data) as response:
-                if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+                if response.status != 200: return exceptions.CheckException(await response.text())
                 else: return response.status
 
         else: raise exceptions.SpecifyType()
@@ -1961,9 +1826,7 @@ class Client(Callbacks, SocketHandler):
         else: raise exceptions.SpecifyType()
 
         async with self.session.delete(url, headers=self.parse_headers()) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return response.status
 
     async def like_comment(self, commentId: str, userId: str = None, blogId: str = None, wikiId: str = None):
@@ -1991,9 +1854,7 @@ class Client(Callbacks, SocketHandler):
             data = json.dumps(data)
 
             async with self.session.post(f"{self.api}/g/s/user-profile/{userId}/comment/{commentId}/g-vote?cv=1.2&value=1", headers=self.parse_headers(data=data), data=data) as response:
-                if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+                if response.status != 200: return exceptions.CheckException(await response.text())
                 else: return response.status
 
         elif blogId:
@@ -2001,9 +1862,7 @@ class Client(Callbacks, SocketHandler):
             data = json.dumps(data)
 
             async with self.session.post(f"{self.api}/g/s/blog/{blogId}/comment/{commentId}/g-vote?cv=1.2&value=1", headers=self.parse_headers(data=data), data=data) as response:
-                if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+                if response.status != 200: return exceptions.CheckException(await response.text())
                 else: return response.status
 
         elif wikiId:
@@ -2011,9 +1870,7 @@ class Client(Callbacks, SocketHandler):
             data = json.dumps(data)
 
             async with self.session.post(f"{self.api}/g/s/item/{wikiId}/comment/{commentId}/g-vote?cv=1.2&value=1", headers=self.parse_headers(data=data), data=data) as response:
-                if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+                if response.status != 200: return exceptions.CheckException(await response.text())
                 else: return response.status
 
         else: raise exceptions.SpecifyType()
@@ -2039,9 +1896,7 @@ class Client(Callbacks, SocketHandler):
         else: raise exceptions.SpecifyType()
 
         async with self.session.delete(url, headers=self.parse_headers()) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return response.status
 
     async def get_membership_info(self):
@@ -2057,9 +1912,7 @@ class Client(Callbacks, SocketHandler):
             - **Fail** : :meth:`Exceptions <aminofixasync.lib.util.exceptions>`
         """
         async with self.session.get(f"{self.api}/g/s/membership?force=true", headers=self.parse_headers()) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return objects.Membership(json.loads(await response.text())).Membership
 
     async def get_ta_announcements(self, language: str = "en", start: int = 0, size: int = 25):
@@ -2080,9 +1933,7 @@ class Client(Callbacks, SocketHandler):
         if language not in self.get_supported_languages(): raise exceptions.UnsupportedLanguage(language)
 
         async with self.session.get(f"{self.api}/g/s/announcement?language={language}&start={start}&size={size}", headers=self.parse_headers()) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return objects.BlogList(json.loads(await response.text())["blogList"]).BlogList
 
     async def get_wallet_info(self):
@@ -2098,9 +1949,7 @@ class Client(Callbacks, SocketHandler):
             - **Fail** : :meth:`Exceptions <aminofixasync.lib.util.exceptions>`
         """
         async with self.session.get(f"{self.api}/g/s/wallet", headers=self.parse_headers()) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return objects.WalletInfo(json.loads(await response.text())["wallet"]).WalletInfo
 
     async def get_wallet_history(self, start: int = 0, size: int = 25):
@@ -2117,9 +1966,7 @@ class Client(Callbacks, SocketHandler):
             - **Fail** : :meth:`Exceptions <aminofixasync.lib.util.exceptions>`
         """
         async with self.session.get(f"{self.api}/g/s/wallet/coin/history?start={start}&size={size}", headers=self.parse_headers()) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return objects.WalletHistory(json.loads(await response.text())["coinHistoryList"]).WalletHistory
 
     async def get_from_deviceid(self, deviceId: str):
@@ -2135,9 +1982,7 @@ class Client(Callbacks, SocketHandler):
             - **Fail** : :meth:`Exceptions <aminofixasync.lib.util.exceptions>`
         """
         async with self.session.get(f"{self.api}/g/s/auid?deviceId={deviceId}", headers=self.parse_headers()) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return json.loads(await response.text())["auid"]
 
     async def get_from_code(self, code: str):
@@ -2153,9 +1998,7 @@ class Client(Callbacks, SocketHandler):
             - **Fail** : :meth:`Exceptions <aminofixasync.lib.util.exceptions>`
         """
         async with self.session.get(f"{self.api}/g/s/link-resolution?q={code}", headers=self.parse_headers()) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return objects.FromCode(json.loads(await response.text())["linkInfoV2"]).FromCode
 
     async def get_from_id(self, objectId: str, objectType: int, comId: str = None):
@@ -2183,9 +2026,7 @@ class Client(Callbacks, SocketHandler):
         else: url = f"{self.api}/g/s/link-resolution"
 
         async with self.session.post(url, headers=self.parse_headers(data=data), data=data) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return objects.FromCode(json.loads(await response.text())["linkInfoV2"]).FromCode
 
     async def get_supported_languages(self):
@@ -2201,9 +2042,7 @@ class Client(Callbacks, SocketHandler):
             - **Fail** : :meth:`Exceptions <aminofixasync.lib.util.exceptions>`
         """
         async with self.session.get(f"{self.api}/g/s/community-collection/supported-languages?start=0&size=100", headers=self.parse_headers()) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return json.loads(await response.text())["supportedLanguages"]
 
     async def claim_new_user_coupon(self):
@@ -2219,9 +2058,7 @@ class Client(Callbacks, SocketHandler):
             - **Fail** : :meth:`Exceptions <aminofixasync.lib.util.exceptions>`
         """
         async with self.session.post(f"{self.api}/g/s/coupon/new-user-coupon/claim", headers=self.parse_headers()) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return response.status
 
     async def get_subscriptions(self, start: int = 0, size: int = 25):
@@ -2238,9 +2075,7 @@ class Client(Callbacks, SocketHandler):
             - **Fail** : :meth:`Exceptions <aminofixasync.lib.util.exceptions>`
         """
         async with self.session.get(f"{self.api}/g/s/store/subscription?objectType=122&start={start}&size={size}", headers=self.parse_headers()) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return json.loads(await response.text())["storeSubscriptionItemList"]
 
     async def get_all_users(self, start: int = 0, size: int = 25):
@@ -2257,16 +2092,12 @@ class Client(Callbacks, SocketHandler):
             - **Fail** : :meth:`Exceptions <aminofixasync.lib.util.exceptions>`
         """
         async with self.session.get(f"{self.api}/g/s/user-profile?type=recent&start={start}&size={size}", headers=self.parse_headers()) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return objects.UserProfileCountList(json.loads(await response.text())).UserProfileCountList
 
     async def accept_host(self, chatId: str, requestId: str):
         async with self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/transfer-organizer/{requestId}/accept", headers=self.parse_headers()) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return response.status
 
     async def accept_organizer(self, chatId: str, requestId: str):
@@ -2275,9 +2106,7 @@ class Client(Callbacks, SocketHandler):
     # Contributed by 'https://github.com/LynxN1'
     async def link_identify(self, code: str):
         async with self.session.get(f"{self.api}/g/s/community/link-identify?q=http%3A%2F%2Faminoapps.com%2Finvite%2F{code}", headers=self.parse_headers()) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return json.loads(await response.text())
 
     async def invite_to_vc(self, chatId: str, userId: str):
@@ -2299,9 +2128,7 @@ class Client(Callbacks, SocketHandler):
         })
 
         async with self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/vvchat-presenter/invite", headers=self.parse_headers(data=data), data=data) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return response.status
 
     async def wallet_config(self, level: int):
@@ -2323,16 +2150,12 @@ class Client(Callbacks, SocketHandler):
         })
 
         async with self.session.post(f"{self.api}/g/s/wallet/ads/config", headers=self.parse_headers(data=data), data=data) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return response.status
 
     async def get_avatar_frames(self, start: int = 0, size: int = 25):
         async with self.session.get(f"{self.api}/g/s/avatar-frame?start={start}&size={size}", headers=self.parse_headers()) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return objects.AvatarFrameList(json.loads(await response.text())["avatarFrameList"]).AvatarFrameList
     
     async def subscribe_amino_plus(self, transactionId="", sku="d940cf4a-6cf2-4737-9f3d-655234a92ea5"):
@@ -2360,9 +2183,7 @@ class Client(Callbacks, SocketHandler):
             }
         })
         async with self.session.post(f"{self.api}/g/s/membership/product/subscribe", headers=self.parse_headers(data=data), data=data) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return response.status
 
     async def watch_ad(self, userId: str = None):
@@ -2384,9 +2205,7 @@ class Client(Callbacks, SocketHandler):
             "timestamp": timestamp()
         })
         async with self.session.post(f"{self.api}/g/s/store/purchase", headers=self.parse_headers(data=data), data=data) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return response.status
 
     async def get_public_communities(self, language: str = "en", size: int = 25):
@@ -2403,7 +2222,5 @@ class Client(Callbacks, SocketHandler):
         """
 
         async with self.session.get(f"{self.api}/g/s/topic/0/feed/community?language={language}&type=web-explore&categoryKey=recommendation&size={size}&pagingType=t", headers=self.parse_headers()) as response:
-            if response.status != 200: 
-                    if response.status == 403: return exceptions.CheckException(await response.text()) 
-                    else: return exceptions.CheckException(json.loads(await response.text()))
+            if response.status != 200: return exceptions.CheckException(await response.text())
             else: return objects.CommunityList(json.loads(await response.text())["communityList"]).CommunityList
