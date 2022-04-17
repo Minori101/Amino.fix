@@ -19,7 +19,8 @@ def generate_device_info() -> dict:
     }
 
 def deviceId(data: bytes = None) -> str:
-    identifier = PREFIX + data or os.urandom(20)
+    if isinstance(data, str): data = bytes(data, 'utf-8')
+    identifier = PREFIX + (data or os.urandom(20))
     mac = new(DEVICE_KEY, identifier, sha1)
     return f"{identifier.hex()}{mac.hexdigest()}".upper()
 
