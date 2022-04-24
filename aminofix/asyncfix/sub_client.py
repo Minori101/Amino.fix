@@ -449,6 +449,15 @@ class SubClient(client.Client):
             if response.status != 200: return exceptions.CheckException(await response.text())
             else: return response.status
 
+    async def lottery(self, tz: int = -timezone // 1000):
+        data = json.dumps({
+            "timezone": tz,
+            "timestamp": int(timestamp() * 1000)
+        })
+        async with self.session.post(f"{self.api}/x{self.comId}/s/check-in/lottery", headers=self.parse_headers(data=data), data=data) as response:
+            if response.status != 200: return exceptions.CheckException(await response.text())
+            else:  return objects.LotteryLog(json.loads(await response.text())["lotteryLog"]).LotteryLog
+
     async def activity_status(self, status: str):
         if "on" in status.lower(): status = 1
         elif "off" in status.lower(): status = 2
@@ -786,6 +795,28 @@ class SubClient(client.Client):
 
         data = json.dumps(data)
 
+        async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/message", headers=self.parse_headers(data=data), data=data) as response:
+            if response.status != 200: return exceptions.CheckException(await response.text())
+            else: return response.status
+
+    async def full_embed(self, link: str, image: BinaryIO, message: str, chatId: str):
+        data = {
+        "type": 0,
+        "content": message,
+        "extensions": {
+            "linkSnippetList": [{
+                "link": link,
+                "mediaType": 100,
+                "mediaUploadValue": base64.b64encode(image.read()).decode(),
+                "mediaUploadValueContentType": "image/png"
+            }]
+        },
+            "clientRefId": int(timestamp() / 10 % 100000000),
+            "timestamp": int(timestamp() * 1000),
+            "attachedObject": None
+        }
+        
+        data = json.dumps(data)
         async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/message", headers=self.parse_headers(data=data), data=data) as response:
             if response.status != 200: return exceptions.CheckException(await response.text())
             else: return response.status

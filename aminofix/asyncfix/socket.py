@@ -39,26 +39,6 @@ class SocketHandler:
                 self.close()
                 self.run_amino_socket()
 
-    def on_open(self, **kwargs):
-        if self.debug is True:
-            print("[socket][on_open] Socket Opened")
-
-    def on_close(self, **kwargs):
-        if self.debug is True:
-            print("[socket][on_close] Socket Closed")
-
-        if self.active:
-            if self.debug is True:
-                print("[socket][on_close] Reconnect is True, Opening Socket")
-
-            self.run_amino_socket()
-
-    def on_ping(self, data):
-        if self.debug is True:
-            print("[socket][on_ping] Socket Pinged")
-
-        contextlib.suppress(self.socket.sock.pong(data))
-
     def handle_message(self, ws, data):
         self.client.handle_socket_message(data)
         return
@@ -92,9 +72,6 @@ class SocketHandler:
             self.socket = websocket.WebSocketApp(
                 f"{self.socket_url}/?signbody={final.replace('|', '%7C')}",
                 on_message = self.handle_message,
-                on_open = self.on_open,
-                on_close = self.on_close,
-                on_ping = self.on_ping,
                 header = self.headers
             )
 
