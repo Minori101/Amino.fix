@@ -262,6 +262,43 @@ class Client(Callbacks, SocketHandler):
                     self.run_amino_socket()
                 return response.status
 
+    async def login_secret(self, email: str, secret: str):
+        """
+        Login into an account.
+
+        **Parameters**
+            - **email** : Email of the account.
+            - **secret** : Secret of the account.
+
+        **Returns**
+            - **Success** : 200 (int)
+
+            - **Fail** : :meth:`Exceptions <aminofixasync.lib.util.exceptions>`
+        """
+        data = json.dumps({
+            "email": email,
+            "v": 2,
+            "secret": secret,
+            "deviceID": self.device_id,
+            "clientType": 100,
+            "action": "normal",
+            "timestamp": int(timestamp() * 1000)
+        })
+
+        async with self.session.post(f"{self.api}/g/s/auth/login", headers=self.parse_headers(data=data), data=data) as response:
+            if response.status != 200: return exceptions.CheckException(await response.text())
+            else:
+                self.authenticated = True
+                self.json = json.loads(await response.text())
+                self.sid = self.json["sid"]
+                self.userId = self.json["account"]["uid"]
+                self.account: objects.UserProfile = objects.UserProfile(self.json["account"]).UserProfile
+                self.profile: objects.UserProfile = objects.UserProfile(self.json["userProfile"]).UserProfile
+                headers.sid = self.sid
+                if self.socket_enabled:
+                    self.run_amino_socket()
+                return response.status
+
     async def register(self, nickname: str, email: str, password: str, verificationCode: str, deviceId: str = device.device_id):
         """
         Register an account.

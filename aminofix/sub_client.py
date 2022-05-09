@@ -540,7 +540,7 @@ class SubClient(client.Client):
         response = self.session.post(f"{self.api}/x{self.comId}/s/chat/thread", data=data, headers=self.parse_headers(data=data), proxies=self.proxies, verify=self.certificatePath)
         if response.status_code != 200: 
             return exceptions.CheckException(response.text)
-        else: return objects.objects.Thread(json.loads(response.text)["thread"]).Thread
+        else: return objects.Thread(json.loads(response.text)["thread"]).Thread
 
     def invite_to_chat(self, userId: Union[str, list], chatId: str):
         if isinstance(userId, str): userIds = [userId]

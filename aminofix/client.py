@@ -308,6 +308,50 @@ class Client(Callbacks, SocketHandler):
 
             return response.status_code
 
+    def login_secret(self, email: str, secret: str):
+        """
+        Login into an account.
+
+        **Parameters**
+            - **email** : Email of the account.
+            - **secret** : Secret of the account.
+
+        **Returns**
+            - **Success** : 200 (int)
+
+            - **Fail** : :meth:`Exceptions <aminofix.lib.util.exceptions>`
+        """
+        data = json.dumps({
+            "email": email,
+            "v": 2,
+            "secret": secret,
+            "deviceID": self.device_id,
+            "clientType": 100,
+            "action": "normal",
+            "timestamp": int(timestamp() * 1000)
+        })
+
+        response = self.session.post(f"{self.api}/g/s/auth/login", headers=self.parse_headers(data=data), data=data, proxies=self.proxies, verify=self.certificatePath)
+        self.run_amino_socket()
+        if response.status_code != 200: exceptions.CheckException(response.text)
+
+        else:
+            self.authenticated = True
+            self.json = json.loads(response.text)
+            self.sid = self.json["sid"]
+            self.userId = self.json["account"]["uid"]
+
+            self.account: objects.UserProfile = objects.UserProfile(self.json["account"]).UserProfile
+            self.profile: objects.UserProfile = objects.UserProfile(self.json["userProfile"]).UserProfile
+
+            headers.sid = self.sid
+            headers.userId = self.userId
+
+            if self.socket_enabled:
+                self.run_amino_socket()
+
+            return response.status_code
+
     def register(self, nickname: str, email: str, password: str, verificationCode: str, deviceId: str = headers.device):
         """
         Register an account.
@@ -840,7 +884,7 @@ class Client(Callbacks, SocketHandler):
         if response.status_code != 200: 
             return exceptions.CheckException(response.text)
         else:
-            return objects.objects.Thread(json.loads(response.text)["thread"]).Thread
+            return objects.Thread(json.loads(response.text)["thread"]).Thread
 
     def invite_to_chat(self, userId: Union[str, list], chatId: str):
         """
