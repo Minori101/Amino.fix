@@ -1054,7 +1054,17 @@ class SubClient(client.Client):
         async with self.session.delete(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/member/{self.profile.userId}", headers=self.parse_headers()) as response:
             if response.status != 200: return exceptions.CheckException(await response.text())
             else: return response.status
+
+    async def send_active_obj(self, startTime: int = None, endTime: int = None, optInAdsFlags: int = 2147483647, tz: int = -timezone // 1000, timers: list = None, timestamp: int = int(timestamp() * 1000)): 
+        data = {"userActiveTimeChunkList": [{"start": startTime, "end": endTime}], "timestamp": timestamp, "optInAdsFlags": optInAdsFlags, "timezone": tz} 
+        if timers: data["userActiveTimeChunkList"] = timers 
+        data = json_minify(json.dumps(data))  
         
+        async with self.session.post(f"{self.api}/x{self.comId}/s/community/stats/user-active-time", headers=parse_headers(data=data, deviceId=self.device_id), data=data) as response: 
+          if response.status != 200: 
+              return exceptions.CheckException(response.text) 
+          else: return response.status
+  
     async def delete_chat(self, chatId: str):
         """
         Delete a Chat.

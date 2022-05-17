@@ -41,7 +41,7 @@ class Client(Callbacks, SocketHandler):
         self.userId = None
         self.account: objects.UserProfile = objects.UserProfile(None)
         self.profile: objects.UserProfile = objects.UserProfile(None)
-
+        self.secret = None
 
         self.active_live_chats = []
 
@@ -255,6 +255,7 @@ class Client(Callbacks, SocketHandler):
             self.userId = self.json["account"]["uid"]
             self.account: objects.UserProfile = objects.UserProfile(self.json["account"]).UserProfile
             self.profile: objects.UserProfile = objects.UserProfile(self.json["userProfile"]).UserProfile
+            self.secret = self.json["secret"]
                 
             headers.sid = self.sid
             headers.userId = self.userId
@@ -262,7 +263,7 @@ class Client(Callbacks, SocketHandler):
             if self.socket_enabled:
                 self.run_amino_socket()
 
-            return response.status_code
+            return json.loads(response.text)
 
     def login_phone(self, phoneNumber: str, password: str):
         """
@@ -299,6 +300,7 @@ class Client(Callbacks, SocketHandler):
 
             self.account: objects.UserProfile = objects.UserProfile(self.json["account"]).UserProfile
             self.profile: objects.UserProfile = objects.UserProfile(self.json["userProfile"]).UserProfile
+            self.secret = self.json["secret"]
 
             headers.sid = self.sid
             headers.userId = self.userId
@@ -306,9 +308,9 @@ class Client(Callbacks, SocketHandler):
             if self.socket_enabled:
                 self.run_amino_socket()
 
-            return response.status_code
+            return json.loads(response.text)
 
-    def login_secret(self, email: str, secret: str):
+    def login_secret(self, secret: str):
         """
         Login into an account.
 
@@ -322,7 +324,6 @@ class Client(Callbacks, SocketHandler):
             - **Fail** : :meth:`Exceptions <aminofix.lib.util.exceptions>`
         """
         data = json.dumps({
-            "email": email,
             "v": 2,
             "secret": secret,
             "deviceID": self.device_id,
@@ -350,9 +351,9 @@ class Client(Callbacks, SocketHandler):
             if self.socket_enabled:
                 self.run_amino_socket()
 
-            return response.status_code
+            return json.loads(response.text)
 
-    def register(self, nickname: str, email: str, password: str, verificationCode: str, deviceId: str = headers.device):
+    def register(self, nickname: str, email: str, password: str, verificationCode: str, deviceId: str = device.device_id, timeout: int = None):
         """
         Register an account.
 
@@ -391,11 +392,11 @@ class Client(Callbacks, SocketHandler):
             "timestamp": int(timestamp() * 1000)
         })        
 
-        response = self.session.post(f"{self.api}/g/s/auth/register", data=data, headers=self.parse_headers(data=data), proxies=self.proxies, verify=self.certificatePath)
+        response = self.session.post(f"{self.api}/g/s/auth/register", data=data, headers=self.parse_headers(data=data), proxies=self.proxies, verify=self.certificatePath, timeout=timeout)
         if response.status_code != 200: 
             return exceptions.CheckException(response.text)
         else:
-            return response.status_code
+            return json.loads(response.text)
 
     def restore(self, email: str, password: str):
         """
@@ -521,7 +522,7 @@ class Client(Callbacks, SocketHandler):
         else:
             return response.status_code
 
-    def request_verify_code(self, email: str, resetPassword: bool = False):
+    def request_verify_code(self, email: str, resetPassword: bool = False, timeout: int = None):
         """
         Request an verification code to the targeted email.
 
@@ -545,7 +546,7 @@ class Client(Callbacks, SocketHandler):
             data["purpose"] = "reset-password"
 
         data = json.dumps(data)
-        response = self.session.post(f"{self.api}/g/s/auth/request-security-validation", headers=self.parse_headers(data=data), data=data, proxies=self.proxies, verify=self.certificatePath)
+        response = self.session.post(f"{self.api}/g/s/auth/request-security-validation", headers=self.parse_headers(data=data), data=data, proxies=self.proxies, verify=self.certificatePath, timeout=timeout)
         if response.status_code != 200: 
             return exceptions.CheckException(response.text)
         else:
@@ -2417,7 +2418,7 @@ class Client(Callbacks, SocketHandler):
             - **Fail** : :meth:`Exceptions <aminofix.lib.util.exceptions>`
         """
 
-        response = requests.get(f"{self.api}/g/s/topic/0/feed/community?language={language}&type=web-explore&categoryKey=recommendation&size={size}&pagingType=t", headers=self.headers)
+        response = requests.get(f"{self.api}/g/s/topic/0/feed/community?language={language}&type=web-explore&categoryKey=recommendation&size={size}&pagingType=t", headers=self.parse_headers())
         if response.status_code != 200: 
             return exceptions.CheckException(response.text)
         else:
