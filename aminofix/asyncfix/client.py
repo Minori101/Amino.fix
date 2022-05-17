@@ -37,6 +37,7 @@ class Client(Callbacks, SocketHandler):
         self.userId = None
         self.account: objects.UserProfile = objects.UserProfile(None)
         self.profile: objects.UserProfile = objects.UserProfile(None)
+        self.secret = None
         self.session = aiohttp.ClientSession()
     
     def __del__(self):
@@ -50,11 +51,8 @@ class Client(Callbacks, SocketHandler):
     async def _close_session(self):
         if not self.session.closed: await self.session.close()
 
-    def parse_headers(self, data = None):
-        if not data:
-            return headers.ApisHeaders(deviceId=self.device_id).headers
-        else:
-            return headers.ApisHeaders(deviceId=self.device_id, data=data).headers
+    def parse_headers(self, data: str = None, type: str = None):
+        return headers.ApisHeaders(deviceId=self.device_id, data=data, type=type).headers
 
     async def join_voice_chat(self, comId: str, chatId: str, joinType: int = 1):
         """
@@ -220,10 +218,11 @@ class Client(Callbacks, SocketHandler):
                 self.userId = self.json["account"]["uid"]
                 self.account: objects.UserProfile = objects.UserProfile(self.json["account"]).UserProfile
                 self.profile: objects.UserProfile = objects.UserProfile(self.json["userProfile"]).UserProfile
+                self.secret = self.json["secret"]
                 headers.sid = self.sid
                 if self.socket_enabled:
                     self.run_amino_socket()
-                return response.status
+                return json.loads(await response.text())
 
     async def login_phone(self, phoneNumber: str, password: str):
         """
@@ -257,17 +256,17 @@ class Client(Callbacks, SocketHandler):
                 self.userId = self.json["account"]["uid"]
                 self.account: objects.UserProfile = objects.UserProfile(self.json["account"]).UserProfile
                 self.profile: objects.UserProfile = objects.UserProfile(self.json["userProfile"]).UserProfile
+                self.secret = self.json["secret"]
                 headers.sid = self.sid
                 if self.socket_enabled:
                     self.run_amino_socket()
-                return response.status
+                return json.loads(await response.text())
 
-    async def login_secret(self, email: str, secret: str):
+    async def login_secret(self, secret: str):
         """
         Login into an account.
 
         **Parameters**
-            - **email** : Email of the account.
             - **secret** : Secret of the account.
 
         **Returns**
@@ -276,7 +275,6 @@ class Client(Callbacks, SocketHandler):
             - **Fail** : :meth:`Exceptions <aminofixasync.lib.util.exceptions>`
         """
         data = json.dumps({
-            "email": email,
             "v": 2,
             "secret": secret,
             "deviceID": self.device_id,
@@ -297,7 +295,7 @@ class Client(Callbacks, SocketHandler):
                 headers.sid = self.sid
                 if self.socket_enabled:
                     self.run_amino_socket()
-                return response.status
+                return json.loads(await response.text())
 
     async def register(self, nickname: str, email: str, password: str, verificationCode: str, deviceId: str = device.device_id):
         """
@@ -1308,12 +1306,12 @@ class Client(Callbacks, SocketHandler):
 
         if viewOnly is not None:
             if viewOnly:
-                async with self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/view-only/enable", headers=self.parse_headers()) as response:
+                async with self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/view-only/enable", headers=self.parse_headers(type="application/x-www-form-urlencoded")) as response:
                     if response.status != 200: res.append(exceptions.CheckException(json.loads(await response.text())))
                     else: res.append(response.status)
 
             if not viewOnly:
-                async with self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/view-only/disable", headers=self.parse_headers()) as response:
+                async with self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/view-only/disable", headers=self.parse_headers(type="application/x-www-form-urlencoded")) as response:
                     if response.status != 200: res.append(exceptions.CheckException(json.loads(await response.text())))
                     else: res.append(response.status)
 

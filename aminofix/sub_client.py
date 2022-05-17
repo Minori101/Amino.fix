@@ -51,8 +51,8 @@ class SubClient(client.Client):
         except AttributeError: raise exceptions.FailedLogin()
         except exceptions.UserUnavailable: pass
 
-    def parse_headers(self, data: str = None):
-        return headers.ApisHeaders(deviceId=self.device_id, data=data).headers
+    def parse_headers(self, data: str = None, type: str = None):
+        return headers.ApisHeaders(deviceId=self.device_id, data=data, type=type).headers
 
     def get_invite_codes(self, status: str = "normal", start: int = 0, size: int = 25):
         response = self.session.get(f"{self.api}/g/s-x{self.comId}/community/invitation?status={status}&start={start}&size={size}", headers=self.parse_headers(), proxies=self.proxies, verify=self.certificatePath)
@@ -986,12 +986,12 @@ class SubClient(client.Client):
 
         if viewOnly is not None:
             if viewOnly:
-                response = self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/view-only/enable", headers=self.parse_headers(), proxies=self.proxies, verify=self.certificatePath)
+                response = self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/view-only/enable", headers=self.parse_headers(type="application/x-www-form-urlencoded"), proxies=self.proxies, verify=self.certificatePath)
                 if response.status_code != 200: res.append(exceptions.CheckException(json.loads(response.text)))
                 else: res.append(response.status_code)
 
             if not viewOnly:
-                response = self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/view-only/disable", headers=self.parse_headers(), proxies=self.proxies, verify=self.certificatePath)
+                response = self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/view-only/disable", headers=self.parse_headers(type="application/x-www-form-urlencoded"), proxies=self.proxies, verify=self.certificatePath)
                 if response.status_code != 200: res.append(exceptions.CheckException(json.loads(response.text)))
                 else: res.append(response.status_code)
 

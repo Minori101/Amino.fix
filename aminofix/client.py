@@ -45,8 +45,8 @@ class Client(Callbacks, SocketHandler):
 
         self.active_live_chats = []
 
-    def parse_headers(self, data: str = None):
-        return headers.ApisHeaders(deviceId=self.device_id, data=data).headers
+    def parse_headers(self, data: str = None, type: str = None):
+        return headers.ApisHeaders(deviceId=self.device_id, data=data, type=type).headers
 
 
     def join_voice_chat(self, comId: str, chatId: str, joinType: int = 1, keep_alive: bool = True):
@@ -315,7 +315,6 @@ class Client(Callbacks, SocketHandler):
         Login into an account.
 
         **Parameters**
-            - **email** : Email of the account.
             - **secret** : Secret of the account.
 
         **Returns**
@@ -1451,13 +1450,13 @@ class Client(Callbacks, SocketHandler):
         if viewOnly is not None:
             if viewOnly:
                 
-                response = self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/view-only/enable", headers=self.parse_headers(), proxies=self.proxies, verify=self.certificatePath)
+                response = self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/view-only/enable", headers=self.parse_headers(type="application/x-www-form-urlencoded"), proxies=self.proxies, verify=self.certificatePath)
                 if response.status_code != 200: res.append(exceptions.CheckException(json.loads(response.text)))
                 else: res.append(response.status_code)
 
             if not viewOnly:
                 
-                response = self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/view-only/disable", headers=self.parse_headers(), proxies=self.proxies, verify=self.certificatePath)
+                response = self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/view-only/disable", headers=self.parse_headers(type="application/x-www-form-urlencoded"), proxies=self.proxies, verify=self.certificatePath)
                 if response.status_code != 200: res.append(exceptions.CheckException(json.loads(response.text)))
                 else: res.append(response.status_code)
 

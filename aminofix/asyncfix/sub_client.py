@@ -66,11 +66,8 @@ class SubClient(client.Client):
     async def _close_session(self):
         if not self.session.closed: await self.session.close()
 
-    def parse_headers(self, data = None, sig = None):
-        if data is not None:
-            return headers.ApisHeaders(data=data, deviceId=self.device_id, sig=sig).headers
-        else:
-            return headers.ApisHeaders(deviceId=self.device_id).headers
+    def parse_headers(self, data: str = None, type: str = None):
+        return headers.ApisHeaders(deviceId=self.device_id, data=data, type=type).headers
 
     async def get_invite_codes(self, status: str = "normal", start: int = 0, size: int = 25):
         async with self.session.get(f"{self.api}/g/s-x{self.comId}/community/invitation?status={status}&start={start}&size={size}", headers=self.parse_headers()) as response:
@@ -956,12 +953,12 @@ class SubClient(client.Client):
 
         if viewOnly is not None:
             if viewOnly:
-                async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/view-only/enable", headers=self.parse_headers()) as response:
+                async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/view-only/enable", headers=self.parse_headers(type="application/x-www-form-urlencoded")) as response:
                     if response.status != 200: res.append(exceptions.CheckException(json.loads(await response.text())))
                     else: res.append(response.status)
 
             if not viewOnly:
-                async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/view-only/disable", headers=self.parse_headers()) as response:
+                async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/view-only/disable", headers=self.parse_headers(type="application/x-www-form-urlencoded")) as response:
                     if response.status != 200: res.append(exceptions.CheckException(json.loads(await response.text())))
                     else: res.append(response.status)
 
