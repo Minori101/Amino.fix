@@ -2,7 +2,7 @@ __title__ = 'Amino.fix'
 __author__ = 'Minori'
 __license__ = 'MIT'
 __copyright__ = 'Copyright 2021-2022 Minori'
-__version__ = '2.3.4.5'
+__version__ = '2.3.4.6'
 
 from .acm import ACM
 from .client import Client
