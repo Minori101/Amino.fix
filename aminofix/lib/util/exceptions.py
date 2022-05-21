@@ -841,7 +841,7 @@ class UserHasBeenDeleted(Exception):
     def __init__(*args, **kwargs):
         Exception.__init__(*args, **kwargs)
 
-class IpTomporaryBan(Exception):
+class IpTemporaryBan(Exception):
     """
     - **API Code** : 403
     - **API Message** : 403 Forbidden.
@@ -912,7 +912,7 @@ def CheckException(data):
     elif api_code == 300: raise BadImage(data)
     elif api_code == 313: raise InvalidThemepack(data)
     elif api_code == 314: raise InvalidVoiceNote(data)
-    elif api_code == 403: raise IpTomporaryBan(data)
+    elif api_code == 403: raise IpTemporaryBan(data)
     elif api_code == 500 or api_code == 700 or api_code == 1600: raise RequestedNoLongerExists(data)
     elif api_code == 503: raise PageRepostedTooRecently(data)
     elif api_code == 551: raise InsufficientLevel(data)

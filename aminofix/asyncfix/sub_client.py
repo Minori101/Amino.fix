@@ -1057,7 +1057,7 @@ class SubClient(client.Client):
         if timers: data["userActiveTimeChunkList"] = timers 
         data = json_minify(json.dumps(data))  
         
-        async with self.session.post(f"{self.api}/x{self.comId}/s/community/stats/user-active-time", headers=self.parse_headers(data=data, deviceId=self.device_id), data=data) as response: 
+        async with self.session.post(f"{self.api}/x{self.comId}/s/community/stats/user-active-time", headers=self.parse_headers(data=data), data=data) as response: 
           if response.status != 200: 
               return exceptions.CheckException(response.text) 
           else: return response.status
