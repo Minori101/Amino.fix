@@ -1554,7 +1554,7 @@ class SubClient(client.Client):
         """
         async with self.session.get(f"{self.api}/x{self.comId}/s/notice?type=usersV2&status=1&start={start}&size={size}", headers=self.parse_headers()) as response:
             if response.status != 200: return exceptions.CheckException(await response.text())
-            else: return json.loads(await response.text())["noticeList"]
+            else: return objects.NoticeList(json.loads(await response.text())["noticeList"]).NoticeList
 
     async def get_sticker_pack_info(self, sticker_pack_id: str):
         async with self.session.get(f"{self.api}/x{self.comId}/s/sticker-collection/{sticker_pack_id}?includeStickers=true", headers=self.parse_headers()) as response:

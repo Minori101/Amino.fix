@@ -1615,7 +1615,6 @@ class SubClient(client.Client):
             return exceptions.CheckException(response.text)
         else: return objects.NotificationList(json.loads(response.text)["notificationList"]).NotificationList
 
-    # TODO : Get notice to finish this
     def get_notices(self, start: int = 0, size: int = 25):
         """
         :param start: Start of the List (Start: 0)
@@ -1625,7 +1624,7 @@ class SubClient(client.Client):
         response = self.session.get(f"{self.api}/x{self.comId}/s/notice?type=usersV2&status=1&start={start}&size={size}", headers=self.parse_headers(), proxies=self.proxies, verify=self.certificatePath)
         if response.status_code != 200: 
             return exceptions.CheckException(response.text)
-        else: return json.loads(response.text)["noticeList"]
+        else: return objects.NoticeList(json.loads(response.text)["noticeList"]).NoticeList
 
     def get_sticker_pack_info(self, sticker_pack_id: str):
         response = self.session.get(f"{self.api}/x{self.comId}/s/sticker-collection/{sticker_pack_id}?includeStickers=true", headers=self.parse_headers(), proxies=self.proxies, verify=self.certificatePath)

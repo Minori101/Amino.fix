@@ -4245,3 +4245,58 @@ class StoreStickers:
             except (KeyError, TypeError): self.smallIcon.append(None)
 
         return self
+
+class NoticeList:
+    def __init__(self, data):
+        self.json = data
+
+        self.notificationId = []
+        self.noticeId = []
+        self.ndcId = []
+        self.title = []
+
+        self.targetNickname = []
+        self.targetLevel = []
+        self.targetReputation = []
+        self.targetUid = []
+
+        self.operatorNickname = []
+        self.operatorLevel = []
+        self.operatorReputation = []
+        self.operatorUid = []
+        self.operatorRole = []
+
+    @property
+    def NoticeList(self):
+        for x in self.json:
+            try: self.notificationId.append(x["notificationId"])
+            except (KeyError, TypeError): self.notificationId.append(None)
+            try: self.noticeId.append(x["noticeId"])
+            except (KeyError, TypeError): self.noticeId.append(None)
+            try: self.ndcId.append(x["ndcId"])
+            except (KeyError, TypeError): self.ndcId.append(None)
+            try: self.title.append(x["title"])
+            except (KeyError, TypeError): self.title.append(None)
+
+            try: self.targetNickname.append(x["targetUser"]["nickname"])
+            except (KeyError, TypeError): self.targetNickname.append(None)
+            try: self.targetLevel.append(x["targetUser"]["level"])
+            except (KeyError, TypeError): self.targetLevel.append(None)
+            try: self.targetReputation.append(x["targetUser"]["reputation"])
+            except (KeyError, TypeError): self.targetReputation.append(None)
+            try: self.targetUid.append(x["targetUser"]["uid"])
+            except (KeyError, TypeError): self.targetUid.append(None)
+
+            try: self.operatorNickname.append(x["operator"]["nickname"])
+            except (KeyError, TypeError): self.operatorNickname.append(None)
+            try: self.operatorLevel.append(x["operator"]["level"])
+            except (KeyError, TypeError): self.operatorLevel.append(None)
+            try: self.operatorReputation.append(x["operator"]["reputation"])
+            except (KeyError, TypeError): self.operatorReputation.append(None)
+            try: self.operatorUid.append(x["operator"]["uid"])
+            except (KeyError, TypeError): self.operatorUid.append(None)
+            try: self.operatorRole.append(x["operator"]["role"])
+            except (KeyError, TypeError): self.operatorRole.append(None)
+
+
+        return self
