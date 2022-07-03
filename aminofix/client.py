@@ -759,7 +759,7 @@ class Client(Callbacks, SocketHandler):
     def watch_ad(self, userId: str = None):
         data = json.dumps(headers.Tapjoy(userId if userId else self.userId).data) 
         response = self.session.post("https://ads.tapdaq.com/v4/analytics/reward", data=data, headers=headers.Tapjoy().headers)
-        if response.status_code != 204: return exceptions.CheckException(json.loads(response.text))
+        if response.status_code != 204: return exceptions.CheckException(response.text)
         else: return response.status_code
 
     def get_chat_threads(self, start: int = 0, size: int = 25):
@@ -1412,84 +1412,84 @@ class Client(Callbacks, SocketHandler):
                 data = json.dumps({"alertOption": 2, "timestamp": int(timestamp() * 1000)})
                 
                 response = self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/member/{self.userId}/alert", data=data, headers=self.parse_headers(data=data), proxies=self.proxies, verify=self.certificatePath)
-                if response.status_code != 200: res.append(exceptions.CheckException(json.loads(response.text)))
+                if response.status_code != 200: res.append(exceptions.CheckException(response.text))
                 else: res.append(response.status_code)
 
             if not doNotDisturb:
                 data = json.dumps({"alertOption": 1, "timestamp": int(timestamp() * 1000)})
                 
                 response = self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/member/{self.userId}/alert", data=data, headers=self.parse_headers(data=data), proxies=self.proxies, verify=self.certificatePath)
-                if response.status_code != 200: res.append(exceptions.CheckException(json.loads(response.text)))
+                if response.status_code != 200: res.append(exceptions.CheckException(response.text))
                 else: res.append(response.status_code)
 
         if pinChat is not None:
             if pinChat:
                 response = self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/pin", data=data, headers=self.parse_headers(), proxies=self.proxies, verify=self.certificatePath)
-                if response.status_code != 200: res.append(exceptions.CheckException(json.loads(response.text)))
+                if response.status_code != 200: res.append(exceptions.CheckException(response.text))
                 else: res.append(response.status_code)
 
             if not pinChat:
                 response = self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/unpin", data=data, headers=self.parse_headers(), proxies=self.proxies, verify=self.certificatePath)
-                if response.status_code != 200: res.append(exceptions.CheckException(json.loads(response.text)))
+                if response.status_code != 200: res.append(exceptions.CheckException(response.text))
                 else: res.append(response.status_code)
 
         if backgroundImage is not None:
             data = json.dumps({"media": [100, backgroundImage, None], "timestamp": int(timestamp() * 1000)})
             
             response = self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/member/{self.userId}/background", data=data, headers=self.parse_headers(data=data), proxies=self.proxies, verify=self.certificatePath)
-            if response.status_code != 200: res.append(exceptions.CheckException(json.loads(response.text)))
+            if response.status_code != 200: res.append(exceptions.CheckException(response.text))
             else: res.append(response.status_code)
 
         if coHosts is not None:
             data = json.dumps({"uidList": coHosts, "timestamp": int(timestamp() * 1000)})
             
             response = self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/co-host", data=data, headers=self.parse_headers(data=data), proxies=self.proxies, verify=self.certificatePath)
-            if response.status_code != 200: res.append(exceptions.CheckException(json.loads(response.text)))
+            if response.status_code != 200: res.append(exceptions.CheckException(response.text))
             else: res.append(response.status_code)
 
         if viewOnly is not None:
             if viewOnly:
                 
                 response = self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/view-only/enable", headers=self.parse_headers(type="application/x-www-form-urlencoded"), proxies=self.proxies, verify=self.certificatePath)
-                if response.status_code != 200: res.append(exceptions.CheckException(json.loads(response.text)))
+                if response.status_code != 200: res.append(exceptions.CheckException(response.text))
                 else: res.append(response.status_code)
 
             if not viewOnly:
                 
                 response = self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/view-only/disable", headers=self.parse_headers(type="application/x-www-form-urlencoded"), proxies=self.proxies, verify=self.certificatePath)
-                if response.status_code != 200: res.append(exceptions.CheckException(json.loads(response.text)))
+                if response.status_code != 200: res.append(exceptions.CheckException(response.text))
                 else: res.append(response.status_code)
 
         if canInvite is not None:
             if canInvite:
                 
                 response = self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/members-can-invite/enable", data=data, headers=self.parse_headers(data=data), proxies=self.proxies, verify=self.certificatePath)
-                if response.status_code != 200: res.append(exceptions.CheckException(json.loads(response.text)))
+                if response.status_code != 200: res.append(exceptions.CheckException(response.text))
                 else: res.append(response.status_code)
 
             if not canInvite:
                 
                 response = self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/members-can-invite/disable", data=data, headers=self.parse_headers(data=data), proxies=self.proxies, verify=self.certificatePath)
-                if response.status_code != 200: res.append(exceptions.CheckException(json.loads(response.text)))
+                if response.status_code != 200: res.append(exceptions.CheckException(response.text))
                 else: res.append(response.status_code)
 
         if canTip is not None:
             if canTip:
                 
                 response = self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/tipping-perm-status/enable", data=data, headers=self.parse_headers(data=data), proxies=self.proxies, verify=self.certificatePath)
-                if response.status_code != 200: res.append(exceptions.CheckException(json.loads(response.text)))
+                if response.status_code != 200: res.append(exceptions.CheckException(response.text))
                 else: res.append(response.status_code)
 
             if not canTip:
                 
                 response = self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/tipping-perm-status/disable", data=data, headers=self.parse_headers(data=data), proxies=self.proxies, verify=self.certificatePath)
-                if response.status_code != 200: res.append(exceptions.CheckException(json.loads(response.text)))
+                if response.status_code != 200: res.append(exceptions.CheckException(response.text))
                 else: res.append(response.status_code)
 
         data = json.dumps(data)
         
         response = self.session.post(f"{self.api}/g/s/chat/thread/{chatId}", headers=self.parse_headers(data=data), data=data, proxies=self.proxies, verify=self.certificatePath)
-        if response.status_code != 200: res.append(exceptions.CheckException(json.loads(response.text)))
+        if response.status_code != 200: res.append(exceptions.CheckException(response.text))
         else: res.append(response.status_code)
 
         return res
