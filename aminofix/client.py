@@ -1489,7 +1489,7 @@ class Client(Callbacks, SocketHandler):
         data = json.dumps(data)
         
         response = self.session.post(f"{self.api}/g/s/chat/thread/{chatId}", headers=self.parse_headers(data=data), data=data, proxies=self.proxies, verify=self.certificatePath)
-        if response.status_code != 200:res.append(exceptions.CheckException(response.text))
+        if response.status_code != 200: res.append(exceptions.CheckException(response.text))
         else: res.append(response.status_code)
 
         return res
