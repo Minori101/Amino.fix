@@ -11,6 +11,7 @@ from json_minify import json_minify
 
 from . import client
 from .lib.util import exceptions, headers, device, objects, signature
+from .lib.util.helpers import deviceId
 
 device = device.DeviceGenerator()
 headers.sid = client.Client().sid
@@ -52,7 +53,7 @@ class SubClient(client.Client):
         except exceptions.UserUnavailable: pass
 
     def parse_headers(self, data: str = None, type: str = None):
-        return headers.ApisHeaders(deviceId=self.device_id, data=data, type=type).headers
+        return headers.ApisHeaders(deviceId=deviceId() if self.autoDevice else self.device_id, data=data, type=type).headers
 
     def get_invite_codes(self, status: str = "normal", start: int = 0, size: int = 25):
         response = self.session.get(f"{self.api}/g/s-x{self.comId}/community/invitation?status={status}&start={start}&size={size}", headers=self.parse_headers(), proxies=self.proxies, verify=self.certificatePath)

@@ -20,12 +20,13 @@ from .socket import Callbacks, SocketHandler
 device = device.DeviceGenerator()
 
 class Client(Callbacks, SocketHandler):
-    def __init__(self, deviceId: str = None, proxies: dict = None, certificatePath = None, socket_trace = False, socketDebugging = False, socket_enabled = True):
+    def __init__(self, deviceId: str = None, proxies: dict = None, certificatePath = None, socket_trace = False, socketDebugging = False, socket_enabled = True, autoDevice = False):
         self.api = "https://service.narvii.com/api/v1"
         self.authenticated = False
         self.configured = False
         self.user_agent = device.user_agent
         self.session = requests.Session()
+        self.autoDevice = autoDevice
 
         if deviceId: self.device_id = deviceId
         else: self.device_id = device.device_id
@@ -46,7 +47,7 @@ class Client(Callbacks, SocketHandler):
         self.active_live_chats = []
 
     def parse_headers(self, data: str = None, type: str = None):
-        return headers.ApisHeaders(deviceId=self.device_id, data=data, type=type).headers
+        return headers.ApisHeaders(deviceId=deviceId() if self.autoDevice else self.device_id, data=data, type=type).headers
 
 
     def join_voice_chat(self, comId: str, chatId: str, joinType: int = 1, keep_alive: bool = True):
