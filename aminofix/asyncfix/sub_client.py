@@ -919,74 +919,74 @@ class SubClient(client.Client):
             if doNotDisturb:
                 data = json.dumps({"alertOption": 2, "timestamp": int(timestamp() * 1000)})
                 async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/member/{self.profile.userId}/alert", headers=self.parse_headers(data=data), data=data) as response:
-                    if response.status != 200: res.append(exceptions.CheckException(json.loads(await response.text())))
+                    if response.status != 200: res.append(exceptions.CheckException(await response.text()))
                     else: res.append(response.status)
 
             if not doNotDisturb:
                 data = json.dumps({"alertOption": 1, "timestamp": int(timestamp() * 1000)})
                 async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/member/{self.profile.userId}/alert", headers=self.parse_headers(data=data), data=data) as response:
-                    if response.status != 200: res.append(exceptions.CheckException(json.loads(await response.text())))
+                    if response.status != 200: res.append(exceptions.CheckException(await response.text()))
                     else: res.append(response.status)
 
         if pinChat is not None:
             if pinChat:
                 async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/pin", headers=self.parse_headers()) as response:
-                    if response.status != 200: res.append(exceptions.CheckException(json.loads(await response.text())))
+                    if response.status != 200: res.append(exceptions.CheckException(await response.text()))
                     else: res.append(response.status)
 
             if not pinChat:
                 async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/unpin", headers=self.parse_headers()) as response:
-                    if response.status != 200: res.append(exceptions.CheckException(json.loads(await response.text())))
+                    if response.status != 200: res.append(exceptions.CheckException(await response.text()))
                     else: res.append(response.status)
 
         if backgroundImage is not None:
             data = json.dumps({"media": [100, self.upload_media(backgroundImage, "image"), None], "timestamp": int(timestamp() * 1000)})
             async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/member/{self.profile.userId}/background", headers=self.parse_headers(data=data), data=data) as response:
-                if response.status != 200: res.append(exceptions.CheckException(json.loads(await response.text())))
+                if response.status != 200: res.append(exceptions.CheckException(await response.text()))
                 else: res.append(response.status)
 
         if coHosts is not None:
             data = json.dumps({"uidList": coHosts, "timestamp": int(timestamp() * 1000)})
             async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/co-host", headers=self.parse_headers(data=data), data=data) as response:
-                if response.status != 200: res.append(exceptions.CheckException(json.loads(await response.text())))
+                if response.status != 200: res.append(exceptions.CheckException(await response.text()))
                 else: res.append(response.status)
 
         if viewOnly is not None:
             if viewOnly:
                 async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/view-only/enable", headers=self.parse_headers(type="application/x-www-form-urlencoded")) as response:
-                    if response.status != 200: res.append(exceptions.CheckException(json.loads(await response.text())))
+                    if response.status != 200: res.append(exceptions.CheckException(await response.text()))
                     else: res.append(response.status)
 
             if not viewOnly:
                 async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/view-only/disable", headers=self.parse_headers(type="application/x-www-form-urlencoded")) as response:
-                    if response.status != 200: res.append(exceptions.CheckException(json.loads(await response.text())))
+                    if response.status != 200: res.append(exceptions.CheckException(await response.text()))
                     else: res.append(response.status)
 
         if canInvite is not None:
             if canInvite:
                 async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/members-can-invite/enable", headers=self.parse_headers(data=data), data=data) as response:
-                    if response.status != 200: res.append(exceptions.CheckException(json.loads(await response.text())))
+                    if response.status != 200: res.append(exceptions.CheckException(await response.text()))
                     else: res.append(response.status)
 
             if not canInvite:
                 async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/members-can-invite/disable", headers=self.parse_headers(data=data), data=data) as response:
-                    if response.status != 200: res.append(exceptions.CheckException(json.loads(await response.text())))
+                    if response.status != 200: res.append(exceptions.CheckException(await response.text()))
                     else: res.append(response.status)
 
         if canTip is not None:
             if canTip:
                 async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/tipping-perm-status/enable", headers=self.parse_headers(data=data), data=data) as response:
-                    if response.status != 200: res.append(exceptions.CheckException(json.loads(await response.text())))
+                    if response.status != 200: res.append(exceptions.CheckException(await response.text()))
                     else: res.append(response.status)
 
             if not canTip:
                 async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/tipping-perm-status/disable", headers=self.parse_headers(data=data), data=data) as response:
-                    if response.status != 200: res.append(exceptions.CheckException(json.loads(await response.text())))
+                    if response.status != 200: res.append(exceptions.CheckException(await response.text()))
                     else: res.append(response.status)
 
         data = json.dumps(data)
         async with self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}", headers=self.parse_headers(data=data), data=data) as response:
-            if response.status != 200: res.append(exceptions.CheckException(json.loads(await response.text())))
+            if response.status != 200: res.append(exceptions.CheckException(await response.text()))
             else: res.append(response.status)
 
         return res

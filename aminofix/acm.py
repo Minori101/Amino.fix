@@ -92,10 +92,8 @@ class ACM(client.Client):
         if rank.lower() not in ["transfer-agent", "leader", "curator"]:
             raise exceptions.WrongType(rank)
 
-        data = json.dumps({})
-
         if self.comId is None: raise exceptions.CommunityNeeded()
-        response = self.session.post(f"{self.api}/x{self.comId}/s/user-profile/{userId}/{rank}", headers=self.parse_headers(data=data), data=data)
+        response = self.session.post(f"{self.api}/x{self.comId}/s/user-profile/{userId}/{rank}", headers=self.parse_headers())
         if response.status_code != 200: return exceptions.CheckException(response.text)
         else: return response.status_code
 
