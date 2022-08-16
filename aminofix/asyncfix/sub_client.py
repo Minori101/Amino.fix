@@ -224,7 +224,7 @@ class SubClient(client.Client):
             if response.status != 200: return exceptions.CheckException(await response.text())
             else: return response.status
 
-    async def edit_profile(self, nickname: str = None, content: str = None, icon: BinaryIO = None, chatRequestPrivilege: str = None, imageList: list = None, captionList: list = None, backgroundImage: str = None, backgroundColor: str = None, titles: list = None, colors: list = None, defaultBubbleId: str = None):
+    async def edit_profile(self, nickname: str = None, content: str = None, icon: BinaryIO = None, chatRequestPrivilege: str = None, imageList: list = None, captionList: list = None, backgroundImage: str = None, backgroundColor: str = None, titles: list = None, colors: list = None, defaultBubbleId: str = None, fileType: str = "image"):
         mediaList = []
 
         data = {"timestamp": int(timestamp() * 1000)}
@@ -242,7 +242,7 @@ class SubClient(client.Client):
             data["mediaList"] = mediaList
 
         if nickname: data["nickname"] = nickname
-        if icon: data["icon"] = self.upload_media(icon, "image")
+        if icon: data["icon"] = self.upload_media(icon, fileType)
         if content: data["content"] = content
 
         if chatRequestPrivilege: data["extensions"] = {"privilegeOfChatInviteRequest": chatRequestPrivilege}

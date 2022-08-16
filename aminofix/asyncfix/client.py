@@ -1552,7 +1552,7 @@ class Client(Callbacks, SocketHandler):
             if response.status != 200: return exceptions.CheckException(await response.text())
             else: return response.status
 
-    async def edit_profile(self, nickname: str = None, content: str = None, icon: BinaryIO = None, backgroundColor: str = None, backgroundImage: str = None, defaultBubbleId: str = None):
+    async def edit_profile(self, nickname: str = None, content: str = None, icon: BinaryIO = None, backgroundColor: str = None, backgroundImage: str = None, defaultBubbleId: str = None, fileType: str = "image"):
         """
         Edit account's Profile.
 
@@ -1579,7 +1579,7 @@ class Client(Callbacks, SocketHandler):
         }
 
         if nickname: data["nickname"] = nickname
-        if icon: data["icon"] = await self.upload_media(icon, "image")
+        if icon: data["icon"] = await self.upload_media(icon, fileType)
         if content: data["content"] = content
         if backgroundColor: data["extensions"] = {"style": {"backgroundColor": backgroundColor}}
         if backgroundImage: data["extensions"] = {"style": {"backgroundMediaList": [[100, backgroundImage, None, None, None]]}}

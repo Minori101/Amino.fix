@@ -15,6 +15,7 @@ from locale import getdefaultlocale as locale
 
 from .lib.util import exceptions, headers, objects, helpers, device
 from .socket import Callbacks, SocketHandler
+from .lib.util.helpers import deviceId
 
 #@dorthegra/IDörthe#8835 thanks for support!
 device = device.DeviceGenerator()
