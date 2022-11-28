@@ -7,9 +7,9 @@ from typing import Union
 from hashlib import sha1
 from hmac import new
 
-PREFIX = bytes.fromhex("42")
-SIG_KEY = bytes.fromhex("F8E7A61AC3F725941E3AC7CAE2D688BE97F30B93")
-DEVICE_KEY = bytes.fromhex("02B258C63559D8804321C5D5065AF320358D366F")
+PREFIX = bytes.fromhex("52")
+SIG_KEY = bytes.fromhex("EAB4F1B9E3340CD1631EDE3B587CC3EBEDF1AFA9")
+DEVICE_KEY = bytes.fromhex("AE49550458D8E7C51D566916B04888BFB8B3CA7D")
 
 def generate_device_info() -> dict:
 
