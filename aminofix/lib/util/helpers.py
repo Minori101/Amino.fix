@@ -7,15 +7,15 @@ from typing import Union
 from hashlib import sha1
 from hmac import new
 
-PREFIX = bytes.fromhex("52")
-SIG_KEY = bytes.fromhex("EAB4F1B9E3340CD1631EDE3B587CC3EBEDF1AFA9")
-DEVICE_KEY = bytes.fromhex("AE49550458D8E7C51D566916B04888BFB8B3CA7D")
+PREFIX = bytes.fromhex("19")
+SIG_KEY = bytes.fromhex("DFA5ED192DDA6E88A12FE12130DC6206B1251E44")
+DEVICE_KEY = bytes.fromhex("E7309ECC0953C6FA60005B2765F99DBBC965C8E9")
 
 def generate_device_info() -> dict:
 
     return {
         "device_id": deviceId(),
-        "user_agent": "Dalvik/2.1.0 (Linux; U; Android 7.1.2; SM-G965N Build/star2ltexx-user 7.1.; com.narvii.amino.master/3.4.33602)"
+        "user_agent": "Apple iPhone12,1 iOS v15.5 Main/3.12.2"
     }
 
 def deviceId(data: bytes = None) -> str:
