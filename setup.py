@@ -15,9 +15,9 @@ with open("README.md", "r") as stream:
 
 setup(
     name="amino.fix",
-    license='MIT',
+    license="MIT",
     author="Minori",
-    version="2.3.4.13",
+    version="2.3.5",
     author_email="minorigithub@gmail.com",
     description="Library for Amino. Discord - https://discord.gg/Bf3dpBRJHj",
     url="https://github.com/Minori100/Amino.fix",

@@ -1071,7 +1071,7 @@ class SubClient(client.Client):
 
             - **Fail** : :meth:`Exceptions <aminofix.lib.util.exceptions>`
         """
-        response = self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/member/{self.profile.userId}", headers=self.parse_headers(), proxies=self.proxies, verify=self.certificatePath)
+        response = self.session.post(f"{self.api}/x{self.comId}/s/chat/thread/{chatId}/member/{self.profile.userId}", headers=self.parse_headers(type="application/x-www-form-urlencoded"), proxies=self.proxies, verify=self.certificatePath)
         if response.status_code != 200: 
             return exceptions.CheckException(response.text)
         else: return response.status_code

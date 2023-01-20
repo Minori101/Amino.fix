@@ -721,7 +721,7 @@ class Client(Callbacks, SocketHandler):
 
             - **Fail** : :meth:`Exceptions <aminofixasync.lib.util.exceptions>`
         """
-        async with self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/member/{self.userId}", headers=self.parse_headers()) as response:
+        async with self.session.post(f"{self.api}/g/s/chat/thread/{chatId}/member/{self.userId}", headers=self.parse_headers(type="application/x-www-form-urlencoded")) as response:
             if response.status != 200: return exceptions.CheckException(await response.text())
             else: return response.status
 
