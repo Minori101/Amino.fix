@@ -1,26 +1,24 @@
-from aminofix.lib.util import device, signature
+from aminofix.lib.util import signature
 
 from uuid import uuid4
 
 sid = None
+device_id = None
+user_agent = None
 
 class ApisHeaders:
     def __init__(self, data = None, type = None, deviceId: str = None, sig: str = None):
-        if deviceId:
-            dev = device.DeviceGenerator(deviceId=deviceId)
-        else:
-            dev = device.DeviceGenerator()
 
         headers = {
-            "NDCDEVICEID": dev.device_id,
             "Accept-Language": "en-US",
             "Content-Type": "application/json; charset=utf-8",
-            "User-Agent": dev.user_agent,
+            "User-Agent": user_agent,
             "Host": "service.narvii.com",
             "Accept-Encoding": "gzip",
             "Connection": "Upgrade"
         }
 
+        if device_id: headers["NDCDEVICEID"] = device_id
         if data:
             headers["Content-Length"] = str(len(data))
             headers["NDC-MSG-SIG"] = signature(data)

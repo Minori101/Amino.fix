@@ -6,7 +6,7 @@ import contextlib
 from threading import Thread
 from sys import _getframe as getframe
 
-from .lib.util.helpers import deviceId
+from .lib.util.helpers import gen_deviceId
 from .lib.util import objects, helpers
 
 class SocketHandler:
@@ -65,7 +65,7 @@ class SocketHandler:
             final = f"{self.client.device_id}|{int(time.time() * 1000)}"
 
             self.headers = {
-                "NDCDEVICEID": deviceId() if self.client.autoDevice else self.client.device_id,
+                "NDCDEVICEID": gen_deviceId() if self.client.autoDevice else self.client.device_id,
                 "NDCAUTH": f"sid={self.client.sid}",
                 "NDC-MSG-SIG": helpers.signature(final)
             }

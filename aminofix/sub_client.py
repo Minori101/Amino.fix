@@ -10,10 +10,10 @@ from time import time as timestamp
 from json_minify import json_minify
 
 from . import client
-from .lib.util import exceptions, headers, device, objects, signature
-from .lib.util.helpers import deviceId
+from .lib.util import exceptions, headers, objects, signature
+from .lib.util.helpers import gen_deviceId
 
-device = device.DeviceGenerator()
+device = client.Client().device_id
 headers.sid = client.Client().sid
 
 class VCHeaders:
@@ -33,8 +33,8 @@ class VCHeaders:
 
 
 class SubClient(client.Client):
-    def __init__(self, comId: str = None, aminoId: str = None, *, profile: objects.UserProfile, deviceId: str = None):
-        client.Client.__init__(self, deviceId=deviceId)
+    def __init__(self, comId: str = None, aminoId: str = None, *, profile: objects.UserProfile, deviceId: str = None, autoDevice: bool = False):
+        client.Client.__init__(self, deviceId=deviceId, sub=True)
         self.vc_connect = False
 
         if comId is not None:
@@ -53,7 +53,7 @@ class SubClient(client.Client):
         except exceptions.UserUnavailable: pass
 
     def parse_headers(self, data: str = None, type: str = None):
-        return headers.ApisHeaders(deviceId=deviceId() if self.autoDevice else self.device_id, data=data, type=type).headers
+        return headers.ApisHeaders(deviceId=gen_deviceId() if self.autoDevice else self.device_id, data=data, type=type).headers
 
     def get_invite_codes(self, status: str = "normal", start: int = 0, size: int = 25):
         response = self.session.get(f"{self.api}/g/s-x{self.comId}/community/invitation?status={status}&start={start}&size={size}", headers=self.parse_headers(), proxies=self.proxies, verify=self.certificatePath)

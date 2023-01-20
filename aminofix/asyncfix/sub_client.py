@@ -11,10 +11,8 @@ from time import time as timestamp
 import requests
 
 from . import client
-from ..lib.util import exceptions, headers, objects, signature, device
-from ..lib.util.helpers import deviceId
-
-device = device.DeviceGenerator()
+from ..lib.util import exceptions, headers, objects, signature
+from ..lib.util.helpers import gen_deviceId
 
 class VCHeaders:
     def __init__(self, data = None):
@@ -34,7 +32,7 @@ class VCHeaders:
 
 class SubClient(client.Client):
     def __init__(self, comId: str = None, aminoId: str = None, *, profile: objects.UserProfile, deviceId: str = None):
-        client.Client.__init__(self, deviceId=deviceId)
+        client.Client.__init__(self, deviceId=deviceId, sub=True)
         self.vc_connect = False
         self.comId = comId
         self.aminoId = aminoId

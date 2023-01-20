@@ -11,14 +11,7 @@ PREFIX = bytes.fromhex("19")
 SIG_KEY = bytes.fromhex("DFA5ED192DDA6E88A12FE12130DC6206B1251E44")
 DEVICE_KEY = bytes.fromhex("E7309ECC0953C6FA60005B2765F99DBBC965C8E9")
 
-def generate_device_info() -> dict:
-
-    return {
-        "device_id": deviceId(),
-        "user_agent": "Apple iPhone12,1 iOS v15.5 Main/3.12.2"
-    }
-
-def deviceId(data: bytes = None) -> str:
+def gen_deviceId(data: bytes = None) -> str:
     if isinstance(data, str): data = bytes(data, 'utf-8')
     identifier = PREFIX + (data or os.urandom(20))
     mac = new(DEVICE_KEY, identifier, sha1)
@@ -29,7 +22,7 @@ def signature(data: Union[str, bytes]) -> str:
     return b64encode(PREFIX + new(SIG_KEY, data, sha1).digest()).decode("utf-8")
 
 def update_deviceId(device: str) -> str:
-    return deviceId(bytes.fromhex(device[2:42]))
+    return gen_deviceId(bytes.fromhex(device[2:42]))
 
 def decode_sid(sid: str) -> dict:
     return json.loads(b64decode(reduce(lambda a, e: a.replace(*e), ("-+", "_/"), sid + "=" * (-len(sid) % 4)).encode())[1:-20].decode())

@@ -3,9 +3,9 @@ from time import time as timestamp
 from typing import BinaryIO
 
 from . import client
-from .lib.util import exceptions, headers, device, objects, signature
+from .lib.util import exceptions, headers, objects, signature
 
-device = device.DeviceGenerator()
+device = client.Client().device_id
 headers.sid = client.Client().sid
 
 class ACM(client.Client):

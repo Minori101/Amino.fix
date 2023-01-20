@@ -13,24 +13,35 @@ from binascii import hexlify
 from time import time as timestamp
 from locale import getdefaultlocale as locale
 
-from .lib.util import exceptions, headers, objects, helpers, device
+from .lib.util import exceptions, headers, objects, helpers
 from .socket import Callbacks, SocketHandler
-from .lib.util.helpers import deviceId
+from .lib.util.helpers import gen_deviceId
 
 #@dorthegra/IDörthe#8835 thanks for support!
-device = device.DeviceGenerator()
 
 class Client(Callbacks, SocketHandler):
-    def __init__(self, deviceId: str = None, proxies: dict = None, certificatePath = None, socket_trace = False, socketDebugging = False, socket_enabled = True, autoDevice = False):
+    def __init__(self, deviceId: str = None, userAgent: str = "Apple iPhone12,1 iOS v15.5 Main/3.12.2", proxies: dict = None, certificatePath = None, socket_trace = False, socketDebugging = False, socket_enabled = True, autoDevice = False, sub: bool = False):
         self.api = "https://service.narvii.com/api/v1"
         self.authenticated = False
         self.configured = False
-        self.user_agent = device.user_agent
         self.session = requests.Session()
         self.autoDevice = autoDevice
 
-        if deviceId: self.device_id = deviceId
-        else: self.device_id = device.device_id
+        if sub:
+            if deviceId: 
+                self.device_id = deviceId
+                headers.device_id = deviceId
+            else:
+                self.device_id = headers.device_id
+        else:
+            if deviceId: 
+                self.device_id = deviceId
+                headers.device_id = deviceId
+            else: 
+                self.device_id = gen_deviceId()
+                headers.device_id = self.device_id
+
+        headers.user_agent = userAgent
 
         self.socket_enabled = socket_enabled
 
@@ -48,7 +59,7 @@ class Client(Callbacks, SocketHandler):
         self.active_live_chats = []
 
     def parse_headers(self, data: str = None, type: str = None):
-        return headers.ApisHeaders(deviceId=deviceId() if self.autoDevice else self.device_id, data=data, type=type).headers
+        return headers.ApisHeaders(deviceId=gen_deviceId() if self.autoDevice else self.device_id, data=data, type=type).headers
 
 
     def join_voice_chat(self, comId: str, chatId: str, joinType: int = 1, keep_alive: bool = True):
@@ -238,6 +249,15 @@ class Client(Callbacks, SocketHandler):
 
             - **Fail** : :meth:`Exceptions <aminofix.lib.util.exceptions>`
         """
+        print({
+            "email": email,
+            "v": 2,
+            "secret": f"0 {password}",
+            "deviceID": self.device_id,
+            "clientType": 100,
+            "action": "normal",
+            "timestamp": int(timestamp() * 1000)
+        })
         data = json.dumps({
             "email": email,
             "v": 2,
@@ -354,7 +374,7 @@ class Client(Callbacks, SocketHandler):
 
             return json.loads(response.text)
 
-    def register(self, nickname: str, email: str, password: str, verificationCode: str, deviceId: str = device.device_id, timeout: int = None):
+    def register(self, nickname: str, email: str, password: str, verificationCode: str, deviceId: str = None, timeout: int = None):
         """
         Register an account.
 
@@ -370,6 +390,8 @@ class Client(Callbacks, SocketHandler):
 
             - **Fail** : :meth:`Exceptions <aminofix.lib.util.exceptions>`
         """
+
+        if deviceId == None: deviceId = self.device_id
 
         data = json.dumps({
             "secret": f"0 {password}",

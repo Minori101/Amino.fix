@@ -10,25 +10,36 @@ from typing import BinaryIO, Union
 from time import time as timestamp
 from locale import getdefaultlocale as locale
 
-from ..lib.util import exceptions, headers, device, objects, helpers, signature
-from ..lib.util.helpers import deviceId
+from ..lib.util import exceptions, headers, objects, helpers, signature
+from ..lib.util.helpers import gen_deviceId
 from .socket import Callbacks, SocketHandler
-
-device = device.DeviceGenerator()
 
 #@dorthegra/IDörthe#8835 thanks for support!
 
 class Client(Callbacks, SocketHandler):
-    def __init__(self, deviceId: str = None, socket_trace = False, socketDebugging = False, socket_enabled = True, autoDevice = False):
+    def __init__(self, deviceId: str = None, userAgent: str = "Apple iPhone12,1 iOS v15.5 Main/3.12.2", socket_trace = False, socketDebugging = False, socket_enabled = True, autoDevice = False, sub: bool = False):
         self.api = "https://service.narvii.com/api/v1"
         self.authenticated = False
         self.configured = False
-        self.user_agent = device.user_agent
+
         self.socket_enabled = socket_enabled
         self.autoDevice = autoDevice
 
-        if deviceId: self.device_id = deviceId
-        else: self.device_id = device.device_id
+        if sub:
+            if deviceId: 
+                self.device_id = deviceId
+                headers.device_id = deviceId
+            else:
+                self.device_id = headers.device_id
+        else:
+            if deviceId: 
+                self.device_id = deviceId
+                headers.device_id = deviceId
+            else: 
+                self.device_id = gen_deviceId()
+                headers.device_id = self.device_id
+
+        headers.user_agent = userAgent
 
         SocketHandler.__init__(self, self, socket_trace=socket_trace, debug=socketDebugging)
         Callbacks.__init__(self, self)
@@ -55,7 +66,7 @@ class Client(Callbacks, SocketHandler):
         if not self.session.closed: await self.session.close()
 
     def parse_headers(self, data: str = None, type: str = None):
-        return headers.ApisHeaders(deviceId=deviceId() if self.autoDevice else self.device_id, data=data, type=type).headers
+        return headers.ApisHeaders(deviceId=gen_deviceId() if self.autoDevice else self.device_id, data=data, type=type).headers
 
     async def join_voice_chat(self, comId: str, chatId: str, joinType: int = 1):
         """
@@ -300,7 +311,7 @@ class Client(Callbacks, SocketHandler):
                     self.run_amino_socket()
                 return json.loads(await response.text())
 
-    async def register(self, nickname: str, email: str, password: str, verificationCode: str, deviceId: str = device.device_id):
+    async def register(self, nickname: str, email: str, password: str, verificationCode: str, deviceId: str = None):
         """
         Register an account.
 
@@ -316,6 +327,8 @@ class Client(Callbacks, SocketHandler):
 
             - **Fail** : :meth:`Exceptions <aminofixasync.lib.util.exceptions>`
         """
+
+        if deviceId == None: deviceId = self.device_id
 
         data = json.dumps({
             "secret": f"0 {password}",
