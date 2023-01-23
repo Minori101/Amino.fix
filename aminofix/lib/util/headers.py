@@ -11,7 +11,7 @@ class ApisHeaders:
 
         headers = {
             "Accept-Language": "en-US",
-            "Content-Type": "application/json; charset=utf-8",
+            "Content-Type": "application/x-www-form-urlencoded",
             "User-Agent": user_agent,
             "Host": "service.narvii.com",
             "Accept-Encoding": "gzip",
