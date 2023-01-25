@@ -57,15 +57,15 @@ class Client(Callbacks, SocketHandler):
         self.secret = None
 
         self.active_live_chats = []
+        self.stop_loop = False
 
     def parse_headers(self, data: str = None, type: str = None):
         return headers.ApisHeaders(deviceId=gen_deviceId() if self.autoDevice else self.device_id, data=data, type=type).headers
 
 
-    def join_voice_chat(self, comId: str, chatId: str, joinType: int = 1, keep_alive: bool = True):
+    def join_voice_chat(self, comId: str, chatId: str, joinType: int = 1):
         """
         Joins a Voice Chat
-
         **Parameters**
             - **comId** : ID of the Community
             - **chatId** : ID of the Chat
@@ -82,24 +82,12 @@ class Client(Callbacks, SocketHandler):
             },
             "t": 112
         }
-        
         data = json.dumps(data)
+        self.send(data)
 
-        def send_data_loop(data: str):
-            while chatId in self.active_live_chats:
-                self.send(data)
-                time.sleep(60)
-        
-        if keep_alive and chatId not in self.active_live_chats:
-            threading.Thread(target=lambda: send_data_loop(data)).start()
-            self.active_live_chats.append(chatId)
-        else:
-            self.send(data)
-
-    def join_video_chat(self, comId: str, chatId: str, joinType: int = 1, keep_alive: bool = True):
+    def join_video_chat(self, comId: str, chatId: str, joinType: int = 1):
         """
         Joins a Video Chat
-
         **Parameters**
             - **comId** : ID of the Community
             - **chatId** : ID of the Chat
@@ -117,21 +105,10 @@ class Client(Callbacks, SocketHandler):
             },
             "t": 108
         }
-
         data = json.dumps(data)
+        self.send(data)
 
-        def send_data_loop(data: str):
-            while chatId in self.active_live_chats:
-                self.send(data)
-                time.sleep(60)
-        
-        if keep_alive and chatId not in self.active_live_chats:
-            threading.Thread(target=lambda: send_data_loop(data)).start()
-            self.active_live_chats.append(chatId)
-        else:
-            self.send(data)
-
-    def join_video_chat_as_viewer(self, comId: str, chatId: str, keep_alive: bool = True):
+    def join_video_chat_as_viewer(self, comId: str, chatId: str):
         data = {
             "o":
                 {
@@ -143,25 +120,15 @@ class Client(Callbacks, SocketHandler):
             "t": 112
         }
         data = json.dumps(data)
-
-        def send_data_loop(data: str):
-            while chatId in self.active_live_chats:
-                self.send(data)
-                time.sleep(60)
-        
-        if keep_alive and chatId not in self.active_live_chats:
-            threading.Thread(target=lambda: send_data_loop(data)).start()
-            self.active_live_chats.append(chatId)
-        else:
-            self.send(data)
+        self.send(data)
     
-    # I finish this in future
+    # Fixed by vedansh#4039
     def leave_from_live_chat(self, chatId: str):
         if chatId in self.active_live_chats:
             self.active_live_chats.remove(chatId)
 
     def run_vc(self, comId: str, chatId: str, joinType: str):
-        while chatId in self.active_live_chats:
+        while chatId in self.active_live_chats and not self.stop_loop:
             data = {
                 "o": {
                     "ndcId": int(comId),
@@ -174,6 +141,8 @@ class Client(Callbacks, SocketHandler):
             data = json.dumps(data)
             self.send(data)
             sleep(60)
+            if self.stop_loop:
+                break
 
     def start_vc(self, comId: str, chatId: str, joinType: int = 1):
         data = {
@@ -214,6 +183,8 @@ class Client(Callbacks, SocketHandler):
         }
         data = json.dumps(data)
         self.send(data)
+        self.active_live_chats.remove(chatId)
+        self.stop_loop = True
 
     def login_sid(self, SID: str):
         """
