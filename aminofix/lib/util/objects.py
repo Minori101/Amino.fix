@@ -1605,6 +1605,7 @@ class FromCode:
         self.fullUrl = None
         self.comId = None
         self.comIdPost = None
+        self.invitationId = None
 
     @property
     def FromCode(self):
@@ -1627,6 +1628,8 @@ class FromCode:
         try: self.comIdPost = self.json["extensions"]["linkInfo"]["ndcId"]
         except (KeyError, TypeError): pass
         try: self.comId = self.comIdPost or self.json["extensions"]["community"]["ndcId"]
+        except (KeyError, TypeError): pass
+        try: self.invitationId = self.json["extensions"]["invitationId"]
         except (KeyError, TypeError): pass
 
         return self
