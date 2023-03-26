@@ -52,16 +52,16 @@ class SubClient(client.Client):
         except AttributeError: raise exceptions.FailedLogin()
         except exceptions.UserUnavailable: pass
 
-    def parse_headers(self, data: str = None, type: str = None):
+    def parse_headers(self, data: str = None, type: str = None) -> dict:
         return headers.ApisHeaders(deviceId=gen_deviceId() if self.autoDevice else self.device_id, data=data, type=type).headers
 
-    def get_invite_codes(self, status: str = "normal", start: int = 0, size: int = 25):
+    def get_invite_codes(self, status: str = "normal", start: int = 0, size: int = 25) -> objects.InviteCodeList:
         response = self.session.get(f"{self.api}/g/s-x{self.comId}/community/invitation?status={status}&start={start}&size={size}", headers=self.parse_headers(), proxies=self.proxies, verify=self.certificatePath)
         if response.status_code != 200: 
             return exceptions.CheckException(response.text)
         else: return objects.InviteCodeList(json.loads(response.text)["communityInvitationList"]).InviteCodeList
 
-    def generate_invite_code(self, duration: int = 0, force: bool = True):
+    def generate_invite_code(self, duration: int = 0, force: bool = True) -> objects.InviteCode:
         data = json.dumps({
             "duration": duration,
             "force": force,
@@ -73,13 +73,19 @@ class SubClient(client.Client):
             return exceptions.CheckException(response.text)
         else: return objects.InviteCode(json.loads(response.text)["communityInvitation"]).InviteCode
 
-    def delete_invite_code(self, inviteId: str):
+    def get_vip_users(self) -> objects.UserProfileList:
+        response = self.session.get(f"{self.api}/{self.comId}/s/influencer", headers=self.parse_headers(), proxies=self.proxies, verify=self.certificatePath)
+        if response.status_code != 200:
+            return exceptions.CheckException(response.text)
+        else: return objects.UserProfileList(json.loads(response.text)["userProfileList"]).UserProfileList
+
+    def delete_invite_code(self, inviteId: str) -> int:
         response = self.session.delete(f"{self.api}/g/s-x{self.comId}/community/invitation/{inviteId}", headers=self.parse_headers(), proxies=self.proxies, verify=self.certificatePath)
         if response.status_code != 200: 
             return exceptions.CheckException(response.text)
         else: return response.status_code
 
-    def post_blog(self, title: str, content: str, imageList: list = None, captionList: list = None, categoriesList: list = None, backgroundColor: str = None, fansOnly: bool = False, extensions: dict = None, crash: bool = False):
+    def post_blog(self, title: str, content: str, imageList: list = None, captionList: list = None, categoriesList: list = None, backgroundColor: str = None, fansOnly: bool = False, extensions: dict = None, crash: bool = False) -> int:
         mediaList = []
 
         if captionList is not None:
@@ -115,7 +121,7 @@ class SubClient(client.Client):
             return exceptions.CheckException(response.text)
         else: return response.status_code
 
-    def post_wiki(self, title: str, content: str, icon: str = None, imageList: list = None, keywords: str = None, backgroundColor: str = None, fansOnly: bool = False):
+    def post_wiki(self, title: str, content: str, icon: str = None, imageList: list = None, keywords: str = None, backgroundColor: str = None, fansOnly: bool = False) -> int:
         mediaList = []
 
         for image in imageList:
@@ -140,7 +146,7 @@ class SubClient(client.Client):
             return exceptions.CheckException(response.text)
         else: return response.status_code
 
-    def edit_blog(self, blogId: str, title: str = None, content: str = None, imageList: list = None, categoriesList: list = None, backgroundColor: str = None, fansOnly: bool = False):
+    def edit_blog(self, blogId: str, title: str = None, content: str = None, imageList: list = None, categoriesList: list = None, backgroundColor: str = None, fansOnly: bool = False) -> int:
         mediaList = []
 
         for image in imageList:
@@ -167,19 +173,19 @@ class SubClient(client.Client):
             return exceptions.CheckException(response.text)
         else: return response.status_code
 
-    def delete_blog(self, blogId: str):
+    def delete_blog(self, blogId: str) -> int:
         response = self.session.delete(f"{self.api}/x{self.comId}/s/blog/{blogId}", headers=self.parse_headers(), proxies=self.proxies, verify=self.certificatePath)
         if response.status_code != 200: 
             return exceptions.CheckException(response.text)
         else: return response.status_code
 
-    def delete_wiki(self, wikiId: str):
+    def delete_wiki(self, wikiId: str) -> int:
         response = self.session.delete(f"{self.api}/x{self.comId}/s/item/{wikiId}", headers=self.parse_headers(), proxies=self.proxies, verify=self.certificatePath)
         if response.status_code != 200: 
             return exceptions.CheckException(response.text)
         else: return response.status_code
 
-    def repost_blog(self, content: str = None, blogId: str = None, wikiId: str = None):
+    def repost_blog(self, content: str = None, blogId: str = None, wikiId: str = None) -> int:
         if blogId is not None: refObjectId, refObjectType = blogId, 1
         elif wikiId is not None: refObjectId, refObjectType = wikiId, 2
         else: raise exceptions.SpecifyType()
@@ -197,7 +203,7 @@ class SubClient(client.Client):
             return exceptions.CheckException(response.text)
         else: return response.status_code
 
-    def check_in(self, tz: int = -timezone // 1000):
+    def check_in(self, tz: int = -timezone // 1000) -> int:
         data = json.dumps({
             "timezone": tz,
             "timestamp": int(timestamp() * 1000)
@@ -208,7 +214,7 @@ class SubClient(client.Client):
             return exceptions.CheckException(response.text)
         else: return response.status_code
 
-    def repair_check_in(self, method: int = 0):
+    def repair_check_in(self, method: int = 0) -> int:
         data = {"timestamp": int(timestamp() * 1000)}
         if method == 0: data["repairMethod"] = "1"  # Coins
         if method == 1: data["repairMethod"] = "2"  # Amino+
@@ -220,7 +226,7 @@ class SubClient(client.Client):
             return exceptions.CheckException(response.text)
         else: return response.status_code
 
-    def lottery(self, tz: int = -timezone // 1000):
+    def lottery(self, tz: int = -timezone // 1000) -> objects.LotteryLog:
         data = json.dumps({
             "timezone": tz,
             "timestamp": int(timestamp() * 1000)
@@ -231,7 +237,7 @@ class SubClient(client.Client):
             return exceptions.CheckException(response.text)
         else: return objects.LotteryLog(json.loads(response.text)["lotteryLog"]).LotteryLog
 
-    def edit_profile(self, nickname: str = None, content: str = None, icon: BinaryIO = None, chatRequestPrivilege: str = None, imageList: list = None, captionList: list = None, backgroundImage: str = None, backgroundColor: str = None, titles: list = None, colors: list = None, defaultBubbleId: str = None):
+    def edit_profile(self, nickname: str = None, content: str = None, icon: BinaryIO = None, chatRequestPrivilege: str = None, imageList: list = None, captionList: list = None, backgroundImage: str = None, backgroundColor: str = None, titles: list = None, colors: list = None, defaultBubbleId: str = None) -> int:
         mediaList = []
 
         data = {"timestamp": int(timestamp() * 1000)}
@@ -271,7 +277,7 @@ class SubClient(client.Client):
             return exceptions.CheckException(response.text)
         else: return response.status_code
 
-    def vote_poll(self, blogId: str, optionId: str):
+    def vote_poll(self, blogId: str, optionId: str) -> int:
         data = json.dumps({
             "value": 1,
             "eventSource": "PostDetailView",
@@ -283,7 +289,7 @@ class SubClient(client.Client):
             return exceptions.CheckException(response.text)
         else: return response.status_code
 
-    def comment(self, message: str, userId: str = None, blogId: str = None, wikiId: str = None, replyTo: str = None, isGuest: bool = False):
+    def comment(self, message: str, userId: str = None, blogId: str = None, wikiId: str = None, replyTo: str = None, isGuest: bool = False) -> int:
         data = {
             "content": message,
             "stickerId": None,
@@ -319,7 +325,7 @@ class SubClient(client.Client):
             return exceptions.CheckException(response.text)
         else: return response.status_code
 
-    def delete_comment(self, commentId: str, userId: str = None, blogId: str = None, wikiId: str = None):
+    def delete_comment(self, commentId: str, userId: str = None, blogId: str = None, wikiId: str = None) -> int:
         if userId: response = self.session.delete(f"{self.api}/x{self.comId}/s/user-profile/{userId}/comment/{commentId}", headers=self.parse_headers(), proxies=self.proxies, verify=self.certificatePath)
         elif blogId: response = self.session.delete(f"{self.api}/x{self.comId}/s/blog/{blogId}/comment/{commentId}", headers=self.parse_headers(), proxies=self.proxies, verify=self.certificatePath)
         elif wikiId: response = self.session.delete(f"{self.api}/x{self.comId}/s/item/{wikiId}/comment/{commentId}", headers=self.parse_headers(), proxies=self.proxies, verify=self.certificatePath)
@@ -329,7 +335,7 @@ class SubClient(client.Client):
             return exceptions.CheckException(response.text)
         else: return response.status_code
 
-    def like_blog(self, blogId: Union[str, list] = None, wikiId: str = None):
+    def like_blog(self, blogId: Union[str, list] = None, wikiId: str = None) -> int:
         """
         Like a Blog, Multiple Blogs or a Wiki.
 
@@ -373,7 +379,7 @@ class SubClient(client.Client):
             return exceptions.CheckException(response.text)
         else: return response.status_code
 
-    def unlike_blog(self, blogId: str = None, wikiId: str = None):
+    def unlike_blog(self, blogId: str = None, wikiId: str = None) -> int:
         if blogId: response = self.session.delete(f"{self.api}/x{self.comId}/s/blog/{blogId}/vote?eventSource=UserProfileView", headers=self.parse_headers(), proxies=self.proxies, verify=self.certificatePath)
         elif wikiId: response = self.session.delete(f"{self.api}/x{self.comId}/s/item/{wikiId}/vote?eventSource=PostDetailView", headers=self.parse_headers(), proxies=self.proxies, verify=self.certificatePath)
         else: raise exceptions.SpecifyType()
@@ -382,7 +388,7 @@ class SubClient(client.Client):
             return exceptions.CheckException(response.text)
         else: return response.status_code
 
-    def like_comment(self, commentId: str, userId: str = None, blogId: str = None, wikiId: str = None):
+    def like_comment(self, commentId: str, userId: str = None, blogId: str = None, wikiId: str = None) -> int:
         data = {
             "value": 1,
             "timestamp": int(timestamp() * 1000)
@@ -411,7 +417,7 @@ class SubClient(client.Client):
             return exceptions.CheckException(response.text)
         else: return response.status_code
 
-    def unlike_comment(self, commentId: str, userId: str = None, blogId: str = None, wikiId: str = None):
+    def unlike_comment(self, commentId: str, userId: str = None, blogId: str = None, wikiId: str = None) -> int:
         if userId: response = self.session.delete(f"{self.api}/x{self.comId}/s/user-profile/{userId}/comment/{commentId}/g-vote?eventSource=UserProfileView", headers=self.parse_headers(), proxies=self.proxies, verify=self.certificatePath)
         elif blogId: response = self.session.delete(f"{self.api}/x{self.comId}/s/blog/{blogId}/comment/{commentId}/g-vote?eventSource=PostDetailView", headers=self.parse_headers(), proxies=self.proxies, verify=self.certificatePath)
         elif wikiId: response = self.session.delete(f"{self.api}/x{self.comId}/s/item/{wikiId}/comment/{commentId}/g-vote?eventSource=PostDetailView", headers=self.parse_headers(), proxies=self.proxies, verify=self.certificatePath)
