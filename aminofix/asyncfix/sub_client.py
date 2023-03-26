@@ -89,6 +89,13 @@ class SubClient(client.Client):
             if response.status != 200: return exceptions.CheckException(await response.text())
             else: return response.status
 
+    async def get_vip_users(self) -> objects.UserProfileList:
+        async with self.session.get(f"{self.api}/{self.comId}/s/influencer", headers=self.parse_headers(), proxies=self.proxies, verify=self.certificatePath) as response:
+            if response.status_code != 200:
+                return exceptions.CheckException(response.text)
+            else: return objects.UserProfileList(json.loads(response.text)["userProfileList"]).UserProfileList 
+
+
     async def post_blog(self, title: str, content: str, imageList: list = None, captionList: list = None, categoriesList: list = None, backgroundColor: str = None, fansOnly: bool = False, extensions: dict = None):
         mediaList = []
 
