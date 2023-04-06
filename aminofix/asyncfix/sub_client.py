@@ -31,8 +31,8 @@ class VCHeaders:
 
 
 class SubClient(client.Client):
-    def __init__(self, comId: str = None, aminoId: str = None, *, profile: objects.UserProfile, deviceId: str = None):
-        client.Client.__init__(self, deviceId=deviceId, sub=True)
+    def __init__(self, comId: str = None, aminoId: str = None, *, profile: objects.UserProfile, deviceId: str = None, proxies: dict = None, certificatePath: str = None):
+        client.Client.__init__(self, deviceId=deviceId, sub=True, proxies=proxies, certificatePath=certificatePath)
         self.vc_connect = False
         self.comId = comId
         self.aminoId = aminoId
@@ -88,6 +88,13 @@ class SubClient(client.Client):
         async with self.session.delete(f"{self.api}/g/s-x{self.comId}/community/invitation/{inviteId}", headers=self.parse_headers()) as response:
             if response.status != 200: return exceptions.CheckException(await response.text())
             else: return response.status
+
+    async def get_vip_users(self) -> objects.UserProfileList:
+        async with self.session.get(f"{self.api}/{self.comId}/s/influencer", headers=self.parse_headers(), proxies=self.proxies, verify=self.certificatePath) as response:
+            if response.status != 200:
+                return exceptions.CheckException(await response.text())
+            else: return objects.UserProfileList(json.loads(await response.text())["userProfileList"]).UserProfileList 
+
 
     async def post_blog(self, title: str, content: str, imageList: list = None, captionList: list = None, categoriesList: list = None, backgroundColor: str = None, fansOnly: bool = False, extensions: dict = None):
         mediaList = []
