@@ -21,7 +21,7 @@ from .lib.util.helpers import gen_deviceId
 
 class Client(Callbacks, SocketHandler):
     def __init__(self, deviceId: str = None, userAgent: str = "Apple iPhone12,1 iOS v15.5 Main/3.12.2", proxies: dict = None, certificatePath = None, socket_trace = False, socketDebugging = False, socket_enabled = True, autoDevice = False, sub: bool = False):
-        self.api = "https://service.narvii.com/api/v1"
+        self.api = "https://service.aminoapps.com/api/v1"
         self.authenticated = False
         self.configured = False
         self.session = requests.Session()
