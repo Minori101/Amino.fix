@@ -11,7 +11,7 @@ from .lib.util import objects, helpers
 
 class SocketHandler:
     def __init__(self, client, socket_trace = False, debug = False):
-        self.socket_url = "wss://ws1.narvii.com"
+        self.socket_url = "wss://ws1.aminoapps.com"
         self.client = client
         self.debug = debug
         self.active = False
