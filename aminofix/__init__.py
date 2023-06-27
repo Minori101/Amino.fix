@@ -13,7 +13,12 @@ from .socket import Callbacks, SocketHandler
 from requests import get
 from json import loads
 
-__newest__ = loads(get("https://pypi.org/pypi/amino.fix/json").text)["info"]["version"]
+try:
+    __newest__ = loads(get("https://pypi.org/pypi/amino.fix/json").text)["info"]["version"]
+except Exception:
+    __newest__ = __version__
+finally:
+    del get, loads
 
 if __version__ != __newest__:
     print(f"New version of {__title__} available: {__newest__} (Using {__version__})")
