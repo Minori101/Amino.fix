@@ -4,10 +4,12 @@ import websocket
 import contextlib
 
 from threading import Thread
+from functools import wraps
+from inspect import signature as fsignature
 from sys import _getframe as getframe
 
-from .lib.util.helpers import gen_deviceId
-from .lib.util import objects, helpers
+from .lib.util.helpers import gen_deviceId, signature
+from .lib.util.objects import Event
 
 class SocketHandler:
     def __init__(self, client, socket_trace = False, debug = False):
@@ -41,8 +43,7 @@ class SocketHandler:
                 self.run_amino_socket()
 
     def handle_message(self, ws, data):
-        self.client.handle_socket_message(data)
-        return
+        self.resolve(data)
 
     def send(self, data):
         if self.debug is True:
@@ -67,7 +68,7 @@ class SocketHandler:
             self.headers = {
                 "NDCDEVICEID": gen_deviceId() if self.client.autoDevice else self.client.device_id,
                 "NDCAUTH": f"sid={self.client.sid}",
-                "NDC-MSG-SIG": helpers.signature(final)
+                "NDC-MSG-SIG": signature(final)
             }
 
             self.socket = websocket.WebSocketApp(
@@ -200,59 +201,220 @@ class Callbacks:
             else:
                 self.handlers[type] = [handler]
             return handler
-
         return registerHandler
 
-    def on_text_message(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    def on_image_message(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    def on_youtube_message(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    def on_strike_message(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    def on_voice_message(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    def on_sticker_message(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    def on_voice_chat_not_answered(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    def on_voice_chat_not_cancelled(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    def on_voice_chat_not_declined(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    def on_video_chat_not_answered(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    def on_video_chat_not_cancelled(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    def on_video_chat_not_declined(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    def on_avatar_chat_not_answered(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    def on_avatar_chat_not_cancelled(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    def on_avatar_chat_not_declined(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    def on_delete_message(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    def on_group_member_join(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    def on_group_member_leave(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    def on_chat_invite(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    def on_chat_background_changed(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    def on_chat_title_changed(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    def on_chat_icon_changed(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    def on_voice_chat_start(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    def on_video_chat_start(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    def on_avatar_chat_start(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    def on_voice_chat_end(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    def on_video_chat_end(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    def on_avatar_chat_end(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    def on_chat_content_changed(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    def on_screen_room_start(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    def on_screen_room_end(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    def on_chat_host_transfered(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    def on_text_message_force_removed(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    def on_chat_removed_message(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    def on_text_message_removed_by_admin(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    def on_chat_tip(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    def on_chat_pin_announcement(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    def on_voice_chat_permission_open_to_everyone(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    def on_voice_chat_permission_invited_and_requested(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    def on_voice_chat_permission_invite_only(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    def on_chat_view_only_enabled(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    def on_chat_view_only_disabled(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    def on_chat_unpin_announcement(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    def on_chat_tipping_enabled(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    def on_chat_tipping_disabled(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    def on_timestamp_message(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    def on_welcome_message(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    def on_invite_message(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
+    def create_event(func):
+        @wraps(func)
+        def event(self, *args, **kwargs):
+            data = func(self, *args, **kwargs)
+            self.call(func.__name__, data)
+        event.__signature__ = fsignature(func)
+        return event
 
-    def on_user_typing_start(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
-    def on_user_typing_end(self, data): self.call(getframe(0).f_code.co_name, objects.Event(data["o"]).Event)
+    @staticmethod
+    def convert(data):
+        return Event(data.get("o", {})).Event
 
-    def default(self, data): self.call(getframe(0).f_code.co_name, data)
+    @create_event
+    def on_text_message(self, data):
+        return self.convert(data)
+
+    @create_event
+    def on_image_message(self, data):
+        return self.convert(data)
+
+    @create_event
+    def on_youtube_message(self, data):
+        return self.convert(data)
+
+    @create_event
+    def on_strike_message(self, data):
+        return self.convert(data)
+    
+    @create_event
+    def on_voice_message(self, data):
+        return self.convert(data)
+
+    @create_event
+    def on_sticker_message(self, data):
+        return self.convert(data)
+
+    @create_event
+    def on_voice_chat_not_answered(self, data):
+        return self.convert(data)
+
+    @create_event
+    def on_voice_chat_not_cancelled(self, data):
+        return self.convert(data)
+
+    @create_event
+    def on_voice_chat_not_declined(self, data):
+        return self.convert(data)
+
+    @create_event
+    def on_video_chat_not_answered(self, data):
+        return self.convert(data)
+
+    @create_event
+    def on_video_chat_not_cancelled(self, data):
+        return self.convert(data)
+
+    @create_event
+    def on_video_chat_not_declined(self, data):
+        return self.convert(data)
+
+    @create_event
+    def on_avatar_chat_not_answered(self, data):
+        return self.convert(data)
+
+    @create_event
+    def on_avatar_chat_not_cancelled(self, data):
+        return self.convert(data)
+
+    @create_event
+    def on_avatar_chat_not_declined(self, data):
+        return self.convert(data)
+
+    @create_event
+    def on_delete_message(self, data):
+        return self.convert(data)
+
+    @create_event
+    def on_group_member_join(self, data):
+        return self.convert(data)
+
+    @create_event
+    def on_group_member_leave(self, data):
+        return self.convert(data)
+
+    @create_event
+    def on_chat_invite(self, data):
+        return self.convert(data)
+
+    @create_event
+    def on_chat_background_changed(self, data):
+        return self.convert(data)
+
+    @create_event
+    def on_chat_title_changed(self, data):
+        return self.convert(data)
+
+    @create_event
+    def on_chat_icon_changed(self, data):
+        return self.convert(data)
+
+    @create_event
+    def on_voice_chat_start(self, data):
+        return self.convert(data)
+
+    @create_event
+    def on_video_chat_start(self, data):
+        return self.convert(data)
+
+    @create_event
+    def on_avatar_chat_start(self, data):
+        return self.convert(data)
+
+    @create_event
+    def on_voice_chat_end(self, data):
+        return self.convert(data)
+
+    @create_event
+    def on_video_chat_end(self, data):
+        return self.convert(data)
+
+    @create_event
+    def on_avatar_chat_end(self, data):
+        return self.convert(data)
+
+    @create_event
+    def on_chat_content_changed(self, data):
+        return self.convert(data)
+
+    @create_event
+    def on_screen_room_start(self, data):
+        return self.convert(data)
+
+    @create_event
+    def on_screen_room_end(self, data):
+        return self.convert(data)
+
+    @create_event
+    def on_chat_host_transfered(self, data):
+        return self.convert(data)
+
+    @create_event
+    def on_text_message_force_removed(self, data):
+        return self.convert(data)
+
+    @create_event
+    def on_chat_removed_message(self, data):
+        return self.convert(data)
+
+    @create_event
+    def on_text_message_removed_by_admin(self, data):
+        return self.convert(data)
+
+    @create_event
+    def on_chat_tip(self, data):
+        return self.convert(data)
+
+    @create_event
+    def on_chat_pin_announcement(self, data):
+        return self.convert(data)
+
+    @create_event
+    def on_voice_chat_permission_open_to_everyone(self, data):
+        return self.convert(data)
+
+    @create_event
+    def on_voice_chat_permission_invited_and_requested(self, data):
+        return self.convert(data)
+
+    @create_event
+    def on_voice_chat_permission_invite_only(self, data):
+        return self.convert(data)
+
+    @create_event
+    def on_chat_view_only_enabled(self, data):
+        return self.convert(data)
+
+    @create_event
+    def on_chat_view_only_disabled(self, data):
+        return self.convert(data)
+
+    @create_event
+    def on_chat_unpin_announcement(self, data):
+        return self.convert(data)
+
+    @create_event
+    def on_chat_tipping_enabled(self, data):
+        return self.convert(data)
+
+    @create_event
+    def on_chat_tipping_disabled(self, data):
+        return self.convert(data)
+
+    @create_event
+    def on_timestamp_message(self, data):
+        return self.convert(data)
+
+    @create_event
+    def on_welcome_message(self, data):
+        return self.convert(data)
+
+    @create_event
+    def on_invite_message(self, data):
+        return self.convert(data)
+
+    @create_event
+    def on_user_typing_start(self, data):
+        return self.convert(data)
+
+    @create_event
+    def on_user_typing_end(self, data):
+        return self.convert(data)
+
+    @create_event
+    def default(self, data):
+        return data
