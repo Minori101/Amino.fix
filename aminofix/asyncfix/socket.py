@@ -32,7 +32,6 @@ class SocketHandler:
         # Fixed by The_Phoenix#3967
         while True:
             time.sleep(self.reconnectTime)
-
             if self.active:
                 if self.debug is True:
                     print(f"[socket][reconnect_handler] Reconnecting Socket")
@@ -73,7 +72,6 @@ class SocketHandler:
             if self.reconnect_thread is None:
                 self.reconnect_thread = Thread(target=self.reconnect_handler)
                 self.reconnect_thread.start()
-            
             if self.debug is True:
                 print(f"[socket][start] Socket Started")
         except Exception as e:
@@ -195,7 +193,8 @@ class Callbacks:
 
     @staticmethod
     def convert(data):
-        return Event(data.get("o", {})).Event
+        return Event(data.get("o", {})).Event if \
+            not isinstance(data, Event) else data
 
     @create_event
     def on_text_message(self, data):
