@@ -22,11 +22,9 @@ class SocketHandler:
         self.socket_thread = None
         self.reconnectTime = 180
         self.socket_thread = None
-
         if self.socket_enabled:
             self.reconnect_thread = Thread(target=self.reconnect_handler)
             self.reconnect_thread.start()
-
         websocket.enableTrace(socket_trace)
 
     def reconnect_handler(self):
@@ -34,11 +32,9 @@ class SocketHandler:
         # Fixed by The_Phoenix#3967
         while True:
             time.sleep(self.reconnectTime)
-
             if self.active:
                 if self.debug is True:
                     print(f"[socket][reconnect_handler] Reconnecting Socket")
-
                 self.close()
                 self.run_amino_socket()
 
@@ -48,43 +44,34 @@ class SocketHandler:
     def send(self, data):
         if self.debug is True:
             print(f"[socket][send] Sending Data : {data}")
-        
         if not self.socket_thread:
             self.run_amino_socket()
             time.sleep(5)
-
         self.socket.send(data)
 
     def run_amino_socket(self):
         try:
             if self.debug is True:
                 print(f"[socket][start] Starting Socket")
-
             if self.client.sid is None:
                 return
-
             final = f"{self.client.device_id}|{int(time.time() * 1000)}"
-
             self.headers = {
                 "NDCDEVICEID": gen_deviceId() if self.client.autoDevice else self.client.device_id,
                 "NDCAUTH": f"sid={self.client.sid}",
                 "NDC-MSG-SIG": signature(final)
             }
-
             self.socket = websocket.WebSocketApp(
                 f"{self.socket_url}/?signbody={final.replace('|', '%7C')}",
                 on_message = self.handle_message,
                 header = self.headers
             )
-
             self.active = True
             self.socket_thread = Thread(target=self.socket.run_forever)
             self.socket_thread.start()
-
             if self.reconnect_thread is None:
                 self.reconnect_thread = Thread(target=self.reconnect_handler)
                 self.reconnect_thread.start()
-            
             if self.debug is True:
                 print(f"[socket][start] Socket Started")
         except Exception as e:
@@ -93,7 +80,6 @@ class SocketHandler:
     def close(self):
         if self.debug is True:
             print(f"[socket][close] Closing Socket")
-
         self.active = False
         try:
             self.socket.close()
@@ -101,19 +87,16 @@ class SocketHandler:
             if self.debug is True:
                 print(f"[socket][close] Error while closing Socket : {closeError}")
 
-        return
 
 class Callbacks:
     def __init__(self, client):
         self.client = client
         self.handlers = {}
-
         self.methods = {
             304: self._resolve_chat_action_start,
             306: self._resolve_chat_action_end,
             1000: self._resolve_chat_message
         }
-
         self.chat_methods = {
             "0:0": self.on_text_message,
             "0:100": self.on_image_message,
@@ -164,11 +147,9 @@ class Callbacks:
             "65282:0": self.on_welcome_message,
             "65283:0": self.on_invite_message
         }
-
         self.chat_actions_start = {
             "Typing": self.on_user_typing_start,
         }
-
         self.chat_actions_end = {
             "Typing": self.on_user_typing_end,
         }
@@ -213,7 +194,8 @@ class Callbacks:
 
     @staticmethod
     def convert(data):
-        return Event(data.get("o", {})).Event
+        return Event(data.get("o", {})).Event if \
+            not isinstance(data, Event) else data
 
     @create_event
     def on_text_message(self, data):
