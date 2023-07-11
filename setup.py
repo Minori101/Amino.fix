@@ -10,9 +10,6 @@ requirements = [
     "websockets"
 ]
 
-with open("README.md", "r") as stream:
-    long_description = stream.read()
-
 setup(
     name="amino.fix",
     license="MIT",
@@ -22,7 +19,7 @@ setup(
     description="Library for Amino. Discord - https://discord.gg/Bf3dpBRJHj",
     url="https://github.com/Minori100/Amino.fix",
     packages=find_packages(),
-    long_description=long_description,
+    long_description=open("README.md").read(),
     install_requires=requirements,
     keywords=[
         'aminoapps',
