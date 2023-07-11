@@ -30,9 +30,13 @@ class VCHeaders:
 
 
 class SubClient(client.Client):
-    def __init__(self, comId: str = None, aminoId: str = None, *, profile: objects.UserProfile, deviceId: str = None, autoDevice: bool = False, proxies: dict = None, certificatePath: str = None):
+    def __init__(self, mainClient: client.Client, comId: str = None, aminoId: str = None, *, deviceId: str = None, autoDevice: bool = False, proxies: dict = None, certificatePath: str = None):
         client.Client.__init__(self, deviceId=deviceId, sub=True, proxies=proxies, certificatePath=certificatePath)
         self.vc_connect = False
+        self.sid = mainClient.sid
+        self.device_id = mainClient.device_id
+        self.user_agent = mainClient.user_agent
+        self.profile = mainClient.profile
 
         if comId is not None:
             self.comId = comId
@@ -45,7 +49,7 @@ class SubClient(client.Client):
 
         if comId is None and aminoId is None: raise exceptions.NoCommunity()
 
-        try: self.profile: objects.UserProfile = self.get_user_info(userId=profile.userId)
+        try: self.profile: objects.UserProfile = self.get_user_info(userId=self.profile.userId)
         except AttributeError: raise exceptions.FailedLogin()
         except exceptions.UserUnavailable: pass
 
