@@ -2,12 +2,8 @@ from aminofix.lib.util import signature
 
 from uuid import uuid4
 
-sid = None
-device_id = None
-user_agent = None
-
 class ApisHeaders:
-    def __init__(self, data = None, type = None, deviceId: str = None, sig: str = None):
+    def __init__(self, data = None, type = None, deviceId: str = None, sig: str = None, sid: str = None, user_agent: str = "Apple iPhone12,1 iOS v15.5 Main/3.12.2"):
 
         headers = {
             "Accept-Language": "en-US",
@@ -18,7 +14,7 @@ class ApisHeaders:
             "Connection": "Upgrade"
         }
 
-        if device_id: headers["NDCDEVICEID"] = device_id
+        if deviceId: headers["NDCDEVICEID"] = deviceId
         if data:
             headers["Content-Length"] = str(len(data))
             headers["NDC-MSG-SIG"] = signature(data)
