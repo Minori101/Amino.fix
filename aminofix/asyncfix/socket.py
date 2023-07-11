@@ -2,6 +2,7 @@ import time
 import json
 import websocket
 import contextlib
+from random import randint
 
 from threading import Thread
 from sys import _getframe as getframe
@@ -11,7 +12,7 @@ from ..lib.util.helpers import gen_deviceId
 
 class SocketHandler:
     def __init__(self, client, socket_trace = False, debug = False):
-        self.socket_url = "wss://ws1.aminoapps.com"
+        self.socket_url = f"wss://ws{randint(1,4)}.aminoapps.com"
         self.client = client
         self.debug = debug
         self.active = False
