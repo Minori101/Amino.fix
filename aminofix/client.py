@@ -27,21 +27,12 @@ class Client(Callbacks, SocketHandler):
         self.session = requests.Session()
         self.autoDevice = autoDevice
 
-        if sub:
-            if deviceId: 
-                self.device_id = deviceId
-                headers.device_id = deviceId
-            else:
-                self.device_id = headers.device_id
-        else:
-            if deviceId: 
-                self.device_id = deviceId
-                headers.device_id = deviceId
-            else: 
-                self.device_id = gen_deviceId()
-                headers.device_id = self.device_id
+        if deviceId: 
+            self.device_id = deviceId
+        else: 
+            self.device_id = gen_deviceId()
 
-        headers.user_agent = userAgent
+        self.user_agent = userAgent
 
         self.socket_enabled = socket_enabled
 
@@ -60,7 +51,7 @@ class Client(Callbacks, SocketHandler):
         self.stop_loop = False
 
     def parse_headers(self, data: str = None, type: str = None):
-        return headers.ApisHeaders(deviceId=gen_deviceId() if self.autoDevice else self.device_id, data=data, type=type).headers
+        return headers.ApisHeaders(deviceId=gen_deviceId() if self.autoDevice else self.device_id, data=data, type=type, user_agent=self.user_agent, sid=self.sid).headers
 
 
     def join_voice_chat(self, comId: str, chatId: str, joinType: int = 1):
@@ -201,9 +192,6 @@ class Client(Callbacks, SocketHandler):
         self.account: objects.UserProfile = self.get_user_info(uId)
         self.profile: objects.UserProfile = self.get_user_info(uId)
 
-        headers.sid = self.sid
-        headers.userId = self.userId
-
         if self.socket_enabled:
             self.run_amino_socket()
 
@@ -241,9 +229,6 @@ class Client(Callbacks, SocketHandler):
             self.account: objects.UserProfile = objects.UserProfile(self.json["account"]).UserProfile
             self.profile: objects.UserProfile = objects.UserProfile(self.json["userProfile"]).UserProfile
             self.secret = self.json["secret"]
-                
-            headers.sid = self.sid
-            headers.userId = self.userId
 
             if self.socket_enabled:
                 self.run_amino_socket()
@@ -287,9 +272,6 @@ class Client(Callbacks, SocketHandler):
             self.profile: objects.UserProfile = objects.UserProfile(self.json["userProfile"]).UserProfile
             self.secret = self.json["secret"]
 
-            headers.sid = self.sid
-            headers.userId = self.userId
-
             if self.socket_enabled:
                 self.run_amino_socket()
 
@@ -328,9 +310,6 @@ class Client(Callbacks, SocketHandler):
 
             self.account: objects.UserProfile = objects.UserProfile(self.json["account"]).UserProfile
             self.profile: objects.UserProfile = objects.UserProfile(self.json["userProfile"]).UserProfile
-
-            headers.sid = self.sid
-            headers.userId = self.userId
 
             if self.socket_enabled:
                 self.run_amino_socket()
@@ -439,8 +418,6 @@ class Client(Callbacks, SocketHandler):
             self.userId = None
             self.account: None
             self.profile: None
-            headers.sid = None
-            headers.userId = None
 
             if self.socket_enabled:
                 self.close()
@@ -681,7 +658,7 @@ class Client(Callbacks, SocketHandler):
 
         data = file.read()
 
-        response = self.session.post(f"{self.api}/g/s/media/upload", data=data, headers=headers.ApisHeaders(type=t, data=data, deviceId=self.device_id).headers, proxies=self.proxies, verify=self.certificatePath)
+        response = self.session.post(f"{self.api}/g/s/media/upload", data=data, headers=headers.ApisHeaders(type=t, data=data, deviceId=deviceId=gen_deviceId() if self.autoDevice else self.device_id, user_agent=self.user_agent, sid=self.sid).headers, proxies=self.proxies, verify=self.certificatePath)
         if response.status_code != 200: 
             return exceptions.CheckException(response.text)
         else:
