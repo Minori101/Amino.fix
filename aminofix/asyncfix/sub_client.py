@@ -66,7 +66,7 @@ class SubClient(client.Client):
         if not self.session.closed: await self.session.close()
 
     def parse_headers(self, data: str = None, type: str = None):
-        return headers.ApisHeaders(deviceId=deviceId() if self.autoDevice else self.device_id, data=data, type=type).headers
+        return headers.ApisHeaders(deviceId=deviceId() if self.autoDevice else self.device_id, data=data, type=type, user_agent=self.user_agent, sid=self.sid).headers
 
     async def get_invite_codes(self, status: str = "normal", start: int = 0, size: int = 25):
         async with self.session.get(f"{self.api}/g/s-x{self.comId}/community/invitation?status={status}&start={start}&size={size}", headers=self.parse_headers()) as response:
