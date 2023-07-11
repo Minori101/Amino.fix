@@ -658,7 +658,7 @@ class Client(Callbacks, SocketHandler):
 
         data = file.read()
 
-        response = self.session.post(f"{self.api}/g/s/media/upload", data=data, headers=headers.ApisHeaders(type=t, data=data, deviceId=deviceId=gen_deviceId() if self.autoDevice else self.device_id, user_agent=self.user_agent, sid=self.sid).headers, proxies=self.proxies, verify=self.certificatePath)
+        response = self.session.post(f"{self.api}/g/s/media/upload", data=data, headers=headers.ApisHeaders(type=t, data=data, deviceId=gen_deviceId() if self.autoDevice else self.device_id, user_agent=self.user_agent, sid=self.sid).headers, proxies=self.proxies, verify=self.certificatePath)
         if response.status_code != 200: 
             return exceptions.CheckException(response.text)
         else:
