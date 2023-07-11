@@ -25,21 +25,10 @@ class Client(Callbacks, SocketHandler):
         self.socket_enabled = socket_enabled
         self.autoDevice = autoDevice
 
-        if sub:
-            if deviceId: 
-                self.device_id = deviceId
-                headers.device_id = deviceId
-            else:
-                self.device_id = headers.device_id
-        else:
-            if deviceId: 
-                self.device_id = deviceId
-                headers.device_id = deviceId
-            else: 
-                self.device_id = gen_deviceId()
-                headers.device_id = self.device_id
-
-        headers.user_agent = userAgent
+        if deviceId: 
+            self.device_id = deviceId
+        else: 
+            self.device_id = gen_deviceId()
 
         SocketHandler.__init__(self, self, socket_trace=socket_trace, debug=socketDebugging)
         Callbacks.__init__(self, self)
@@ -66,7 +55,7 @@ class Client(Callbacks, SocketHandler):
         if not self.session.closed: await self.session.close()
 
     def parse_headers(self, data: str = None, type: str = None):
-        return headers.ApisHeaders(deviceId=gen_deviceId() if self.autoDevice else self.device_id, data=data, type=type).headers
+        return headers.ApisHeaders(deviceId=gen_deviceId() if self.autoDevice else self.device_id, data=data, type=type, user_agent=self.user_agent, sid=self.sid).headers
 
     async def join_voice_chat(self, comId: str, chatId: str, joinType: int = 1):
         """
@@ -197,7 +186,6 @@ class Client(Callbacks, SocketHandler):
         self.userId = uId
         self.account: objects.UserProfile = await self.get_user_info(uId)
         self.profile: objects.UserProfile = await self.get_user_info(uId)
-        headers.sid = self.sid
         await self.startup()
 
     async def login(self, email: str, password: str):
@@ -233,7 +221,6 @@ class Client(Callbacks, SocketHandler):
                 self.account: objects.UserProfile = objects.UserProfile(self.json["account"]).UserProfile
                 self.profile: objects.UserProfile = objects.UserProfile(self.json["userProfile"]).UserProfile
                 self.secret = self.json["secret"]
-                headers.sid = self.sid
                 if self.socket_enabled:
                     self.run_amino_socket()
                 return json.loads(await response.text())
@@ -271,7 +258,6 @@ class Client(Callbacks, SocketHandler):
                 self.account: objects.UserProfile = objects.UserProfile(self.json["account"]).UserProfile
                 self.profile: objects.UserProfile = objects.UserProfile(self.json["userProfile"]).UserProfile
                 self.secret = self.json["secret"]
-                headers.sid = self.sid
                 if self.socket_enabled:
                     self.run_amino_socket()
                 return json.loads(await response.text())
@@ -306,7 +292,6 @@ class Client(Callbacks, SocketHandler):
                 self.userId = self.json["account"]["uid"]
                 self.account: objects.UserProfile = objects.UserProfile(self.json["account"]).UserProfile
                 self.profile: objects.UserProfile = objects.UserProfile(self.json["userProfile"]).UserProfile
-                headers.sid = self.sid
                 if self.socket_enabled:
                     self.run_amino_socket()
                 return json.loads(await response.text())
@@ -407,7 +392,6 @@ class Client(Callbacks, SocketHandler):
                 self.userId = None
                 self.account: None
                 self.profile: None
-                headers.sid = None
                 await self.close()
                 await self.session.close()
                 return response.status
@@ -630,7 +614,7 @@ class Client(Callbacks, SocketHandler):
 
         data = file.read()
 
-        async with self.session.post(f"{self.api}/g/s/media/upload", headers=headers.ApisHeaders(type=t, data=data, deviceId=self.device_id).headers, data=data) as response:
+        async with self.session.post(f"{self.api}/g/s/media/upload", headers=headers.ApisHeaders(type=t, data=data, deviceId=self.device_id, user_agent=self.user_agent, sid=self.sid).headers, data=data) as response:
             if response.status != 200: return exceptions.CheckException(await response.text())
             else: return json.loads(await response.text())["mediaValue"]
 
