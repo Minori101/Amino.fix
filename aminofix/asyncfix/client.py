@@ -34,6 +34,7 @@ class Client(Callbacks, SocketHandler):
         Callbacks.__init__(self, self)
 
         self.tapjoy_headers = headers.Tapjoy().headers
+        self.user_agent = userAgent
 
         self.json = None
         self.sid = None
