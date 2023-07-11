@@ -50,7 +50,7 @@ class SubClient(client.Client):
         except exceptions.UserUnavailable: pass
 
     def parse_headers(self, data: str = None, type: str = None) -> dict:
-        return headers.ApisHeaders(data=data, type=type, deviceId=deviceId=gen_deviceId() if self.autoDevice else self.device_id, user_agent=self.user_agent, sid=self.sid).headers
+        return headers.ApisHeaders(data=data, type=type, deviceId=gen_deviceId() if self.autoDevice else self.device_id, user_agent=self.user_agent, sid=self.sid).headers
 
     def get_invite_codes(self, status: str = "normal", start: int = 0, size: int = 25) -> objects.InviteCodeList:
         response = self.session.get(f"{self.api}/g/s-x{self.comId}/community/invitation?status={status}&start={start}&size={size}", headers=self.parse_headers(), proxies=self.proxies, verify=self.certificatePath)
