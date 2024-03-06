@@ -1,23 +1,27 @@
-from aminofix.lib.util import signature
+from .helpers import signature
 
 from uuid import uuid4
 
 class ApisHeaders:
-    def __init__(self, data = None, type = None, deviceId: str = None, sig: str = None, sid: str = None, user_agent: str = "Apple iPhone12,1 iOS v15.5 Main/3.12.2"):
+    def __init__(self, data = None, user_agent = None, type = None, deviceId: str = None, sig: str = None, sid: str = None, auid: str = None):
 
         headers = {
-            "Accept-Language": "en-US",
+            "Accept": "*/*",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Accept-Language": "en-US,en;q=0.9",
             "Content-Type": "application/x-www-form-urlencoded",
-            "User-Agent": user_agent,
-            "Host": "service.narvii.com",
-            "Accept-Encoding": "gzip",
-            "Connection": "Upgrade"
+            "User-Agent": user_agent or "Apple iPhone12,1 iOS v15.5 Main/3.12.2",
+            "Host": "service.aminoapps.com",
+            "Connection": "keep-alive",
+            "NDCLANG": "en"
         }
 
         if deviceId: headers["NDCDEVICEID"] = deviceId
         if data:
             headers["Content-Length"] = str(len(data))
             headers["NDC-MSG-SIG"] = signature(data)
+        if auid:
+            headers['AUID'] = auid
         if sid: headers["NDCAUTH"] = f"sid={sid}"
         if type: headers["Content-Type"] = type
         if sig: headers["NDC-MSG-SIG"] = sig

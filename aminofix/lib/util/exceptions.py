@@ -851,6 +851,16 @@ class IpTemporaryBan(Exception):
     def __init__(*args, **kwargs):
         Exception.__init__(*args, **kwargs)
 
+class Unauthorized(Exception):
+    """
+    - **API Code** : 401
+    - **API Message** : 401 Unauthorized.
+    - **API String** : ``Unknown String``
+    """
+
+    def __init__(*args, **kwargs):
+        Exception.__init__(*args, **kwargs)
+
 class FailedSubscribeFanClub(Exception):
     """
     - **API Code** : 4805
@@ -912,6 +922,7 @@ def CheckException(data):
     elif api_code == 300: raise BadImage(data)
     elif api_code == 313: raise InvalidThemepack(data)
     elif api_code == 314: raise InvalidVoiceNote(data)
+    elif api_code == 401: raise Unauthorized(data)
     elif api_code == 403: raise IpTemporaryBan(data)
     elif api_code == 500 or api_code == 700 or api_code == 1600: raise RequestedNoLongerExists(data)
     elif api_code == 503: raise PageRepostedTooRecently(data)

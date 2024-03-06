@@ -1,10 +1,10 @@
-import json
-import os
 
-from functools import reduce
 from base64 import b64decode, b64encode
+from functools import reduce
 from typing import Union
 from hashlib import sha1
+from os import urandom
+from json import loads
 from hmac import new
 
 PREFIX = bytes.fromhex("19")
@@ -25,7 +25,7 @@ def update_deviceId(device: str) -> str:
     return gen_deviceId(bytes.fromhex(device[2:42]))
 
 def decode_sid(sid: str) -> dict:
-    return json.loads(b64decode(reduce(lambda a, e: a.replace(*e), ("-+", "_/"), sid + "=" * (-len(sid) % 4)).encode())[1:-20].decode())
+    return loads(b64decode(reduce(lambda a, e: a.replace(*e), ("-+", "_/"), sid + "=" * (-len(sid) % 4)).encode())[1:-20].decode())
 
 def sid_to_uid(SID: str) -> str: return decode_sid(SID)["2"]
 
